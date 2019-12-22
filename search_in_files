@@ -1,0 +1,30 @@
+#! /usr/bin/python
+
+import os
+import sys
+
+sys.path.append('.')
+import fileutils
+
+
+def _Main():
+  args = fileutils.GetSearchArgs()
+  for file in fileutils.IterMatchingFiles(cur_dir=args.cur_dir,
+                                          file_pattern=args.file_pattern,
+                                          text_search_string=args.search_string):
+    with open(file) as fd:
+      file_data = fd.read()
+    matches = []
+    for i, line in enumerate(file_data.splitlines()):
+      if args.search_string in line:
+        matches.append((i, line))
+
+    print "Found %d matches in %s:\n" % (len(matches), os.path.abspath(file))
+
+    for match in matches:
+      print "  %s: \n  %s" % (match[0], match[1])
+    #print _GetFileLines(file)
+
+if __name__ == "__main__":
+  _Main()
+
