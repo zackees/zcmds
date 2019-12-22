@@ -22,8 +22,11 @@ def _Main():
     print "Found %d matches in %s:\n" % (len(matches), os.path.abspath(file))
 
     for match in matches:
-      print "  %s: \n  %s" % (match[0], match[1])
-    #print _GetFileLines(file)
+      haystack = match[1].strip()
+      #pos = haystack.find(match)
+      #if len(haystack) > 60:
+      #  haystack = haystack[0:60] + '...'
+      print "  %s: %s" % (match[0], haystack)
 
 if __name__ == "__main__":
   _Main()

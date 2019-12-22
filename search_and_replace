@@ -24,9 +24,12 @@ def _Main():
     print "Found %d matches in %s:" % (len(matches), os.path.abspath(file))
 
     for match in matches:
-      print "  %s: %s" % (match[0], match[1])
-    #print _GetFileLines(file)
-
+      haystack = match[1].strip()
+      #pos = haystack.find(match)
+      #if len(haystack) > 60:
+      #  haystack = haystack[0:60] + '...'
+      print "  %s: %s" % (match[0], haystack)
+ 
   if 'y' == raw_input('Apply replace? (y/n): ').lower():
     print "Replacing now... %s" % len(files)
     for file in files:
