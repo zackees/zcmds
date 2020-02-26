@@ -1,0 +1,41 @@
+#! /usr/bin/python
+
+import shlex, subprocess, time
+from multiprocessing import Process, Queue
+
+def RunPingProcess(ip, output_q):
+  cmd = 'ping -n -i 0.1 ' + ip
+  p = None
+  try:
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    while True:
+      line = p.stdout.readline()
+      # parse out the part that has the time.
+      time_ms = ''.join(shlex.split(line)[6:7])[5:]
+      if time_ms:
+        output_q.put(time_ms)
+      else:
+        output_q.put(line)
+  finally:
+    if p: p.terminate()
+
+eero_stdout_q = Queue()
+dns_stdout_q = Queue()
+
+p0 = Process(target=RunPingProcess, args=('192.168.7.1' ,eero_stdout_q,))
+p1 = Process(target=RunPingProcess, args=('8.8.8.8', dns_stdout_q,))
+p0.start()
+p1.start()
+
+while True:
+  if eero_stdout_q.empty() and dns_stdout_q.empty():
+    time.sleep(.1)
+    continue
+  eero_str = ''
+  dns_str = ''
+  if not eero_stdout_q.empty():
+    eero_str = eero_stdout_q.get()
+  if not dns_stdout_q.empty():
+    dns_str = dns_stdout_q.get()
+  out = 'eero: {e: <12} dns: {d: <12}'.format(e=eero_str, d=dns_str)
+  print out
