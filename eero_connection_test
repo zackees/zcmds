@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import shlex, subprocess, time
+import os, shlex, subprocess, time
 from multiprocessing import Process, Queue
 
 DNS_BACKBONE = '8.8.8.8'
@@ -21,7 +21,28 @@ def RunPingProcess(ip, output_q):
   finally:
     if p: p.terminate()
 
+
+def GetTraceRoute(dest_ip):
+  """Returns a list of routes to 8.8.8.8 in [(name, ip), ...] form."""
+  trace_route = []
+  cmd = 'traceroute ' + dest_ip
+  try:
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    for line in iter(p.stdout.readline, ''):
+      if '   ' == line[0:4]:  # Ignore non primary hops.
+        continue
+      line = line.rstrip()
+      tokens = shlex.split(line)
+      print 'found: ' + str(line)
+      trace_route.append((tokens[1], tokens[2][1:-1]))
+  finally:
+    p.kill()
+  return trace_route
+
 def Main():
+  #trace_route = GetTraceRoute(DNS_BACKBONE)
+  #print trace_route
+
   eero_stdout_q = Queue()
   dns_stdout_q = Queue()
 
