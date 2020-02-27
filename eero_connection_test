@@ -1,14 +1,15 @@
 #! /usr/bin/python
 
-import os, shlex, subprocess, time, math
-from multiprocessing import Process, Queue
+import shlex, subprocess
+
 
 DNS_BACKBONE = '8.8.8.8'
+
 
 def ParsePingOutput(line):
   time_ms = ''.join(shlex.split(line)[6:7])[5:]
   if time_ms:
-    return str(int(float(time_ms)))
+    return str(int(float(time_ms + 0.5)))
   else:
     return line
 
@@ -47,8 +48,8 @@ def GetTraceRoute(dest_ip):
     p.kill()
   return trace_route
 
+
 def Main():
-  trace_route = GetTraceRoute('8.8.8.8')
 
   def IsIpPingable(ip):
     p = subprocess.Popen('ping -c 5 ' + ip, shell=True, stdout=subprocess.PIPE)
@@ -58,7 +59,9 @@ def Main():
         return True
     print (ip + ' is invalid')
     return False
-  
+
+  trace_route = GetTraceRoute('8.8.8.8')
+  # Filter out ip's that won't ping fast.
   trace_route = [e for e in trace_route if IsIpPingable(e[1])]
 
   def MakeDataRow():
