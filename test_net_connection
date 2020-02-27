@@ -9,7 +9,7 @@ DNS_BACKBONE = '8.8.8.8'
 def ParsePingOutput(line):
   time_ms = ''.join(shlex.split(line)[6:7])[5:]
   if time_ms:
-    return str(int(float(time_ms + 0.5)))
+    return str(int(float(time_ms) + 0.5))
   else:
     return line
 
@@ -17,14 +17,17 @@ def ParsePingOutput(line):
 def RunMultiPing(ip_array):
   procs = []
   for ip in ip_array:
-    cmd_str = 'ping -n -c 1 ' + ip
+    cmd_str = 'ping -n -c 1 -t 1 ' + ip
     p = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE)
     procs.append(p)
   out = []
   for p in procs:
     p.stdout.readline()  # Throw away first readline
     line = p.stdout.readline().rstrip()
-    out.append(ParsePingOutput(line))
+    if line:
+      out.append(ParsePingOutput(line))
+    else:
+      out.append('NET_ERR')
     p.wait()
   return out
 
@@ -52,7 +55,7 @@ def GetTraceRoute(dest_ip):
 def Main():
 
   def IsIpPingable(ip):
-    p = subprocess.Popen('ping -c 5 ' + ip, shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen('ping -c 5 -t 1 ' + ip, shell=True, stdout=subprocess.PIPE)
     for line in iter(p.stdout.readline, ''):
       if 'time=' in line:
         p.wait()
@@ -88,7 +91,6 @@ def Main():
     for name, ip in trace_route:
       tmp.append(ip)
       out_str += '{0: ^16s} | '.format(ip)
-
     return '\n' + out_str + '\n'
 
   while True:
@@ -99,5 +101,7 @@ def Main():
 
 
 if __name__ == "__main__":
-  Main()
-
+  try:
+    Main()
+  except KeyboardInterrupt:
+    pass
