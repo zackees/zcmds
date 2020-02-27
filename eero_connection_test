@@ -1,25 +1,31 @@
 #! /usr/bin/python
 
-import os, shlex, subprocess, time
+import os, shlex, subprocess, time, math
 from multiprocessing import Process, Queue
 
 DNS_BACKBONE = '8.8.8.8'
 
-def RunPingProcess(ip, output_q):
-  cmd = 'ping -n -i 0.1 ' + ip
-  p = None
-  try:
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    while True:
-      line = p.stdout.readline()
-      # parse out the part that has the time.
-      time_ms = ''.join(shlex.split(line)[6:7])[5:]
-      if time_ms:
-        output_q.put(time_ms)
-      else:
-        output_q.put(line)
-  finally:
-    if p: p.terminate()
+def ParsePingOutput(line):
+  time_ms = ''.join(shlex.split(line)[6:7])[5:]
+  if time_ms:
+    return str(int(float(time_ms)))
+  else:
+    return line
+
+
+def RunMultiPing(ip_array):
+  procs = []
+  for ip in ip_array:
+    cmd_str = 'ping -n -c 1 ' + ip
+    p = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE)
+    procs.append(p)
+  out = []
+  for p in procs:
+    p.stdout.readline()  # Throw away first readline
+    line = p.stdout.readline().rstrip()
+    out.append(ParsePingOutput(line))
+    p.wait()
+  return out
 
 
 def GetTraceRoute(dest_ip):
@@ -29,40 +35,59 @@ def GetTraceRoute(dest_ip):
   try:
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     for line in iter(p.stdout.readline, ''):
-      if '   ' == line[0:4]:  # Ignore non primary hops.
+      if line.startswith('  '):
         continue
-      line = line.rstrip()
+      line = line.rstrip().replace('* ', '')
       tokens = shlex.split(line)
-      print 'found: ' + str(line)
-      trace_route.append((tokens[1], tokens[2][1:-1]))
+      name = tokens[1]
+      ip = tokens[2].replace('(', '').replace(')', '')
+      print 'found: %s (%s)' % (name, ip)
+      trace_route.append((name, ip))
   finally:
     p.kill()
   return trace_route
 
 def Main():
-  #trace_route = GetTraceRoute(DNS_BACKBONE)
-  #print trace_route
+  trace_route = GetTraceRoute('8.8.8.8')
+  #trace_route = GetTraceRoute('208.69.43.4')
 
-  eero_stdout_q = Queue()
-  dns_stdout_q = Queue()
+  #for name, ip in trace_route:
 
-  p0 = Process(target=RunPingProcess, args=('192.168.7.1' ,eero_stdout_q,))
-  p1 = Process(target=RunPingProcess, args=(DNS_BACKBONE, dns_stdout_q,))
-  p0.start()
-  p1.start()
+  def IsIpPingable(ip):
+    p = subprocess.Popen('ping -c 5 ' + ip, shell=True, stdout=subprocess.PIPE)
+    for line in iter(p.stdout.readline, ''):
+      if 'time=' in line:
+        p.wait()
+        return True
+    print (ip + ' is invalid')
+    return False
+  
+  trace_route = [e for e in trace_route if IsIpPingable(e[1])]
+
+  def MakeDataRow():
+    ips = [e[1] for e in trace_route]
+    times = RunMultiPing(ips)
+
+    out_str = ''
+    for t in times:
+      out_str += '{0: ^16s} | '.format(t)
+    return out_str
+    #return '\t'.join(RunMultiPing(ips))
+
+  def MakeHeaderRow():
+    tmp = []
+    out_str = ''
+    for name, ip in trace_route:
+      tmp.append(ip)
+      out_str += '{0: ^16s} | '.format(ip)
+    return '\n' + out_str + '\n'
 
   while True:
-    if eero_stdout_q.empty() and dns_stdout_q.empty():
-      time.sleep(.1)
-      continue
-    eero_str = ''
-    dns_str = ''
-    if not eero_stdout_q.empty():
-      eero_str = eero_stdout_q.get()
-    if not dns_stdout_q.empty():
-      dns_str = dns_stdout_q.get()
-    out = 'eero: {e: <12} dns: {d: <12}'.format(e=eero_str, d=dns_str)
-    print out
+    print MakeHeaderRow()
+    for i in range(0, 50):      
+      row = MakeDataRow()
+      print row
+
 
 
 if __name__ == "__main__":
