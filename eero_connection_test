@@ -49,9 +49,6 @@ def GetTraceRoute(dest_ip):
 
 def Main():
   trace_route = GetTraceRoute('8.8.8.8')
-  #trace_route = GetTraceRoute('208.69.43.4')
-
-  #for name, ip in trace_route:
 
   def IsIpPingable(ip):
     p = subprocess.Popen('ping -c 5 ' + ip, shell=True, stdout=subprocess.PIPE)
@@ -67,19 +64,28 @@ def Main():
   def MakeDataRow():
     ips = [e[1] for e in trace_route]
     times = RunMultiPing(ips)
-
     out_str = ''
     for t in times:
       out_str += '{0: ^16s} | '.format(t)
     return out_str
-    #return '\t'.join(RunMultiPing(ips))
 
   def MakeHeaderRow():
+    def sizeStr(s, n):
+      if len(s) < n:
+        return s
+      else:
+        s = s[0:n-3] + '...'
+        return s
     tmp = []
     out_str = ''
     for name, ip in trace_route:
       tmp.append(ip)
+      out_str += '{0: ^16s} | '.format(sizeStr(name, 16))
+    out_str += '\n'
+    for name, ip in trace_route:
+      tmp.append(ip)
       out_str += '{0: ^16s} | '.format(ip)
+
     return '\n' + out_str + '\n'
 
   while True:
@@ -87,7 +93,6 @@ def Main():
     for i in range(0, 50):      
       row = MakeDataRow()
       print row
-
 
 
 if __name__ == "__main__":
