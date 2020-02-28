@@ -43,10 +43,13 @@ def GetTraceRoute(dest_ip):
         continue
       line = line.rstrip().replace('* ', '')
       tokens = shlex.split(line)
-      name = tokens[1]
-      ip = tokens[2].replace('(', '').replace(')', '')
-      print 'found: %s (%s)' % (name, ip)
-      trace_route.append((name, ip))
+      try:
+        name = tokens[1]
+        ip = tokens[2].replace('(', '').replace(')', '')
+        print 'found: %s (%s)' % (name, ip)
+        trace_route.append((name, ip))
+      except IndexError:
+        print 'Error tokenizing %s, skipping' % line
   finally:
     p.kill()
   return trace_route
