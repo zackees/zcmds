@@ -1,0 +1,11 @@
+// Copy or merge these to ~/Library/KeyBindings/DefaultKeyBinding.dict
+// This will fix macOS so that the home/end buttons act like they do on the
+// Windows 10. Such that home goes to the beginning of the current line and end
+// goes to the end of the current line. Without this the buttons go the beginning
+// of the document and to the end, which is USELESS and frustrating.
+{
+    "\UF729"  = moveToBeginningOfLine:; // home
+    "\UF72B"  = moveToEndOfLine:; // end
+    "$\UF729" = moveToBeginningOfLineAndModifySelection:; // shift-home
+    "$\UF72B" = moveToEndOfLineAndModifySelection:; // shift-end
+}
