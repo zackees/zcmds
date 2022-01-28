@@ -1,5 +1,5 @@
 
-import os, sys, shutil
+import os, sys, shutil, json
 
 SELF_DIR = os.path.dirname(__file__)
 COMMON_DIR = os.path.join(SELF_DIR, '..', 'common')
@@ -59,9 +59,26 @@ def add_cmds_to_path():
         raise ValueError(f"{needle} could not be installed into {bash_profile_file}")
 
 
+def add_python_key_bindings():
+    target_file = os.path.join(os.path.expanduser('~'), 'Library', 'Keybindings', 'DefaultKeyBinding.dict')
+    src_file = os.path.join(SELF_DIR, 'macOS_key_bindings.dict')
+    with open(src_file, "rt") as fd:
+        src_file_content = fd.read()
+    if not os.path.exists(target_file):
+        with open(target_file, "rt") as fd:
+            fd.write(src_file_content)
+            return
+    else:
+        with open(target_file, "rt") as fd:
+            target_file_content = fd.read()
+        if target_file_content != src_file_content:
+            sys.stderr.write(f"Please manually merge {src_file} with {target_file}\n")
+
+
 def main():
     gen_macos_cmds()
     add_cmds_to_path()
+    add_python_key_bindings()
         
 
 

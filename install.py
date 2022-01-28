@@ -16,9 +16,6 @@ target_dir = os.path.abspath(os.path.join(SELF_DIR, 'pysrc', 'cmds', 'common'))
 print(target_dir)
 assert os.path.exists(target_dir)
 
-#os.chdir(target_dir)
-#os.system('python install.py')
-
 sys.path.insert(0, target_dir)
 from update import main
 main()
