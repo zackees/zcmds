@@ -21,7 +21,7 @@ def gen_win_cmds():
                   for f in os.listdir(SELF_DIR)]
     all_cmds = common_cmds + macos_cmds
     all_cmds = [cmd for cmd in all_cmds if not os.path.basename(
-        cmd).startswith('_') and cmd.endswith(".py")]
+        cmd).startswith('_') and (cmd.endswith(".py") or cmd.endswith(".bat"))]
     shutil.rmtree(OUT_CMD_DIR, ignore_errors=True)
     os.makedirs(OUT_CMD_DIR, exist_ok=True)
     cmd_set = set([])
@@ -32,12 +32,20 @@ def gen_win_cmds():
             continue
         else:
             cmd_set.add(cmd)
-        print("making command for " + cmd)
-        cmd_name = os.path.basename(cmd)
-        out_cmd = os.path.join(OUT_CMD_DIR, cmd_name)[
-            0:-3] + '.bat'  # swap .py -> .bat
-        with open(out_cmd, 'wt') as f:
-            f.write(f"python {cmd} %1 %2 %3 %4 %5 %6\n")
+        if cmd.endswith('.py'):
+            print("making command for " + cmd)
+            cmd_name = os.path.basename(cmd)
+            out_cmd = os.path.join(OUT_CMD_DIR, cmd_name)[
+                0:-3] + '.bat'  # swap .py -> .bat
+            with open(out_cmd, 'wt') as f:
+                f.write(f"python {cmd} %1 %2 %3 %4 %5 %6\n")
+        elif cmd.endswith('.bat'):
+            cmd_name = os.path.basename(cmd)
+            out_cmd = os.path.join(OUT_CMD_DIR, cmd_name)
+            print(f"copying command {cmd} -> {out_cmd}")
+            shutil.copy(cmd, out_cmd)
+        else:
+            print(f"Unexpected command type: {cmd}")
 
 def is_cmd_path_installed():
     all_paths = _path_manip.read_user_path()
