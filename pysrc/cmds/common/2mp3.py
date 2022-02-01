@@ -10,8 +10,8 @@ def main():
     if not os.path.exists(filename):
         print(f'{filename} does not exist')
         sys.exit(1)
-    out_path = Path('web_' + filename).with_suffix('.mp4')
-    cmd = f'ffmpeg -i "{filename}" -vf scale=640:-1 -c:v libx264 -crf 19 "{out_path}"'
+    out_path = Path('web_' + filename).with_suffix('.mp3')
+    cmd = f'ffmpeg -i "{filename}" -vn -map 0:a -c:a libmp3lame -qscale:a 2 "{out_path}"'
     os.system(cmd)
 
 if __name__ == "__main__":
