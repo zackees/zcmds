@@ -37,7 +37,7 @@ def gen_win_cmds():
         out_cmd = os.path.join(OUT_CMD_DIR, cmd_name)[
             0:-3] + '.bat'  # swap .py -> .bat
         with open(out_cmd, 'wt') as f:
-            f.write(f"python {cmd}\n")
+            f.write(f"python {cmd} %1 %2 %3 %4 %5 %6\n")
 
 def is_cmd_path_installed():
     all_paths = _path_manip.read_user_path()
