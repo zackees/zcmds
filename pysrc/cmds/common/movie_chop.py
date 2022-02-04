@@ -2,19 +2,21 @@ import os
 import sys
 from pathlib import Path
 
+
 def main():
     if len(sys.argv) != 2:
-        print(f'Expected one arg, but got {len(sys.argv)} instead.')
+        print(f"Expected one arg, but got {len(sys.argv)} instead.")
         sys.exit(1)
     chop_seconds = int(input("how many seconds? "))
     filename = sys.argv[1:2][0]
     if not os.path.exists(filename):
-        print(f'{filename} does not exist')
+        print(f"{filename} does not exist")
         sys.exit(1)
-    out_path = Path(filename).with_stem(f'{filename}_chopped').with_suffix('.mp4')
-    #print(file.with_stem(f'A_{file.stem}'))
+    out_path = Path(filename).with_stem(f"{filename}_chopped").with_suffix(".mp4")
+    # print(file.with_stem(f'A_{file.stem}'))
     cmd = f'ffmpeg -i "{filename}" -ss {chop_seconds} -c copy "{out_path}"'
     os.system(cmd)
+
 
 if __name__ == "__main__":
     main()

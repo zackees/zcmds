@@ -4,19 +4,20 @@ import argparse
 import fnmatch
 import os
 
+
 def GetSearchArgs(require_replace_args=False):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cur_dir', default=os.curdir)
-    parser.add_argument('--file_pattern', default=None)
-    parser.add_argument('--search_string', default=None)
-    parser.add_argument('--replace_string', default=None)
+    parser.add_argument("--cur_dir", default=os.curdir)
+    parser.add_argument("--file_pattern", default=None)
+    parser.add_argument("--search_string", default=None)
+    parser.add_argument("--replace_string", default=None)
     args = parser.parse_args()
     if args.file_pattern is None:
-        args.file_pattern = input('file search pattern: ')
+        args.file_pattern = input("file search pattern: ")
     if args.search_string is None:
-        args.search_string = input('search string: ')
+        args.search_string = input("search string: ")
     if require_replace_args and args.replace_string is None:
-        args.replace_string = input('replace string: ')
+        args.replace_string = input("replace string: ")
     return args
 
 
@@ -38,5 +39,5 @@ def ReplaceInFile(file_path, search_text, replace_text):
     with open(file_path) as fd:
         file_data = fd.read()
     file_data = file_data.replace(search_text, replace_text)
-    with open(file_path, 'w') as fd:
+    with open(file_path, "w") as fd:
         fd.write(file_data)

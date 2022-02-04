@@ -4,13 +4,13 @@ import pysrc.src.fileutils as fileutils
 import os
 import sys
 
-sys.path.append('.')
+sys.path.append(".")
 
 
 def file_size(f):
     try:
         val = os.stat(f).st_size
-        return '%s' % val
+        return "%s" % val
     except PermissionError:
         return "-1"
     except FileNotFoundError:
@@ -19,7 +19,7 @@ def file_size(f):
 
 def _main():
     try:
-        for root, dirs, files in os.walk('/', topdown=False):
+        for root, dirs, files in os.walk("/", topdown=False):
             for name in files:
                 f = os.path.abspath(os.path.join(root, name))
                 print('"%s", %s' % (f, file_size(f)))
