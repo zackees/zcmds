@@ -12,8 +12,7 @@ def main():
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
-    out_path = Path(filename).with_stem(f"{filename}_chopped").with_suffix(".mp4")
-    # print(file.with_stem(f'A_{file.stem}'))
+    out_path = Path(filename).with_stem(f"chopped_{filename}").with_suffix(".mp4")
     cmd = f'ffmpeg -i "{filename}" -ss {chop_seconds} -c copy "{out_path}"'
     os.system(cmd)
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 def main():
     if len(sys.argv) != 2:
-        print(f"Expected two args, but got {len(sys.argv)} instead.")
+        print(f"Expected one arg, but got {len(sys.argv)} instead.")
         sys.exit(1)
     filename = sys.argv[1:2][0]
     if not os.path.exists(filename):
