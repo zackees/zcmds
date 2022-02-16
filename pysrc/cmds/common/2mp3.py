@@ -13,7 +13,7 @@ def main():
         sys.exit(1)
     out_path = Path("web_" + filename).with_suffix(".mp3")
     cmd = (
-        f'ffmpeg -i "{filename}" -vn -map 0:a -c:a libmp3lame -qscale:a 2 "{out_path}"'
+        f'ffmpeg -i "{filename}" -vn -c:a libmp3lame -y "{out_path}"'
     )
     os.system(cmd)
 
