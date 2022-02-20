@@ -1,4 +1,3 @@
-
 import shutil
 import sys
 import argparse
@@ -17,11 +16,11 @@ def main() -> None:
         description="Removes an audio track from a source\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument("input", help=f"Filename to strip audio out of")
     parser.add_argument(
-        "input", help=f"Filename to strip audio out of"
-    )
-    parser.add_argument(
-        "output", nargs="?", help=f"Optional output file, other wise a new file is created with <filename>_strip_audio.<ext>"
+        "output",
+        nargs="?",
+        help=f"Optional output file, other wise a new file is created with <filename>_strip_audio.<ext>",
     )
     args = parser.parse_args()
     input = args.input or input("")

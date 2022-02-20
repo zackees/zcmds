@@ -7,7 +7,7 @@ CMD_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", "..", "..", "cmds"))
 
 def main():
     cmds = os.listdir(CMD_DIR)
-    cmds.append('ytclip')
+    cmds.append("ytclip")
     cmds.sort()
     print("\n".join(cmds))
     return

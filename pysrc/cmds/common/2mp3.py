@@ -12,9 +12,7 @@ def main():
         print(f"{filename} does not exist")
         sys.exit(1)
     out_path = Path("web_" + filename).with_suffix(".mp3")
-    cmd = (
-        f'ffmpeg -i "{filename}" -vn -c:a libmp3lame -y "{out_path}"'
-    )
+    cmd = f'ffmpeg -i "{filename}" -vn -c:a libmp3lame -y "{out_path}"'
     os.system(cmd)
 
 
