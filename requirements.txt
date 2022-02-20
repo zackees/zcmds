@@ -1,1 +1,2 @@
 ytclip
+pdf2image
