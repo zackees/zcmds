@@ -15,7 +15,7 @@ def main():
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
-    suffix = f"_clip_{sanitize(start)}_{sanitize(end)}).mp4"
+    suffix = f"_clip_{sanitize(start)}_{sanitize(end)}.mp4"
     out_path = stripext(filename) + suffix
     cmd = f'ffmpeg -i "{filename}" -c:v libx264 -crf 18 -ss {start} -t {end} "{out_path}"'
     os.system(cmd)
