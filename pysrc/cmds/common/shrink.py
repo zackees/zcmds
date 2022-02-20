@@ -11,7 +11,8 @@ def main():
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
-    out_path = Path("web_" + filename).with_suffix(".mp4")
+    path, _ = os.path.splitext(filename)
+    out_path = f"{path}_small.mp4"
     cmd = f'ffmpeg -i "{filename}" -vf scale=640:-1 -c:v libx264 -crf 19 "{out_path}"'
     os.system(cmd)
 
