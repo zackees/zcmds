@@ -3,6 +3,7 @@ import sys
 import argparse
 import os
 import tempfile
+import subprocess
 
 
 def _make_output_name(in_file: str) -> str:
@@ -26,13 +27,20 @@ def main() -> None:
     input = args.input or input("")
     output = args.output or _make_output_name(input)
 
-    # temporary directory allows use of output==input name.
+    error_code = 0
     with tempfile.TemporaryDirectory() as tmpdir:
+        # temporary directory allows use the use case of input and output
+        # name being the same.
         tempout = os.path.join(tmpdir, "file.mp4")
         cmd = f"static_ffmpeg -i {input} -c copy -an {tempout}"
-        os.system(cmd)
-        shutil.copyfile(tempout, output)
-    sys.exit(0)
+        try:
+            subprocess.check_output(cmd, shell=True)
+            shutil.copyfile(tempout, output)
+        except subprocess.CalledProcessError as cpe:
+            print(f"{__file__}: Error while processing {cmd} because of {cpe}"
+                  f"\nSTDOUT\n#################\n{cpe.output}")
+            error_code = cpe.returncode
+    sys.exit(error_code)
 
 
 if __name__ == "__main__":
