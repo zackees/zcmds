@@ -1,0 +1,55 @@
+import os
+import sys
+from pathlib import Path
+import argparse
+
+
+def sanitize(s: str) -> str:
+    return s.replace(":", "-")
+
+
+def stripext(s: str) -> str:
+    return os.path.splitext(s)[0]
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Extracts a video frame.\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("input", help="input")
+    parser.add_argument("--timestamp", help="start of the clip")
+    parser.add_argument("--length", help="length of the clip", default="1")
+    parser.add_argument("--outname", help="output name of the file")
+    args = parser.parse_args()
+    infile = args.input
+    timestamp = args.timestamp or input("timestamp: ")
+    length = args.length
+    if args.outname:
+        output_path = os.path.splitext(args.outname)[0]
+    else:
+        output_path = os.path.splitext(args.input)[0]
+
+    print(infile)
+    if not os.path.exists(infile):
+        print(f"{infile} does not exist")
+        sys.exit(1)
+
+    if not os.path.isdir(output_path):
+        os.makedirs(output_path)
+    # ffmpeg -i foo.avi -r 1 -s WxH -f image2 foo-%03d.jpeg -ss -frames:v
+    file_output_fmt = f'"{output_path}/%03d.jpg"'
+
+    cmd = f'ffmpeg -i "{infile}" -ss {timestamp} -t {length} -f image2 {file_output_fmt}'
+    print(f"Executing:\n  {cmd}\n")
+    os.system(cmd)
+    if not os.path.exists(output_path):
+        print(f"Error, did not generate {output_path}")
+    else:
+        print(f"Generated images are in directory: {output_path}")
+        if sys.platform == "win32":
+            os.system(f"start explorer {output_path}")
+
+
+if __name__ == "__main__":
+    main()

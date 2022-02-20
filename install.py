@@ -13,8 +13,9 @@ SELF_DIR = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(SELF_DIR, 'pysrc', 'cmds', 'common'))
 
 print(target_dir)
-assert os.path.exists(target_dir)
+assert os.path.exists(target_dir), f"platform doesn't exist for {target_dir}"
 
+print("Load platform dependent update and run it's main program.")
 sys.path.insert(0, target_dir)
-from update import main
-main()
+from update import main as platform_main
+platform_main()
