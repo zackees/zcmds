@@ -40,6 +40,7 @@ def main() -> None:
             print(f"{__file__}: Error while processing {cmd} because of {cpe}"
                   f"\nSTDOUT\n#################\n{cpe.output}")
             error_code = cpe.returncode
+    print(f"\n\nCompleted! Output file: {output}")
     sys.exit(error_code)
 
 
