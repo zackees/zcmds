@@ -1,11 +1,6 @@
 import os
 import sys
-from pathlib import Path
 import argparse
-
-
-def sanitize(s: str) -> str:
-    return s.replace(":", "-")
 
 
 def stripext(s: str) -> str:
@@ -29,8 +24,7 @@ def main():
         output_path = os.path.splitext(args.outname)[0]
     else:
         output_path = os.path.splitext(args.input)[0]
-
-    print(infile)
+    output_path = output_path + "_imgs"
     if not os.path.exists(infile):
         print(f"{infile} does not exist")
         sys.exit(1)
@@ -45,6 +39,7 @@ def main():
     os.system(cmd)
     if not os.path.exists(output_path):
         print(f"Error, did not generate {output_path}")
+        print(f"Error from cmd:\n  {cmd}\n")
     else:
         print(f"Generated images are in directory: {output_path}")
         if sys.platform == "win32":
