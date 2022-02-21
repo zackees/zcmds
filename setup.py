@@ -8,7 +8,7 @@ from setuptools import Command, find_packages, setup
 HERE = os.path.dirname(__file__)
 
 NAME = "zcmds"
-DESCRIPTION = "Command to download a video and cut out a clip."
+DESCRIPTION = "Cross platform(ish) productivity commands written in python."
 URL = f"https://github.com/zackees/{NAME}"
 EMAIL = "dont@email.me"
 AUTHOR = "Zach Vorhies"

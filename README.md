@@ -1,5 +1,7 @@
 # zcmds
-Cross platform(ish) productivity commands written in python
+Cross platform(ish) productivity commands written in python. Tools for doing video and searching through files.
+
+More information will be added later.
 
 
 [![Actions Status](https://github.com/zackees/zcmds/workflows/MacOS_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
@@ -7,7 +9,11 @@ Cross platform(ish) productivity commands written in python
 [![Actions Status](https://github.com/zackees/zcmds/workflows/Ubuntu_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
 
 
-# Install:
+# Install (normal)
+  * `python -pip install zcmds`
+
+
+# Install (dev):
 
   * `python -pip install -e .`
   * Test by typing in `zcmds`
