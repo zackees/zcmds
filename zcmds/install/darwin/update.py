@@ -78,6 +78,7 @@ def add_python_key_bindings():
         os.path.expanduser("~"), "Library", "Keybindings", "DefaultKeyBinding.dict"
     )
     if not os.path.exists(target_file):
+        os.makedirs(os.path.dirname(target_file), exist_ok=True)
         with open(target_file, encoding="utf-8", mode="w") as filed:
             filed.write("")
     src_file = os.path.join(SELF_DIR, "macOS_key_bindings.dict")
