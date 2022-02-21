@@ -63,8 +63,9 @@ def append_user_path_if_not_exist(path: str):
     all_paths: List[str] = read_user_path()
     if path in all_paths:
         return False
-    all_paths = f"{all_paths};{path}"
-    set_user_path(all_paths)
+    all_paths_str = ";".join(all_paths)
+    all_paths_str = f"{all_paths_str};{path}"
+    set_user_path(all_paths_str)
     return True
 
 
