@@ -44,7 +44,7 @@ def gen_linux_cmds():
 
 
 def add_cmds_to_path() -> None:
-    """Adds MacOS path to the current environment."""
+    """Adds path to the current environment."""
     needle = f"export PATH=$PATH:{BIN_DIR}"
     bash_profile_file = os.path.expanduser(os.path.join("~", ".bash_profile"))
     if not os.path.exists(bash_profile_file):
@@ -66,7 +66,6 @@ def add_cmds_to_path() -> None:
             f" into {bash_profile_file}, please do it manually."
         )
     lines.insert(last_path_line + 1, needle)
-    # print('\n'.join(lines))
     out_file = "\n".join(lines) + "\n"
     with open(bash_profile_file, encoding="utf-8", mode="wt") as fd:
         fd.write(out_file)
