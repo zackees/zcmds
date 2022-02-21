@@ -17,7 +17,8 @@ def main():
     cmds = [os.path.splitext(c)[0] for c in cmds if c.endswith(".bat") or c.endswith(".exe")]
     cmds.append("ytclip")
     cmds = list(set(cmds))
-    cmds.remove("update")
+    if "update" in cmds:
+        cmds.remove("update")
     cmds.append("zcmds update")
     cmds.append("zcmds_install")
     cmds.sort()
