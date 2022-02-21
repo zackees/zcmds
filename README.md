@@ -9,8 +9,12 @@ Cross platform(ish) productivity commands written in python
 
 # Install:
 
-  * popplar (pdf2image)
-    * win32: `choco install poppler`
-    * ... ?
-  * `python -m pip install -e .`
+  * `python -pip install -e .`
+  * Test by typing in `zcmds`
   * `zcmds_install`
+
+# Additional install
+
+  For the pdf2image use:
+  * win32: `choco install poppler`
+  * ... ?
