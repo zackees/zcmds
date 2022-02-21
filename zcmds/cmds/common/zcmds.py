@@ -13,11 +13,11 @@ SELF_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", ".."))
 BIN_DIR = os.path.join(BASE_DIR, "bin")
 
-os.makedirs(BIN_DIR, exist_ok=True)
-
 
 def main():
-    if "update" in sys.argv:
+    first_run = not os.path.isdir(BIN_DIR)
+    os.makedirs(BIN_DIR, exist_ok=True)
+    if "update" in sys.argv or first_run:
         update.main()
         return
     cmds = os.listdir(BIN_DIR)
