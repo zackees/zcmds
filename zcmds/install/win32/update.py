@@ -29,10 +29,10 @@ def gen_win_cmds() -> None:
     common_cmds = [
         os.path.abspath(os.path.join(COMMON_DIR, f)) for f in common_cmds
     ]
-    macos_cmds = [
+    win32_cmds = [
         os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)
     ]
-    all_cmds = common_cmds + macos_cmds
+    all_cmds = common_cmds + win32_cmds
     all_cmds = [
         cmd
         for cmd in all_cmds
