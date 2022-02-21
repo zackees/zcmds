@@ -1,4 +1,4 @@
-#! /usr/bin/python
+# pylint: skip-file
 
 import shlex
 import subprocess

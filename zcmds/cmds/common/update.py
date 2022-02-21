@@ -1,3 +1,9 @@
+# pylint: skip-file
+
+"""
+    Updater for zcmds.
+"""
+
 import sys
 import os
 

@@ -2,6 +2,8 @@
 Generates a list of the top directories and files that are taking up space.
 The search is started from the cwd.
 """
+# pylint: skip-file
+
 
 import os
 import sys

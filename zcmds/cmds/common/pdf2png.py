@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 from pdf2image import convert_from_path  # type: ignore
 import os
 

@@ -1,3 +1,9 @@
+# pylint: skip-file
+
+"""
+    Main entry point into the zcmds console program.
+"""
+
 import os
 import sys
 
