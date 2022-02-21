@@ -8,16 +8,16 @@ import os
 import shutil
 import sys
 
+from zcmds.paths import CMD_COMMON_DIR, BIN_DIR
+
 SELF_DIR = os.path.dirname(__file__)
-BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", ".."))
-COMMON_DIR = os.path.join(BASE_DIR, "cmds", "common")
-BIN_DIR = os.path.abspath(os.path.join(BASE_DIR, "bin"))
 
 
 def gen_macos_cmds():
     """Generates commands for MacOS."""
     common_cmds = [
-        os.path.abspath(os.path.join(COMMON_DIR, f)) for f in os.listdir(COMMON_DIR)
+        os.path.abspath(os.path.join(CMD_COMMON_DIR, f))
+        for f in os.listdir(CMD_COMMON_DIR)
     ]
     macos_cmds = [
         os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)
