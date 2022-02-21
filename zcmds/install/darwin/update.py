@@ -8,7 +8,7 @@ import os
 import shutil
 import sys
 
-from zcmds.paths import CMD_COMMON_DIR, BIN_DIR
+from zcmds.paths import CMD_COMMON_DIR, BIN_DIR, CMD_DARWIN_DIR
 
 SELF_DIR = os.path.dirname(__file__)
 
@@ -19,8 +19,10 @@ def gen_macos_cmds():
         os.path.abspath(os.path.join(CMD_COMMON_DIR, f))
         for f in os.listdir(CMD_COMMON_DIR)
     ]
+    if "__init__.py" in common_cmds:
+        common_cmds.remove("__init__.py")
     macos_cmds = [
-        os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)
+        os.path.abspath(os.path.join(CMD_DARWIN_DIR, f)) for f in os.listdir(CMD_DARWIN_DIR)
     ]
     all_cmds = common_cmds + macos_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]

@@ -8,7 +8,7 @@ import shutil
 import sys
 from typing import List
 
-from zcmds.paths import BIN_DIR, CMD_COMMON_DIR
+from zcmds.paths import BIN_DIR, CMD_COMMON_DIR, CMD_WIN32_DIR
 from zcmds.util import win32_path_manip
 
 SELF_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -17,16 +17,22 @@ SELF_DIR = os.path.abspath(os.path.dirname(__file__))
 def gen_win_cmds() -> None:
     """Generates windows commands."""
     common_cmds = os.listdir(CMD_COMMON_DIR)
-    if "zcmds" in common_cmds:
-        common_cmds.remove("zcmds")  # This one is built in.
+    if "__init__.py" in common_cmds:
+        common_cmds.remove("__init__.py")
     common_cmds = [
         os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in common_cmds
     ]
     win32_cmds = [
-        os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)
+        os.path.abspath(os.path.join(CMD_WIN32_DIR, f)) for f in os.listdir(CMD_WIN32_DIR)
     ]
     all_cmds = common_cmds + win32_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py") or cmd.endswith(".bat")]
+
+    print("*******")
+    from pprint import pprint
+    pprint(all_cmds)
+    print("*******")
+
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])
@@ -38,7 +44,6 @@ def gen_win_cmds() -> None:
         else:
             cmd_set.add(cmd)
         if cmd.endswith(".py"):
-            print("making command for " + cmd)
             cmd_name = os.path.basename(cmd)
             out_cmd = os.path.join(BIN_DIR, cmd_name)[0:-3] + ".bat"  # swap .py -> .bat
             with open(
