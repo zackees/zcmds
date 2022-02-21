@@ -7,7 +7,7 @@
 import os
 import sys
 
-from zcmds.cmds.common import update
+from zcmds.cmds.common.update import main as update_main
 
 SELF_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", ".."))
@@ -18,8 +18,7 @@ def main():
     first_run = not os.path.isdir(BIN_DIR)
     os.makedirs(BIN_DIR, exist_ok=True)
     if "update" in sys.argv or first_run:
-        update.main()
-        return
+        update_main()
     cmds = os.listdir(BIN_DIR)
     cmds = [
         os.path.splitext(c)[0] for c in cmds if c.endswith(".bat") or c.endswith(".exe")
