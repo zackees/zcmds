@@ -1,3 +1,8 @@
+"""
+    Functions to allow manipulation of the windows %PATH% and have it take effect
+    to the open command windows.
+"""
+
 import argparse
 import ctypes
 import winreg
@@ -5,20 +10,23 @@ import winreg
 REG_PATH_ENV = r"Environment"
 
 
-def set_user_path(value):
+def set_user_path(path_value: str) -> bool:
+    """Sets the user path and broadcasts the update to all processes."""
     try:
         winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH_ENV)
         registry_key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_WRITE
         )
-        winreg.SetValueEx(registry_key, "Path", 0, winreg.REG_SZ, value)
+        winreg.SetValueEx(registry_key, "Path", 0, winreg.REG_SZ, path_value)
         winreg.CloseKey(registry_key)
         # Now broadcast change to all windows.
-        WM_SETTINGCHANGE = 0x1A
-        HWND_BROADCAST = 0xFFFF
-        SMTO_ABORTIFHUNG = 0x0002
+        WM_SETTINGCHANGE = 0x1A  # pylint: disable=invalid-name
+        HWND_BROADCAST = 0xFFFF  # pylint: disable=invalid-name
+        SMTO_ABORTIFHUNG = 0x0002  # pylint: disable=invalid-name
         result = ctypes.c_long()
-        SendMessageTimeoutW = ctypes.windll.user32.SendMessageTimeoutW
+        SendMessageTimeoutW = (  # pylint: disable=invalid-name
+            ctypes.windll.user32.SendMessageTimeoutW
+        )
         SendMessageTimeoutW(
             HWND_BROADCAST,
             WM_SETTINGCHANGE,
@@ -35,20 +43,22 @@ def set_user_path(value):
 
 
 def read_user_path():
+    """Reads the user path from the registry."""
     try:
         registry_key = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_READ
         )
-        value, _ = winreg.QueryValueEx(registry_key, "Path")
+        path, _ = winreg.QueryValueEx(registry_key, "Path")
         winreg.CloseKey(registry_key)
-        path_list = [e for e in value.split(";") if e]
+        path_list = [e for e in path.split(";") if e]
         return ";".join(path_list)
     except WindowsError as err:
         print(f"{err}")
         return None
 
 
-def add_user_path(path):
+def append_user_path_if_not_exist(path):
+    """Conditionally appends the path, if it doesn't already exist.."""
     all_paths = read_user_path()
     if path in all_paths:
         return False
@@ -58,10 +68,11 @@ def add_user_path(path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Win64 path management")
+    """Main entry point for the command line version of this tool."""
+    parser = argparse.ArgumentParser(description="Win32 path management")
     parser.add_argument("--add_path", required=True)
     args = parser.parse_args()
-    added = add_user_path(args.add_path)
+    added = append_user_path_if_not_exist(args.add_path)
     if added:
         print("Added path")
     else:

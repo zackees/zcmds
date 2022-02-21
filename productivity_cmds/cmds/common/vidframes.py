@@ -34,7 +34,9 @@ def main():
     # ffmpeg -i foo.avi -r 1 -s WxH -f image2 foo-%03d.jpeg -ss -frames:v
     file_output_fmt = f'"{output_path}/%03d.jpg"'
 
-    cmd = f'ffmpeg -i "{infile}" -ss {timestamp} -t {length} -f image2 {file_output_fmt}'
+    cmd = (
+        f'ffmpeg -i "{infile}" -ss {timestamp} -t {length} -f image2 {file_output_fmt}'
+    )
     print(f"Executing:\n  {cmd}\n")
     os.system(cmd)
     if not os.path.exists(output_path):

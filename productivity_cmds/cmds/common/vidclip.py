@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 import argparse
 
 
@@ -22,7 +21,9 @@ def main():
     parser.add_argument("--start_timestamp", help="start of the clip")
     parser.add_argument("--length", help="length of the clip")
     parser.add_argument("--outname", help="output name of the file")
-    parser.add_argument("--crf", default="18", type=int, help="crf quality of the file.")
+    parser.add_argument(
+        "--crf", default="18", type=int, help="crf quality of the file."
+    )
     args = parser.parse_args()
 
     infile = args.input

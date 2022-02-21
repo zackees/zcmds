@@ -5,7 +5,7 @@ __pycache__/
 *.pyc
 
 # Generated commands
-/cmds/
+/productivity_cmds/bin/
 
 # C extensions
 *.so
