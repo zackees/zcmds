@@ -63,7 +63,7 @@ def add_cmds_to_path() -> None:
     if last_path_line == -1:
         raise ValueError(
             f"Could not find a place to splice in {BIN_DIR}"
-            " into {bash_profile_file}, please do it manually."
+            f" into {bash_profile_file}, please do it manually."
         )
     lines.insert(last_path_line + 1, needle)
     # print('\n'.join(lines))
