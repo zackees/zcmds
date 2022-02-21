@@ -55,16 +55,11 @@ def add_cmds_to_path() -> None:
         return
     print(f"Attempting to install {BIN_DIR} in {bash_profile_file}")
     lines = bash_profile.splitlines()
-    last_path_line = -1
+    last_path_line = 0
     for i, line in enumerate(lines):
         if "export PATH=" in line:
             last_path_line = i
             continue
-    if last_path_line == -1:
-        raise ValueError(
-            f"Could not find a place to splice in {BIN_DIR}"
-            f" into {bash_profile_file}, please do it manually."
-        )
     lines.insert(last_path_line + 1, needle)
     # print('\n'.join(lines))
     out_file = "\n".join(lines) + "\n"
