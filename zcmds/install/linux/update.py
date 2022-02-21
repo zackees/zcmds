@@ -14,15 +14,15 @@ COMMON_DIR = os.path.join(BASE_DIR, "cmds", "common")
 BIN_DIR = os.path.abspath(os.path.join(BASE_DIR, "bin"))
 
 
-def gen_macos_cmds():
+def gen_linux_cmds():
     """Generates commands for MacOS."""
     common_cmds = [
         os.path.abspath(os.path.join(COMMON_DIR, f)) for f in os.listdir(COMMON_DIR)
     ]
-    macos_cmds = [
+    linux_cmds = [
         os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)
     ]
-    all_cmds = common_cmds + macos_cmds
+    all_cmds = common_cmds + linux_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
@@ -58,9 +58,6 @@ def add_cmds_to_path() -> None:
         if "export PATH=" in line:
             last_path_line = i
             continue
-    # print(bash_profile)
-    # if needle not in bash_profile:
-    #    print("")
     if last_path_line == -1:
         raise ValueError(
             f"Could not find a place to splice in {BIN_DIR}"
@@ -78,30 +75,10 @@ def add_cmds_to_path() -> None:
         raise ValueError(f"{needle} could not be installed into {bash_profile_file}")
 
 
-def add_python_key_bindings():
-    """Adds keybindings to make python development work much better."""
-    target_file = os.path.join(
-        os.path.expanduser("~"), "Library", "Keybindings", "DefaultKeyBinding.dict"
-    )
-    src_file = os.path.join(SELF_DIR, "macOS_key_bindings.dict")
-    with open(src_file, encoding="utf-8", mode="rt") as fd:
-        src_file_content = fd.read()
-    if not os.path.exists(target_file):
-        with open(target_file, encoding="utf-8", mode="rt") as fd:
-            fd.write(src_file_content)
-            return
-    else:
-        with open(target_file, encoding="utf-8", mode="rt") as fd:
-            target_file_content = fd.read()
-        if target_file_content != src_file_content:
-            sys.stderr.write(f"Please manually merge {src_file} with {target_file}\n")
-
-
 def main():
     """Main entry point."""
-    gen_macos_cmds()
+    gen_linux_cmds()
     add_cmds_to_path()
-    add_python_key_bindings()
 
 
 if __name__ == "__main__":

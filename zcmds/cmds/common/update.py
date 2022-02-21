@@ -12,11 +12,17 @@ SELF_DIR = os.path.dirname(__file__)
 
 def main() -> None:
     if sys.platform == "darwin":
-        from zcmds.install.darwin.update import main as linux_main
-        linux_main()
+        from zcmds.install.darwin.update import main as darwin_update
+
+        darwin_update()
     elif sys.platform == "win32":
-        from zcmds.install.win32.update import main as win32_main
-        win32_main()
+        from zcmds.install.win32.update import main as win32_update
+
+        win32_update()
+    elif sys.platform == "linux":
+        from zcmds.install.linux.update import main as linux_update
+
+        linux_update()
     else:
         raise ValueError("Unhandled platform " + sys.platform)
 
