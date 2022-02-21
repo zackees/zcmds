@@ -3,11 +3,10 @@
     Module for doing file searching stuff.
 """
 import os
-from . import fileutils
-
 
 def main():
     """Main program"""
+    from . import fileutils
     args = fileutils.get_search_args()
     for file in fileutils.iter_matching_files(
         cur_dir=args.cur_dir,

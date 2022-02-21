@@ -14,6 +14,7 @@ COMMON_DIR = os.path.join(BASE_DIR, "cmds", "common")
 BIN_DIR = os.path.abspath(os.path.join(BASE_DIR, "bin"))
 
 
+
 def gen_linux_cmds():
     """Generates commands for MacOS."""
     common_cmds = [
@@ -24,6 +25,7 @@ def gen_linux_cmds():
     ]
     all_cmds = common_cmds + linux_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]
+    all_cmds = [cmd for cmd in all_cmds if not cmd.endswith("__init__.py")]
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])
