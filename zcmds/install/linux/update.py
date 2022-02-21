@@ -47,6 +47,8 @@ def add_cmds_to_path() -> None:
     """Adds MacOS path to the current environment."""
     needle = f"export PATH=$PATH:{BIN_DIR}"
     bash_profile_file = os.path.expanduser(os.path.join("~", ".bash_profile"))
+    if not os.path.exists(bash_profile_file):
+        bash_profile = os.path.expanduser(os.path.join("~", ".bashrc"))
     with open(bash_profile_file, encoding="utf-8", mode="rt") as fd:
         bash_profile = fd.read()
     if needle in bash_profile:

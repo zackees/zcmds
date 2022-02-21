@@ -34,7 +34,6 @@ def gen_win_cmds() -> None:
     all_cmds = [
         cmd
         for cmd in all_cmds
-        if not os.path.basename(cmd).startswith("_")
         and (cmd.endswith(".py") or cmd.endswith(".bat"))
     ]
     shutil.rmtree(BIN_DIR, ignore_errors=True)

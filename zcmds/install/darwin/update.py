@@ -47,6 +47,8 @@ def add_cmds_to_path() -> None:
     """Adds MacOS path to the current environment."""
     needle = f"export PATH=$PATH:{BIN_DIR}"
     bash_profile_file = os.path.expanduser(os.path.join("~", ".bash_profile"))
+    if not os.path.exists(bash_profile_file):
+        bash_profile = os.path.expanduser(os.path.join("~", ".bashrc"))
     with open(bash_profile_file, encoding="utf-8", mode="rt") as fd:
         bash_profile = fd.read()
     if needle in bash_profile:
@@ -58,9 +60,6 @@ def add_cmds_to_path() -> None:
         if "export PATH=" in line:
             last_path_line = i
             continue
-    # print(bash_profile)
-    # if needle not in bash_profile:
-    #    print("")
     if last_path_line == -1:
         raise ValueError(
             f"Could not find a place to splice in {BIN_DIR}"
