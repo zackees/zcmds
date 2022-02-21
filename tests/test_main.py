@@ -8,6 +8,10 @@ class MainTester(unittest.TestCase):
         from static_ffmpeg.run import check_system
         check_system()
 
+    def test_zmcds(self) -> None:
+        rtn = os.system("zcmds")
+        self.assertEqual(0, rtn)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -41,8 +41,9 @@ def set_user_path(path_value: str) -> bool:
         print(f"{err}")
         return False
 
+from typing import List
 
-def read_user_path():
+def read_user_path() -> List[str]:
     """Reads the user path from the registry."""
     try:
         registry_key = winreg.OpenKey(
@@ -51,15 +52,15 @@ def read_user_path():
         path, _ = winreg.QueryValueEx(registry_key, "Path")
         winreg.CloseKey(registry_key)
         path_list = [e for e in path.split(";") if e]
-        return ";".join(path_list)
+        return path_list
     except WindowsError as err:
         print(f"{err}")
-        return None
+        return []
 
 
-def append_user_path_if_not_exist(path):
+def append_user_path_if_not_exist(path: str):
     """Conditionally appends the path, if it doesn't already exist.."""
-    all_paths = read_user_path()
+    all_paths: List[str] = read_user_path()
     if path in all_paths:
         return False
     all_paths = f"{all_paths};{path}"

@@ -7,6 +7,8 @@ import os
 import sys
 import shutil
 
+from typing import List
+
 from productivity_cmds import win32_path_manip
 
 SELF_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -52,6 +54,7 @@ def gen_win_cmds() -> None:
                 out_cmd, encoding="utf-8", mode="wt"
             ) as f:  # pylint: disable=invalid-name
                 f.write(f"python {cmd} %1 %2 %3 %4 %5 %6 %7 %8 %9\n")
+
         elif cmd.endswith(".bat"):
             cmd_name = os.path.basename(cmd)
             out_cmd = os.path.join(BIN_DIR, cmd_name)
@@ -59,12 +62,22 @@ def gen_win_cmds() -> None:
             shutil.copy(cmd, out_cmd)
         else:
             print(f"Unexpected command type: {cmd}")
-
+    # git-bash hack, which won't execute run.bat without specifying the
+    # entire name. Work around is to construct a text based exe file-
+    # trampoline.
+    for file_name in os.listdir(BIN_DIR):
+        if file_name.endswith(".bat"):
+            if file_name == "update.bat":
+                # Hack-fix: exclude update.exe to prevent windows error.
+                continue
+            file = os.path.join(BIN_DIR, file_name)
+            exe_file: str = os.path.splitext(file)[0]+".exe"
+            with open(exe_file, encoding="utf-8", mode="wt") as filed:
+                filed.write(f'{file_name} "$@"')
 
 def is_cmd_path_installed() -> bool:
     """Detects if the path is already installed."""
-    all_paths = win32_path_manip.read_user_path()
-    print(all_paths)
+    all_paths: List[str] = win32_path_manip.read_user_path()
     return BIN_DIR in all_paths
 
 
@@ -73,7 +86,7 @@ def add_cmds_to_path() -> None:
     if is_cmd_path_installed():
         print(f"Already found {BIN_DIR} in %PATH%")
         return
-    print(f"Did not found {BIN_DIR} in %PATH%, adding...")
+    print(f"\nDid not found {BIN_DIR} in %PATH%, adding...\n")
     win32_path_manip.append_user_path_if_not_exist(BIN_DIR)
 
 
