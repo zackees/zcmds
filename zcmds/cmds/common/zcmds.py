@@ -1,7 +1,7 @@
 import os
 import sys
 
-from productivity_cmds.cmds.common import update
+from zcmds.cmds.common import update
 
 SELF_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", ".."))

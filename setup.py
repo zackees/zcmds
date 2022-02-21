@@ -7,7 +7,7 @@ from setuptools import Command, find_packages, setup
 # The directory containing this file
 HERE = os.path.dirname(__file__)
 
-NAME = "productivity_cmds"
+NAME = "zcmds"
 DESCRIPTION = "Command to download a video and cut out a clip."
 URL = f"https://github.com/zackees/{NAME}"
 EMAIL = "dont@email.me"
@@ -93,8 +93,8 @@ setup(
 
     entry_points={
         "console_scripts": [
-            "zcmds_install = productivity_cmds.cmds.common.update:main",
-            "zcmds = productivity_cmds.cmds.common.zcmds:main",
+            "zcmds_install = zcmds.cmds.common.update:main",
+            "zcmds = zcmds.cmds.common.zcmds:main",
         ],
     },
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),

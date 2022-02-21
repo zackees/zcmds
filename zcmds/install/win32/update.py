@@ -9,7 +9,7 @@ import shutil
 
 from typing import List
 
-from productivity_cmds import win32_path_manip
+from zcmds import win32_path_manip
 
 SELF_DIR = os.path.abspath(os.path.dirname(__file__))
 BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, "..", ".."))
