@@ -27,12 +27,6 @@ def gen_win_cmds() -> None:
     ]
     all_cmds = common_cmds + win32_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py") or cmd.endswith(".bat")]
-
-    print("*******")
-    from pprint import pprint
-    pprint(all_cmds)
-    print("*******")
-
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])
@@ -58,18 +52,6 @@ def gen_win_cmds() -> None:
             shutil.copy(cmd, out_cmd)
         else:
             print(f"Unexpected command type: {cmd}")
-    # git-bash hack, which won't execute run.bat without specifying the
-    # entire name. Work around is to construct a text based exe file-
-    # trampoline.
-    for file_name in os.listdir(BIN_DIR):
-        if file_name.endswith(".bat"):
-            if file_name == "update.bat":
-                # Hack-fix: exclude update.exe to prevent windows error.
-                continue
-            file = os.path.join(BIN_DIR, file_name)
-            exe_file: str = os.path.splitext(file)[0] + ".exe"
-            with open(exe_file, encoding="utf-8", mode="wt") as filed:
-                filed.write(f'{file_name} "$@"')
 
 
 def is_cmd_path_installed() -> bool:
