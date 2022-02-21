@@ -94,7 +94,7 @@ setup(
     entry_points={
         "console_scripts": [
             "zcmds_install = zcmds.cmds.common.update:main",
-            "zcmds = zcmds.cmds.common.zcmds:main",
+            "zcmds = zcmds.util.zcmds_main:main",
         ],
     },
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),

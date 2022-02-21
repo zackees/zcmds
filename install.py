@@ -2,7 +2,7 @@ import platform
 import sys
 import os
 
-from zcmds.cmds.common.update import main as platform_main
+from zcmds.install.update import main as platform_main
 
 (major, _, _) = platform.python_version_tuple()
 major = int(major)
