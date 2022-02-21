@@ -23,8 +23,11 @@ assert os.path.exists(COMMON_DIR), f"could not find {COMMON_DIR}"
 
 def gen_win_cmds() -> None:
     """Generates windows commands."""
+    common_cmds = os.listdir(COMMON_DIR)
+    if "zcmds" in common_cmds:
+        common_cmds.remove("zcmds")  # This one is built in.
     common_cmds = [
-        os.path.abspath(os.path.join(COMMON_DIR, f)) for f in os.listdir(COMMON_DIR)
+        os.path.abspath(os.path.join(COMMON_DIR, f)) for f in common_cmds
     ]
     macos_cmds = [
         os.path.abspath(os.path.join(SELF_DIR, f)) for f in os.listdir(SELF_DIR)

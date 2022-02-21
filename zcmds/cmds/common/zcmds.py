@@ -31,7 +31,7 @@ def main():
     cmds.append("zcmds update")
     cmds.append("zcmds_install")
     cmds.sort()
-    print("Commands:\n  " + "\n  ".join(cmds))
+    print(f"BIN_DIR: {BIN_DIR}:\nCommands:\n  " + "\n  ".join(cmds))
     return
 
 
