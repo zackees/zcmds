@@ -71,9 +71,10 @@ def gen_win_cmds() -> None:
                 # Hack-fix: exclude update.exe to prevent windows error.
                 continue
             file = os.path.join(BIN_DIR, file_name)
-            exe_file: str = os.path.splitext(file)[0]+".exe"
+            exe_file: str = os.path.splitext(file)[0] + ".exe"
             with open(exe_file, encoding="utf-8", mode="wt") as filed:
                 filed.write(f'{file_name} "$@"')
+
 
 def is_cmd_path_installed() -> bool:
     """Detects if the path is already installed."""

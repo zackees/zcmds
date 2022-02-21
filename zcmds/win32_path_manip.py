@@ -6,6 +6,7 @@
 import argparse
 import ctypes
 import winreg
+from typing import List
 
 REG_PATH_ENV = r"Environment"
 
@@ -41,7 +42,6 @@ def set_user_path(path_value: str) -> bool:
         print(f"{err}")
         return False
 
-from typing import List
 
 def read_user_path() -> List[str]:
     """Reads the user path from the registry."""
