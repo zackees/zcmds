@@ -3,6 +3,7 @@
     Module for doing file searching stuff.
 """
 import os
+
 from . import fileutils
 
 
@@ -23,7 +24,7 @@ def main():
         print(f"Found {len(matches)} matches in {os.path.abspath(file)}:\n")
         for match in matches:
             haystack = match[1].strip()
-            print(f"  {match[0]}: {haystack}" % (match[0], haystack))
+            print(f"  {match[0]}: {haystack}")
 
 
 if __name__ == "__main__":
