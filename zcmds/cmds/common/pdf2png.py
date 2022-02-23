@@ -1,7 +1,9 @@
 # pylint: skip-file
 
+
 from pdf2image import convert_from_path  # type: ignore
 import os
+import sys
 
 
 def main() -> None:
@@ -27,4 +29,19 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        sys.exit(0)
+    except BaseException as e:
+        print(f"Error: could not convert pdf to png, because of {e}")
+        if sys.platform == "win32":
+            print("--> Try running `choco install poppler`")
+        elif sys.platform == "darwin":
+            print("--> Try running `brew install poppler`")
+        elif sys.platform == "linux":
+            print(
+                "--> Try running `sudo apt-get install poppler-utils`"
+            )  # Should this be poppler?
+        else:
+            print(f"Unexpected os {sys.platform}")
+        sys.exit(1)

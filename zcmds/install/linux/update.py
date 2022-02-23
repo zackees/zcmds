@@ -22,7 +22,8 @@ def gen_linux_cmds():
     if "__init__.py" in common_cmds:
         common_cmds.remove("__init__.py")
     linux_cmds = [
-        os.path.abspath(os.path.join(CMD_LINUX_DIR, f)) for f in os.listdir(CMD_LINUX_DIR)
+        os.path.abspath(os.path.join(CMD_LINUX_DIR, f))
+        for f in os.listdir(CMD_LINUX_DIR)
     ]
     all_cmds = common_cmds + linux_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]

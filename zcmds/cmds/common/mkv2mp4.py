@@ -4,6 +4,8 @@ import os
 import sys
 from pathlib import Path
 
+from typing import List
+
 
 def main():
     if len(sys.argv) != 2:

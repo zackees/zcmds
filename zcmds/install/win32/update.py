@@ -23,7 +23,8 @@ def gen_win_cmds() -> None:
         os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in common_cmds
     ]
     win32_cmds = [
-        os.path.abspath(os.path.join(CMD_WIN32_DIR, f)) for f in os.listdir(CMD_WIN32_DIR)
+        os.path.abspath(os.path.join(CMD_WIN32_DIR, f))
+        for f in os.listdir(CMD_WIN32_DIR)
     ]
     all_cmds = common_cmds + win32_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py") or cmd.endswith(".bat")]
