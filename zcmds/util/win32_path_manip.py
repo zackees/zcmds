@@ -1,9 +1,10 @@
+# pylint: skip-file
+
 """
     Functions to allow manipulation of the windows %PATH% and have it take effect
     to the open command windows.
 """
 
-# pylint: skip-file
 
 import sys
 
