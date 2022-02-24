@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.6, 3.9]
+        python-version: [3.8]
         os: [macos-latest]
     steps:
     - uses: actions/checkout@v2
@@ -24,7 +24,9 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install -e '.[test]'
-    - name: Run tests
+        python -m pip install --upgrade pip
+        python -m pip install tox tox-gh-actions
+    - name: Run Tox
       run: |
-        pytest
+        tox py38
+
