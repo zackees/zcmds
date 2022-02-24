@@ -1,4 +1,4 @@
-name: Pylinting
+name: tox
 
 on: [push]
 
@@ -24,9 +24,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install -e '.[test]' && pip install -r requirements.testing.txt
-    - name: Run pylint
+        pip install tox
+    - name: Run Tox
       run: |
-        pylint zcmds
-        flake8 zcmds
-        mypy zcmds
+        tox
