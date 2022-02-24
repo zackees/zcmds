@@ -13,14 +13,20 @@ from zcmds.util import win32_path_manip
 
 SELF_DIR = os.path.abspath(os.path.dirname(__file__))
 
+PATH_GIT_BASH = r"C:\Program Files\Git\bin"
+
 
 def gen_win_cmds() -> None:
     """Generates windows commands."""
     common_cmds = os.listdir(CMD_COMMON_DIR)
     common_cmds = [os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in common_cmds]
-    win32_cmds = [
-        os.path.abspath(os.path.join(CMD_WIN32_DIR, f)) for f in os.listdir(CMD_WIN32_DIR)
-    ]
+    win32_cmds = []
+    if os.path.exists(PATH_GIT_BASH):
+        win32_cmds = [
+            os.path.abspath(os.path.join(CMD_WIN32_DIR, f)) for f in os.listdir(CMD_WIN32_DIR)
+        ]
+    else:
+        print("Warning, git-bash not found, skipping unix-like commands.")
     all_cmds = common_cmds + win32_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py") or cmd.endswith(".bat")]
     all_cmds = [cmd for cmd in all_cmds if not cmd.endswith("__init__.py")]
