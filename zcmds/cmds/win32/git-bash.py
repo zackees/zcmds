@@ -1,3 +1,5 @@
+# pylint: disable
+
 import subprocess
 
 subprocess.Popen(

@@ -20,9 +20,7 @@ def main():
     if "update" in sys.argv or first_run:
         update_main()
     cmds = os.listdir(BIN_DIR)
-    cmds = [
-        os.path.splitext(c)[0] for c in cmds if c.endswith(".bat") or c.endswith(".exe")
-    ]
+    cmds = [os.path.splitext(c)[0] for c in cmds if c.endswith(".bat") or c.endswith(".exe")]
     cmds.append("ytclip")
     cmds = list(set(cmds))
     if "update" in cmds:

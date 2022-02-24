@@ -15,9 +15,7 @@ def set_user_path(path_value: str) -> bool:
     """Sets the user path and broadcasts the update to all processes."""
     try:
         winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH_ENV)
-        registry_key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_WRITE
-        )
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_WRITE)
         winreg.SetValueEx(registry_key, "Path", 0, winreg.REG_SZ, path_value)
         winreg.CloseKey(registry_key)
         # Now broadcast change to all windows.
@@ -46,9 +44,7 @@ def set_user_path(path_value: str) -> bool:
 def read_user_path() -> List[str]:
     """Reads the user path from the registry."""
     try:
-        registry_key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_READ
-        )
+        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH_ENV, 0, winreg.KEY_READ)
         path, _ = winreg.QueryValueEx(registry_key, "Path")
         winreg.CloseKey(registry_key)
         path_list = [e for e in path.split(";") if e]

@@ -16,12 +16,10 @@ SELF_DIR = os.path.dirname(__file__)
 def gen_macos_cmds():
     """Generates commands for MacOS."""
     common_cmds = [
-        os.path.abspath(os.path.join(CMD_COMMON_DIR, f))
-        for f in os.listdir(CMD_COMMON_DIR)
+        os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in os.listdir(CMD_COMMON_DIR)
     ]
     macos_cmds = [
-        os.path.abspath(os.path.join(CMD_DARWIN_DIR, f))
-        for f in os.listdir(CMD_DARWIN_DIR)
+        os.path.abspath(os.path.join(CMD_DARWIN_DIR, f)) for f in os.listdir(CMD_DARWIN_DIR)
     ]
     all_cmds = common_cmds + macos_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]
@@ -31,9 +29,7 @@ def gen_macos_cmds():
     cmd_set = set([])
     for cmd in all_cmds:
         if cmd in cmd_set:
-            sys.stderr.write(
-                f"Warning, duplicate found for {os.path.basename(cmd)}, skipping."
-            )
+            sys.stderr.write(f"Warning, duplicate found for {os.path.basename(cmd)}, skipping.")
         else:
             cmd_set.add(cmd)
         print("making command for " + cmd)

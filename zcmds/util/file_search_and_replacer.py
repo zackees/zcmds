@@ -17,9 +17,7 @@ def main():
         text_search_string=args.search_string,
     ):
         files.append(file)
-        with open(
-            file, encoding="utf-8"
-        ) as fd:  # pylint: disable=invalid-name,duplicate-code
+        with open(file, encoding="utf-8") as fd:  # pylint: disable=invalid-name,duplicate-code
             file_data = fd.read()
         matches = []
         for i, line in enumerate(file_data.splitlines()):

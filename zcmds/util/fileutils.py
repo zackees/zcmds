@@ -33,9 +33,7 @@ def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
                 if text_search_string is None:
                     yield full_path
                 else:
-                    with open(
-                        full_path, encoding="utf-8"
-                    ) as fd:  # pylint: disable=invalid-name
+                    with open(full_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
                         file_data = fd.read()
                     if text_search_string in file_data:
                         yield full_path
@@ -46,7 +44,5 @@ def replace_in_file(file_path, search_text, replace_text):
     with open(file_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
         file_data = fd.read()
     file_data = file_data.replace(search_text, replace_text)
-    with open(
-        file_path, encoding="utf-8", mode="w"
-    ) as fd:  # pylint: disable=invalid-name
+    with open(file_path, encoding="utf-8", mode="w") as fd:  # pylint: disable=invalid-name
         fd.write(file_data)
