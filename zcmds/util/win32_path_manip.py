@@ -3,6 +3,8 @@
     to the open command windows.
 """
 
+# pylint: skip-file
+
 import sys
 
 if sys.platform != "win32":
