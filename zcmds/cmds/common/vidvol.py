@@ -22,7 +22,7 @@ def ffmpeg_adjust_volume(filename: str, volume: float, out_file: str):
     os.system(cmd)
 
 
-def ffmpeg_volume_detect(filename: str) -> float:
+def ffmpeg_print_volume_detect(filename: str) -> None:
     """
     Uses ffmpeg to get the volume of a video file.
     """
@@ -44,7 +44,7 @@ def main():
     args = parser.parse_args()
     vidfile = args.vidfile or input("in vid file: ")
     if args.out is None and args.volume is None:
-        ffmpeg_volume_detect(vidfile)
+        ffmpeg_print_volume_detect(vidfile)
         return
     vol = args.volume or input("volume: ")
     out = args.out or input("out vid file: ")
