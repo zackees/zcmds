@@ -1,2 +1,3 @@
 ytclip
 pdf2image
+ffmpeg-normalize
