@@ -3,6 +3,11 @@
     to the open command windows.
 """
 
+import sys
+
+if sys.platform != "win32":
+    raise OSError("This script is only for windows.")
+
 import argparse
 import ctypes
 import winreg
