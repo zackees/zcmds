@@ -13,6 +13,9 @@ def stripext(s: str) -> str:
     return os.path.splitext(s)[0]
 
 
+_CRF_DEFAULT = 18
+
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -23,14 +26,14 @@ def main():
     parser.add_argument("--start_timestamp", help="start of the clip")
     parser.add_argument("--end_timestamp", help="length of the clip")
     parser.add_argument("--outname", help="output name of the file")
-    parser.add_argument("--crf", default="18", type=int, help="crf quality of the file.")
+    parser.add_argument("--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file.")
     args = parser.parse_args()
 
     is_interactive = (
         (args.start_timestamp is None)
         and (args.end_timestamp is None)
         and (args.outname is None)
-        and (args.crf is None)
+        and (args.crf == _CRF_DEFAULT)
     )
 
     infile = args.input or input("Input video: ")
@@ -63,10 +66,10 @@ def main():
         if not os.path.exists(output_path):
             print(f"Error, did not generate {output_path}")
         else:
-            print(f"Generated: {output_path}")
+            print(f"\nGenerated: {output_path}")
         if not is_interactive:
             break
-        if "y" in input("Continue? (y/n): ").lower():
+        if "y" not in input("Continue? (y/n): ").lower():
             break
         args.start_timestamp = None
         args.end_timestamp = None
