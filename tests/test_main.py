@@ -1,7 +1,6 @@
 import os
 import sys
 import unittest
-from ftplib import all_errors
 from subprocess import check_output
 
 from zcmds.paths import (

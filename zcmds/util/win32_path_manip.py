@@ -10,7 +10,7 @@ if sys.platform != "win32":
 
 import argparse
 import ctypes
-import winreg
+import winreg  # pylint: disable=import-error
 from typing import List
 
 REG_PATH_ENV = r"Environment"
@@ -41,7 +41,7 @@ def set_user_path(path_value: str) -> bool:
             ctypes.byref(result),
         )
         return True
-    except WindowsError as err:
+    except BaseException as err:
         print(f"{err}")
         return False
 
@@ -54,7 +54,7 @@ def read_user_path() -> List[str]:
         winreg.CloseKey(registry_key)
         path_list = [e for e in path.split(";") if e]
         return path_list
-    except WindowsError as err:
+    except BaseException as err:
         print(f"{err}")
         return []
 
