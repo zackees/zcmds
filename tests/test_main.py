@@ -25,7 +25,7 @@ ALL_DIRS = [
 
 
 def exec(cmd: str) -> str:
-    stdout = check_output("zcmds", shell=True, universal_newlines=True)
+    stdout = check_output(cmd, shell=True, universal_newlines=True)
     return stdout
 
 
