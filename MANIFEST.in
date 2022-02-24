@@ -1,2 +1,3 @@
 include requirements.txt
 include requirements.testing.txt
+include zcmds/install/darwin/macOS_key_bindings.dict
