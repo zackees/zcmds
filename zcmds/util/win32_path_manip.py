@@ -1,4 +1,5 @@
 # pylint: skip-file
+# mypy: ignore-errors
 
 """
     Functions to allow manipulation of the windows %PATH% and have it take effect
