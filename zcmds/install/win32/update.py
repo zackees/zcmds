@@ -14,6 +14,7 @@ from zcmds.util import win32_path_manip
 SELF_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
+
 def gen_win_cmds() -> None:
     """Generates windows commands."""
     common_cmds = os.listdir(CMD_COMMON_DIR)
@@ -28,6 +29,7 @@ def gen_win_cmds() -> None:
     ]
     all_cmds = common_cmds + win32_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py") or cmd.endswith(".bat")]
+    all_cmds = [cmd for cmd in all_cmds if not cmd.endswith("__init__.py")]
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])

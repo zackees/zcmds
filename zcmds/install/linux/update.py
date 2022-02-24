@@ -27,6 +27,7 @@ def gen_linux_cmds():
     ]
     all_cmds = common_cmds + linux_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]
+    all_cmds = [cmd for cmd in all_cmds if not cmd.endswith("__init__.py")]
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])

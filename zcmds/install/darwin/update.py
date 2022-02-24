@@ -19,14 +19,13 @@ def gen_macos_cmds():
         os.path.abspath(os.path.join(CMD_COMMON_DIR, f))
         for f in os.listdir(CMD_COMMON_DIR)
     ]
-    if "__init__.py" in common_cmds:
-        common_cmds.remove("__init__.py")
     macos_cmds = [
         os.path.abspath(os.path.join(CMD_DARWIN_DIR, f))
         for f in os.listdir(CMD_DARWIN_DIR)
     ]
     all_cmds = common_cmds + macos_cmds
     all_cmds = [cmd for cmd in all_cmds if cmd.endswith(".py")]
+    all_cmds = [cmd for cmd in all_cmds if not cmd.endswith("__init__.py")]
     shutil.rmtree(BIN_DIR, ignore_errors=True)
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])
