@@ -37,15 +37,6 @@ def _get_movie_files(start_dir="."):
     return files
 
 
-def ffmpeg_adjust_volume(filename: str, volume: float):
-    """
-    Adjusts the volume of a video file.
-    """
-    cmd = f"ffmpeg -i {filename} -af volume={volume} {filename}"
-    print(f"Executing:\n  {cmd}")
-    os.system(cmd)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Print video durations\n",
