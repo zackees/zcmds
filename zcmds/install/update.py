@@ -4,9 +4,9 @@
     Updater for zcmds.
 """
 
-import sys
 import os
 import shutil
+import sys
 
 from zcmds.paths import BIN_DIR
 
@@ -30,17 +30,17 @@ def main() -> None:
     # delete everything in BIN_DIR, if it exists.
     remove_everything_in_dir(BIN_DIR)
     if sys.platform == "darwin":
-        from zcmds.install.darwin.update import main as darwin_update
+        from zcmds.install.darwin import darwin_update
 
-        darwin_update()
+        darwin_update.main()
     elif sys.platform == "win32":
-        from zcmds.install.win32.update import main as win32_update
+        from zcmds.install.win32 import win32_update
 
-        win32_update()
+        win32_update.main()
     elif sys.platform == "linux":
-        from zcmds.install.linux.update import main as linux_update
+        from zcmds.install.linux import linux_update
 
-        linux_update()
+        linux_update.main()
     else:
         raise ValueError("Unhandled platform " + sys.platform)
 
