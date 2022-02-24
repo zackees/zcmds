@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from ftplib import all_errors
 from subprocess import check_output
 
 from zcmds.paths import (
@@ -47,6 +48,8 @@ class MainTester(unittest.TestCase):
 
     def test_folder_existance(self) -> None:
         exec("zcmds")
+        all_dirs = list(ALL_DIRS)
+        all_dirs.remove(BIN_DIR)  # Hack, bin should exist after exec("zcmds")
         for d in ALL_DIRS:
             self.assertTrue(os.path.isdir(d), f"{d} is not a directory")
 
