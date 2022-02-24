@@ -8,7 +8,7 @@ import os
 import shutil
 import sys
 
-from zcmds.paths import CMD_COMMON_DIR, BIN_DIR, CMD_LINUX_DIR
+from zcmds.paths import BIN_DIR, CMD_COMMON_DIR, CMD_LINUX_DIR
 
 SELF_DIR = os.path.dirname(__file__)
 
