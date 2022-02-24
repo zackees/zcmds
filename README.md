@@ -7,7 +7,6 @@ More information will be added later.
 [![Actions Status](https://github.com/zackees/zcmds/workflows/MacOS_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
 [![Actions Status](https://github.com/zackees/zcmds/workflows/Win_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_win.yml)
 [![Actions Status](https://github.com/zackees/zcmds/workflows/Ubuntu_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
-[![Actions Status](https://github.com/zackees/zcmds/workflows/Ubuntu_tox/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu_tox.yml)
 
 
 # Install (normal)
