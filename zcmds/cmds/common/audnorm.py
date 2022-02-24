@@ -5,7 +5,6 @@
 import argparse
 import os
 import subprocess
-import sys
 
 
 def ffprobe_duration(filename: str) -> float:

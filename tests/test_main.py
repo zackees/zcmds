@@ -4,6 +4,7 @@ import unittest
 import subprocess
 import sys
 
+
 class MainTester(unittest.TestCase):
     def test_imports(self) -> None:
         from static_ffmpeg.run import check_system

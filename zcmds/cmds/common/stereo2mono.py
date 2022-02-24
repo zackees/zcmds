@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from pathlib import Path
 
 
 def _apply_name_suffix(path, new_name_suffix):

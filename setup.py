@@ -29,9 +29,10 @@ with open(VERSION_FILE, encoding="utf-8", mode="rt") as fd:
         if "VERSION" in line:
             if "#" in line:  # Remove comments
                 line = line.split("#")[0]
-            VERSION = line.split("=")[1].strip(" \n\"")
+            VERSION = line.split("=")[1].strip(' \n"')
             print(VERSION)
             break
+
 
 class UploadCommand(Command):
     """Support setup.py upload."""
@@ -90,7 +91,6 @@ setup(
         "Environment :: Console",
     ],
     install_requires=REQUIREMENTS,
-
     entry_points={
         "console_scripts": [
             "zcmds_install = zcmds.install.update:main",
