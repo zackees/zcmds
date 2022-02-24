@@ -32,7 +32,7 @@ def set_user_path(path_value: str) -> bool:
         SMTO_ABORTIFHUNG = 0x0002  # pylint: disable=invalid-name
         result = ctypes.c_long()
         SendMessageTimeoutW = (  # pylint: disable=invalid-name
-            ctypes.windll.user32.SendMessageTimeoutW
+            ctypes.windll.user32.SendMessageTimeoutW  # pylint: disable=invalid-name
         )
         SendMessageTimeoutW(
             HWND_BROADCAST,
