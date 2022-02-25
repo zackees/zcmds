@@ -2,7 +2,9 @@
 
 import argparse
 import os
+import subprocess
 import sys
+from typing import Tuple
 
 
 def sanitize(s: str) -> str:
@@ -14,6 +16,23 @@ def stripext(s: str) -> str:
 
 
 _CRF_DEFAULT = 18
+
+
+def exec(cmd: str) -> Tuple[int, str, str]:
+    proc = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    stdout, stderr = proc.communicate()
+    return proc.returncode, stdout, stderr
+
+
+# Tests if a path exists, and if it does then it names it with the next number
+def get_next_path(path: str) -> str:
+    if not os.path.exists(path):
+        return path
+    else:
+        base, ext = os.path.splitext(path)
+        return get_next_path(f"{base}_alt{ext}")
 
 
 def main():
@@ -54,6 +73,8 @@ def main():
             _, ext = os.path.splitext(output_path)
             if ext == "":
                 output_path = output_path + ".mp4"
+        # Silently handle collisions with an existing file.
+        output_path = get_next_path(output_path)
         count += 1
         crf = args.crf  # The amount of quality, 0 is lossless and 50 is shit.
 
@@ -61,8 +82,12 @@ def main():
         if not os.path.exists(infile):
             print(f"{infile} does not exist")
             sys.exit(1)
+
         cmd = f'ffmpeg -i "{infile}" -c:v libx264 -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
-        os.system(cmd)
+        print(f"Executing:\n  {cmd}\n")
+        rtn, _, _ = exec(cmd)
+        if rtn != 0:
+            print(f"{__file__}: WARNING: '{cmd}' returned code {rtn}")
         if not os.path.exists(output_path):
             print(f"Error, did not generate {output_path}")
         else:
