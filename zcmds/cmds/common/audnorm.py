@@ -24,18 +24,6 @@ def _is_media_file(filename: str) -> bool:
     return ext in [".mp4", ".mkv", ".avi", ".mov", ".mp3", ".wav"]
 
 
-def _get_movie_files(start_dir="."):
-    """
-    Recursively get all files in a directory
-    """
-    files = [
-        os.path.join(start_dir, f)
-        for f in os.listdir(start_dir)
-        if _is_media_file(os.path.join(start_dir, f))
-    ]
-    return files
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Print video durations\n",

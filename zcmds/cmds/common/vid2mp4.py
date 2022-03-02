@@ -1,21 +1,35 @@
 # pylint: skip-file
 
+import argparse
 import os
 import sys
 from pathlib import Path
 
+VERSION = "0.1.0"
+
 
 def main():
-    if len(sys.argv) != 2:
-        print(f"Expected one arg, but got {len(sys.argv)} instead.")
-        sys.exit(1)
-    filename = sys.argv[1:2][0]
+    parser = argparse.ArgumentParser(description="Convert video to mp4")
+    parser.add_argument("filename", help="Path to video file", nargs="?")
+    parser.add_argument("--rencode", help="rencode the video", action="store_true")
+    parser.add_argument("--version", help="Print version and exit", action="store_true")
+    args = parser.parse_args()
+    if args.version:
+        print(VERSION)
+        sys.exit(0)
+    filename = args.filename
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
     out_path = Path(filename).with_suffix(".mp4")
-    cmd = f'ffmpeg -i "{filename}" -c copy "{out_path}"'
+
+    # -c:v libx264
+    if args.rencode:
+        cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vcodec libx264 -preset slow -crf 18 -c:a copy -y "{out_path}"'
+    else:
+        cmd = f'ffmpeg -i "{filename}" -c copy "{out_path}"'
     os.system(cmd)
+    print(f"Generated {out_path}")
 
 
 if __name__ == "__main__":

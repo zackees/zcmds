@@ -83,7 +83,7 @@ def main():
             print(f"{infile} does not exist")
             sys.exit(1)
 
-        cmd = f'ffmpeg -i "{infile}" -c:v libx264 -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
         print(f"Executing:\n  {cmd}\n")
         rtn, _, _ = exec(cmd)
         if rtn != 0:

@@ -14,7 +14,7 @@ def main():
         sys.exit(1)
     path, _ = os.path.splitext(filename)
     out_path = f"{path}_small.mp4"
-    cmd = f'ffmpeg -i "{filename}" -vf scale=640:-1 -c:v libx264 -crf 19 "{out_path}"'
+    cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vf scale=640:-1 -c:v libx264 -crf 19 "{out_path}"'
     os.system(cmd)
 
 
