@@ -5,6 +5,7 @@
 import argparse
 import fnmatch
 import os
+import sys
 
 
 def get_search_args(require_replace_args=False):
@@ -34,7 +35,11 @@ def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
                     yield full_path
                 else:
                     with open(full_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
-                        file_data = fd.read()
+                        try:
+                            file_data = fd.read()
+                        except UnicodeDecodeError:
+                            sys.stderr.write(f"  {__file__}: Could not read file: {full_path}\n")
+                            continue
                     if text_search_string in file_data:
                         yield full_path
 
