@@ -28,6 +28,8 @@ def get_search_args(require_replace_args=False):
 def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
     """Generates an iterator for matching files."""
     for path, dirs, files in os.walk(cur_dir):  # pylint: disable=unused-variable
+        if ".git" in path.split(os.sep):
+            continue
         for f in files:  # pylint: disable=invalid-name
             if fnmatch.fnmatch(f, file_pattern):
                 full_path = os.path.join(path, f)
@@ -38,7 +40,7 @@ def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
                         try:
                             file_data = fd.read()
                         except UnicodeDecodeError:
-                            sys.stderr.write(f"  {__file__}: Could not read file: {full_path}\n")
+                            # sys.stderr.write(f"  {__file__}: Could not read file: {full_path}\n")
                             continue
                     if text_search_string in file_data:
                         yield full_path
