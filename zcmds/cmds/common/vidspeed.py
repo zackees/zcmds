@@ -4,7 +4,6 @@
 
 import argparse
 import os
-import subprocess
 
 
 def ffmpeg_multiply_speed(inputfile: str, speed: float, outfile: str) -> None:

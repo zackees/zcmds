@@ -5,7 +5,6 @@
 import argparse
 import fnmatch
 import os
-import sys
 
 
 def get_search_args(require_replace_args=False):
