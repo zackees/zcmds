@@ -70,8 +70,20 @@ class UploadCommand(Command):
         sys.exit()
 
 package_data = []
-if sys.platform == "darwin":
-    package_data.append("zcmds/install/darwin/macOS_key_bindings.dict")
+# walk through zcmds directory and add all files to package_data
+for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "cmds")):
+    for file in files:
+        package_data.append(os.path.join(root, file))
+
+for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "install")):
+    for file in files:
+        package_data.append(os.path.join(root, file))
+
+from pprint import pprint
+
+pprint(package_data)
+
+# sys.exit(0)
 
 setup(
     name=NAME,
