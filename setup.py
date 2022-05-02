@@ -70,6 +70,7 @@ class UploadCommand(Command):
         sys.exit()
 
 package_data = []
+
 # walk through zcmds directory and add all files to package_data
 for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "cmds")):
     for file in files:
@@ -78,6 +79,9 @@ for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "cmds")):
 for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "install")):
     for file in files:
         package_data.append(os.path.join(root, file))
+
+# Make all package_data files relative to HERE
+package_data = [os.path.relpath(path, HERE) for path in package_data]
 
 from pprint import pprint
 

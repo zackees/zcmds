@@ -8,7 +8,7 @@ import os
 import shutil
 import sys
 
-from zcmds.paths import CMD_COMMON_DIR, BIN_DIR, CMD_DARWIN_DIR
+from zcmds.paths import BIN_DIR, CMD_COMMON_DIR, CMD_DARWIN_DIR
 
 SELF_DIR = os.path.dirname(__file__)
 
@@ -36,9 +36,9 @@ def gen_macos_cmds():
         cmd_name = os.path.basename(cmd)
         out_cmd = os.path.join(BIN_DIR, cmd_name)[0:-3]  # strips .py extension
         with open(out_cmd, encoding="utf-8", mode="wt") as f:
-            f.write("python3 " + cmd + "\n")
+            f.write(f'python3 {cmd} "$@"\n')
         # Allow execution on the commands.
-        os.system("chmod +x " + out_cmd)
+        os.system(f"chmod +x {out_cmd}")
 
 
 def add_cmds_to_path() -> None:
