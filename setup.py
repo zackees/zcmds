@@ -69,6 +69,9 @@ class UploadCommand(Command):
 
         sys.exit()
 
+package_data = []
+if sys.platform == "darwin":
+    package_data.append("zcmds/install/darwin/macOS_key_bindings.dict")
 
 setup(
     name=NAME,
@@ -98,7 +101,9 @@ setup(
         ],
     },
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-    package_data={},
+    package_data={
+        "zcmds": package_data,
+    },
     include_package_data=True,
     extras_require={
         "test": ["pytest"],
