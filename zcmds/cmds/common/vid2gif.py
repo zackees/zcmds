@@ -6,10 +6,6 @@ import subprocess
 import sys
 
 
-def stripext(s: str) -> str:
-    return os.path.splitext(s)[0]
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Extracts a video frame.\n",
