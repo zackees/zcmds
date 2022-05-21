@@ -18,7 +18,7 @@ def RunMultiPing(ip_array):
     procs = []
     for ip in ip_array:
         cmd_str = "ping -n -c 1 -t 1 " + ip
-        p = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         procs.append(p)
     out = []
     for p in procs:
