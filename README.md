@@ -24,3 +24,8 @@ More information will be added later.
   For the pdf2image use:
   * win32: `choco install poppler`
   * ... ?
+
+# Note:
+
+Running tox will install hooks into the .tox directory. Keep this in my if you are developing.
+TODO: Add a cleanup function to undo this.

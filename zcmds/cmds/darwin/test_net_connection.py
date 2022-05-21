@@ -3,7 +3,6 @@
 import shlex
 import subprocess
 
-
 DNS_BACKBONE = "8.8.8.8"
 
 
@@ -38,7 +37,7 @@ def GetTraceRoute(dest_ip):
     trace_route = []
     cmd = "traceroute " + dest_ip
     try:
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         for line in iter(p.stdout.readline, ""):
             if line.startswith("  "):
                 continue
