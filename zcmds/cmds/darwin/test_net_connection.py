@@ -57,7 +57,7 @@ def GetTraceRoute(dest_ip):
 
 def Main():
     def IsIpPingable(ip):
-        p = subprocess.Popen("ping -c 5 -t 1 " + ip, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen("ping -c 5 -t 1 " + ip, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         for line in iter(p.stdout.readline, ""):
             if "time=" in line:
                 p.wait()
