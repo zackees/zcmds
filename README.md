@@ -9,12 +9,38 @@ More information will be added later.
 [![Actions Status](https://github.com/zackees/zcmds/workflows/Ubuntu_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
 
 
+# Commands
+
+  * audnorm
+  * diskaudit
+  * git-bash
+  * obs_organize
+  * pdf2png
+  * search_and_replace
+  * search_in_files
+  * sharedir
+  * stereo2mono
+  * stripaudio
+  * vid2gif
+  * vid2jpg
+  * vid2mp3
+  * vid2mp4
+  * vidclip
+  * viddur
+  * vidshrink
+  * vidspeed
+  * vidvol
+  * ytclip
+
+
 # Install (normal)
   * `python -pip install zcmds`
 
 
 # Install (dev):
 
+  * `git clone https://github.com/zackees/zcmds`
+  * `cd zcmds`
   * `python -pip install -e .`
   * Test by typing in `zcmds`
   * `zcmds_install`
