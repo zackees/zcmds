@@ -3,6 +3,7 @@
 
 import os
 import sys
+import traceback
 from argparse import ArgumentParser
 
 from pdf2image import convert_from_path  # type: ignore
@@ -51,8 +52,8 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-        sys.exit(0)
     except BaseException as e:
+        traceback.print_exc()
         print(f"Error: could not convert pdf to png, because of {e}")
         if sys.platform == "win32":
             print("--> Try running `choco install poppler`")
@@ -63,3 +64,4 @@ if __name__ == "__main__":
         else:
             print(f"Unexpected os {sys.platform}")
         sys.exit(1)
+    sys.exit(0)
