@@ -57,4 +57,4 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
-  * 1.1.0: Single point of install of binary apps.
+  * 1.1.1: Release
