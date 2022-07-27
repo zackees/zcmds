@@ -20,7 +20,11 @@ _CRF_DEFAULT = 18
 
 def exec(cmd: str) -> Tuple[int, str, str]:
     proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
     )
     stdout, stderr = proc.communicate()
     return proc.returncode, stdout, stderr
@@ -45,7 +49,9 @@ def main():
     parser.add_argument("--start_timestamp", help="start of the clip")
     parser.add_argument("--end_timestamp", help="length of the clip")
     parser.add_argument("--outname", help="output name of the file")
-    parser.add_argument("--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file.")
+    parser.add_argument(
+        "--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file."
+    )
     args = parser.parse_args()
 
     is_interactive = (
@@ -64,7 +70,9 @@ def main():
         end_timestamp = args.end_timestamp or input("end_timestamp: ")
         start_timestamp_str = sanitize(start_timestamp)
         end_timestamp_str = sanitize(end_timestamp)
-        outpath_hint = stripext(infile) + f"_clip_{start_timestamp_str}_{end_timestamp_str}{ext}"
+        outpath_hint = (
+            stripext(infile) + f"_clip_{start_timestamp_str}_{end_timestamp_str}{ext}"
+        )
         output_path = args.outname or input(f"Output path [{outpath_hint}]: ")
         if output_path == "":
             output_path = outpath_hint

@@ -18,7 +18,9 @@ def RunMultiPing(ip_array):
     procs = []
     for ip in ip_array:
         cmd_str = "ping -n -c 1 -t 1 " + ip
-        p = subprocess.Popen(cmd_str, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(
+            cmd_str, shell=True, stdout=subprocess.PIPE, universal_newlines=True
+        )
         procs.append(p)
     out = []
     for p in procs:
@@ -37,7 +39,9 @@ def GetTraceRoute(dest_ip):
     trace_route = []
     cmd = "traceroute " + dest_ip
     try:
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
+        )
         for line in iter(p.stdout.readline, ""):
             if line.startswith("  "):
                 continue
@@ -57,7 +61,12 @@ def GetTraceRoute(dest_ip):
 
 def Main():
     def IsIpPingable(ip):
-        p = subprocess.Popen("ping -c 5 -t 1 " + ip, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(
+            "ping -c 5 -t 1 " + ip,
+            shell=True,
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+        )
         for line in iter(p.stdout.readline, ""):
             if "time=" in line:
                 p.wait()

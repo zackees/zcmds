@@ -26,9 +26,7 @@ def ffmpeg_print_volume_detect(filename: str) -> None:
     """
     Uses ffmpeg to get the volume of a video file.
     """
-    cmd = (
-        f'static_ffmpeg -i "{filename}" -nostats -hide_banner -af "volumedetect" -f null /dev/null'
-    )
+    cmd = f'static_ffmpeg -i "{filename}" -nostats -hide_banner -af "volumedetect" -f null /dev/null'
     print("Executing:\n  " + cmd + "\n")
     os.system(cmd)
 

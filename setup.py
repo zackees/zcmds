@@ -1,11 +1,13 @@
+import json
 import os
 import sys
+from pprint import pprint
 from shutil import rmtree
 
 from setuptools import Command, find_packages, setup
 
 # The directory containing this file
-HERE = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.dirname(__file__)
 
 NAME = "zcmds"
 DESCRIPTION = "Cross platform(ish) productivity commands written in python."
@@ -13,9 +15,19 @@ URL = f"https://github.com/zackees/{NAME}"
 EMAIL = "dont@email.me"
 AUTHOR = "Zach Vorhies"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION_FILE = os.path.join(HERE, NAME, "version.py")
-README_FILE = os.path.join(HERE, "README.md")
-REQUIREMENTS_FILE = os.path.join(HERE, "requirements.txt")
+VERSION_FILE = os.path.join(PROJECT_ROOT, NAME, "version.py")
+README_FILE = os.path.join(PROJECT_ROOT, "README.md")
+REQUIREMENTS_FILE = os.path.join(PROJECT_ROOT, "requirements.txt")
+
+BINDINGS_JS_FILE = os.path.join(
+    PROJECT_ROOT, NAME, "cmds", "common", "bindings.json.py"
+)
+with open(BINDINGS_JS_FILE, encoding="utf-8", mode="rt") as fd:
+    BINDINGS_JSON = json.load(fd)
+
+bindings = BINDINGS_JSON["common"]
+if sys.platform == "win32":
+    bindings.extend(BINDINGS_JSON["win32"])
 
 # The text of the README file
 with open(README_FILE, encoding="utf-8", mode="rt") as fd:
@@ -53,7 +65,7 @@ class UploadCommand(Command):
     def run(self):
         try:
             self.status("Removing previous builds…")
-            rmtree(os.path.join(HERE, "dist"))
+            rmtree(os.path.join(PROJECT_ROOT, "dist"))
         except OSError:
             pass
 
@@ -69,56 +81,24 @@ class UploadCommand(Command):
 
         sys.exit()
 
+
 package_data = []
 
 # walk through zcmds directory and add all files to package_data
-for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "cmds")):
+for root, dirs, files in os.walk(os.path.join(PROJECT_ROOT, "zcmds", "cmds")):
     for file in files:
         package_data.append(os.path.join(root, file))
 
-for root, dirs, files in os.walk(os.path.join(HERE, "zcmds", "install")):
+for root, dirs, files in os.walk(os.path.join(PROJECT_ROOT, "zcmds", "install")):
     for file in files:
         package_data.append(os.path.join(root, file))
 
-# Make all package_data files relative to HERE
-package_data = [os.path.relpath(path, HERE) for path in package_data]
-
-from pprint import pprint
+# Make all package_data files relative to PROJECT_ROOT
+package_data = [os.path.relpath(path, PROJECT_ROOT) for path in package_data]
 
 pprint(package_data)
 
-# sys.exit(0)
-
-"""
-INSTALL_CMDS_COMMON = [
-    "audnorm.py",
-    "diskaudit.py",
-    "obs_organize.py",
-    "pdf2png.py",
-    "search_and_replace.py",
-    "search_in_files.py",
-    "sharedir.py",
-    "stereo2mono.py",
-    "stripaudio.py",
-    "vid2gif.py",
-    "vid2jpg.py",
-    "vid2mp3.py",
-    "vid2mp4.py",
-    "vid2webm.py",
-    "vidclip.py",
-    "viddur.py",
-    "vidshrink.py",
-    "vidspeed.py",
-    "vidvol.py"
-]
-
-INSTALL_CMDS = [
-    "zcmds_install",
-    "zcmds_update",
-    "zcmds_uninstall"
-]
-
-"""
+# import module and get the bindings
 
 setup(
     name=NAME,
@@ -141,12 +121,7 @@ setup(
         "Environment :: Console",
     ],
     install_requires=REQUIREMENTS,
-    entry_points={
-        "console_scripts": [
-            "zcmds_install = zcmds.install.update:main",
-            "zcmds = zcmds.util.zcmds_main:main",
-        ],
-    },
+    entry_points={"console_scripts": bindings},
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={
         "zcmds": package_data,

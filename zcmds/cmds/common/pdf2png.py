@@ -13,7 +13,9 @@ def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("input_pdf", help="input", nargs="?")
     parser.add_argument("--first_page", help="First page to include in the output.")
-    parser.add_argument("--last_page", help="Last page (inclusive) to include in the output.")
+    parser.add_argument(
+        "--last_page", help="Last page (inclusive) to include in the output."
+    )
     parser.add_argument("--dpi", help="Dpi to render the output in")
     args = parser.parse_args()
 
@@ -60,7 +62,9 @@ if __name__ == "__main__":
         elif sys.platform == "darwin":
             print("--> Try running `brew install poppler`")
         elif sys.platform == "linux":
-            print("--> Try running `sudo apt-get install poppler-utils`")  # Should this be poppler?
+            print(
+                "--> Try running `sudo apt-get install poppler-utils`"
+            )  # Should this be poppler?
         else:
             print(f"Unexpected os {sys.platform}")
         sys.exit(1)
