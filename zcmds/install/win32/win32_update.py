@@ -18,6 +18,12 @@ PATH_GIT_BASH = r"C:\Program Files\Git\bin"
 
 def gen_win_cmds() -> None:
     """Generates windows commands."""
+    print("\nGenerating win32 commands...")
+    for dir in [
+        BIN_DIR,
+        CMD_COMMON_DIR,
+        CMD_WIN32_DIR,
+    ]: os.makedirs(dir, exist_ok=True)
     common_cmds = os.listdir(CMD_COMMON_DIR)
     common_cmds = [os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in common_cmds]
     win32_cmds = []
@@ -34,6 +40,7 @@ def gen_win_cmds() -> None:
     os.makedirs(BIN_DIR, exist_ok=True)
     cmd_set = set([])
     for cmd in all_cmds:
+        assert os.path.exists(cmd)
         if cmd in cmd_set:
             sys.stderr.write(f"Warning, duplicate found for {os.path.basename(cmd)}, skipping.")
         else:
@@ -42,8 +49,9 @@ def gen_win_cmds() -> None:
             cmd_name = os.path.basename(cmd)
             out_cmd = os.path.join(BIN_DIR, cmd_name)[0:-3] + ".bat"  # swap .py -> .bat
             with open(out_cmd, encoding="utf-8", mode="wt") as f:  # pylint: disable=invalid-name
-                f.write(f"python {cmd} %1 %2 %3 %4 %5 %6 %7 %8 %9\n")
-
+                batcmd = f"python {cmd} %1 %2 %3 %4 %5 %6 %7 %8 %9\n"
+                print(f"{out_cmd} -> " + batcmd.strip())
+                f.write(batcmd)
         elif cmd.endswith(".bat"):
             cmd_name = os.path.basename(cmd)
             out_cmd = os.path.join(BIN_DIR, cmd_name)

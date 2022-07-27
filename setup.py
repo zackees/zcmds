@@ -89,6 +89,37 @@ pprint(package_data)
 
 # sys.exit(0)
 
+"""
+INSTALL_CMDS_COMMON = [
+    "audnorm.py",
+    "diskaudit.py",
+    "obs_organize.py",
+    "pdf2png.py",
+    "search_and_replace.py",
+    "search_in_files.py",
+    "sharedir.py",
+    "stereo2mono.py",
+    "stripaudio.py",
+    "vid2gif.py",
+    "vid2jpg.py",
+    "vid2mp3.py",
+    "vid2mp4.py",
+    "vid2webm.py",
+    "vidclip.py",
+    "viddur.py",
+    "vidshrink.py",
+    "vidspeed.py",
+    "vidvol.py"
+]
+
+INSTALL_CMDS = [
+    "zcmds_install",
+    "zcmds_update",
+    "zcmds_uninstall"
+]
+
+"""
+
 setup(
     name=NAME,
     python_requires=REQUIRES_PYTHON,

@@ -15,6 +15,11 @@ SELF_DIR = os.path.dirname(__file__)
 
 def gen_linux_cmds():
     """Generates commands for MacOS."""
+    for dir in [
+        BIN_DIR,
+        CMD_COMMON_DIR,
+        CMD_LINUX_DIR,
+    ]: os.makedirs(dir, exist_ok=True)
     common_cmds = [
         os.path.abspath(os.path.join(CMD_COMMON_DIR, f)) for f in os.listdir(CMD_COMMON_DIR)
     ]

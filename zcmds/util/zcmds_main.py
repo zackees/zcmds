@@ -8,10 +8,7 @@ import os
 import sys
 
 from zcmds.install.update import main as update_main
-
-SELF_DIR = os.path.dirname(__file__)
-BASE_DIR = os.path.abspath(os.path.join(SELF_DIR, ".."))
-BIN_DIR = os.path.join(BASE_DIR, "bin")
+from zcmds.paths import BIN_DIR
 
 
 def main():
