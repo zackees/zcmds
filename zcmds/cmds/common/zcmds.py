@@ -17,7 +17,7 @@ if sys.platform == "win32":
 
 def main():
     print("zcmds:")
-    for binding in BINDINGS:
+    for binding in sorted(["ytclip"] + BINDINGS):
         print(f"  {binding.split('=')[0]}")
 
 

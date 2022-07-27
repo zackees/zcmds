@@ -1,13 +1,7 @@
-import subprocess
-import sys
+
+
+from ._exec import exec_then_exit
 
 CMD = r"C:\Program Files\Git\usr\bin\mv.exe"
-
-
-def main() -> int:
-    cmd_list = [CMD] + sys.argv[1:]
-    return subprocess.call(cmd_list, universal_newlines=True)
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    exec_then_exit(CMD)
