@@ -55,3 +55,6 @@ More information will be added later.
 
 Running tox will install hooks into the .tox directory. Keep this in my if you are developing.
 TODO: Add a cleanup function to undo this.
+
+# Release Notes
+  * 1.1.0: Single point of install of binary apps.
