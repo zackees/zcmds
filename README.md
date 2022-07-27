@@ -57,4 +57,5 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.2: Fix git-bash on win32
   * 1.1.1: Release

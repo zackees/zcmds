@@ -31,6 +31,7 @@
         "mv = zcmds.cmds.win32.mv:main",
         "open = zcmds.cmds.win32.open:main",
         "rm = zcmds.cmds.win32.rm:main",
-        "which = zcmds.cmds.win32.which:main"
+        "which = zcmds.cmds.win32.which:main",
+        "git-bash = zcmds.cmds.win32.git_bash:main"
     ]
 }
