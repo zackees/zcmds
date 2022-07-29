@@ -6,6 +6,4 @@ CMD = r"cmd"
 
 
 def main() -> int:
-    return os_exec(
-        CMD, inherit_params=False,
-        cwd=os.path.expandvars("%HOMEPATH%"))
+    return os_exec(CMD, inherit_params=False, cwd=os.path.expandvars("%HOMEPATH%"))

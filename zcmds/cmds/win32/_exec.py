@@ -2,9 +2,10 @@
 
 import subprocess
 import sys
+from typing import Optional
 
 
-def os_exec(cmd: str, inherit_params: bool=True, cwd=None) -> int:
+def os_exec(cmd: str, inherit_params: bool = True, cwd: Optional[str] = None) -> int:
     cmd_list = [cmd]
     if inherit_params:
         cmd_list += sys.argv[1:]
