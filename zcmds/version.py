@@ -1,3 +1,3 @@
 """Just holds the version for the app"""
 
-VERSION = "1.1.4"  # pylint: disable=R0801
+VERSION = "1.1.5"  # pylint: disable=R0801

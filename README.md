@@ -57,6 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.5: Adds unzip to win32
   * 1.1.4: Fix home cmd.
   * 1.1.3: Fix up cmds so it returns int
   * 1.1.2: Fix git-bash on win32
