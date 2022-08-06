@@ -1,6 +1,6 @@
 import os
 
-from ._exec import os_exec
+from zcmds.cmds.win32._exec import os_exec
 
 CMD = r"cmd"
 
