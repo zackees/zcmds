@@ -21,10 +21,10 @@ class MainTester(unittest.TestCase):
         stdout = exec("zcmds")
         self.assertIn("vidclip", stdout)
 
-    @unittest.skipIf(sys.platform == "win32", "win32 test only")
+    @unittest.skipIf(sys.platform != "win32", "win32 test only")
     def test_win_cmds(self) -> None:
         # Tests that ls works on windows.
-        for cmd in ["ls", "which"]:
+        for cmd in ["ls", "which", "touch"]:
             self.assertTrue(has_cmd(cmd))
 
 

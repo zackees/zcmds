@@ -6,7 +6,8 @@ import os
 import sys
 
 HERE = os.path.dirname(__file__)
-BINDINGS_JS_FILE = os.path.join(HERE, "bindings.json.py")
+CMD_DIR = os.path.abspath(os.path.dirname(HERE))
+BINDINGS_JS_FILE = os.path.join(CMD_DIR, "bindings.json.py")
 with open(BINDINGS_JS_FILE, encoding="utf-8", mode="rt") as fd:
     BINDINGS_JSON = json.load(fd)
 

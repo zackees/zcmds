@@ -32,6 +32,7 @@
         "open = zcmds.cmds.win32.open:main",
         "rm = zcmds.cmds.win32.rm:main",
         "which = zcmds.cmds.win32.which:main",
-        "git-bash = zcmds.cmds.win32.git_bash:main"
+        "git-bash = zcmds.cmds.win32.git_bash:main",
+        "touch = zcmds.cmds.win32.touch:main"
     ]
 }
