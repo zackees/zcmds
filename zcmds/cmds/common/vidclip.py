@@ -52,6 +52,7 @@ def main():
     parser.add_argument(
         "--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file."
     )
+    parser.add_argument("--height", help="height of the output video, e.g 1080 = 1080p")
     args = parser.parse_args()
 
     is_interactive = (
@@ -90,8 +91,10 @@ def main():
         if not os.path.exists(infile):
             print(f"{infile} does not exist")
             sys.exit(1)
-
-        cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        vf_scale_part = ""
+        if args.height:
+            vf_scale_part = f"-vf scale=-1:{args.height}"
+        cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
         print(f"Executing:\n  {cmd}\n")
         rtn, _, _ = exec(cmd)
         if rtn != 0:
