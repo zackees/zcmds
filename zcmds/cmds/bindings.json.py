@@ -19,7 +19,8 @@
         "viddur = zcmds.cmds.common.viddur:main",
         "vidspeed = zcmds.cmds.common.vidspeed:main",
         "vidvol = zcmds.cmds.common.vidvol:main",
-        "vidshrink = zcmds.cmds.common.vidshrink:main"
+        "vidshrink = zcmds.cmds.common.vidshrink:main",
+        "vidmatrix = zcmds.cmds.common.vidmatrix:main"
     ],
     "win32": [
         "cat = zcmds.cmds.win32.cat:main",
