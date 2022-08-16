@@ -15,6 +15,7 @@ ENCODING_PRESET = "veryslow"
 # Add hero filter support:
 # static_ffmpeg -y -hide_banner -i input.mp4 -ss 2:04 -to 03:08 -vf "fade=t=in:st=124:d=1,fade=t=out:st=187:d=1" -crf 36 -movflags +faststart -tune film -preset veryslow out.mp4
 
+
 def get_height(filename):
     cmd = f'ffprobe -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1 "{filename}"'
     return int(os.popen(cmd).read())
