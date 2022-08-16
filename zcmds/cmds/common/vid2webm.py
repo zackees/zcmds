@@ -22,7 +22,7 @@ def main():
         sys.exit(1)
     out_path = Path(filename).with_suffix(".webm")
     crf = args.crf or int(input("crf: "))
-    cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vcodec libvpx -acodec libvorbis -crf {crf} "{out_path}"'
+    cmd = f'static_ffmpeg -hide_banner -i "{filename}" -preset veryslow -vcodec libvpx -acodec libvorbis -crf {crf} "{out_path}"'
     os.system(cmd)
     print(f"Generated {out_path}")
 

@@ -25,7 +25,7 @@ def main():
 
     # -c:v libx264
     if args.rencode:
-        cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vcodec libx264 -preset slow -crf 18 -c:a copy -y "{out_path}"'
+        cmd = f'static_ffmpeg -hide_banner -i "{filename}" -preset veryslow -vcodec libx264 -preset -crf 18 -c:a copy -y "{out_path}"'
     else:
         cmd = f'ffmpeg -i "{filename}" -c copy "{out_path}"'
     os.system(cmd)
