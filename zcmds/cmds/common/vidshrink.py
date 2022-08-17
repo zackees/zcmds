@@ -24,6 +24,7 @@ def main():
     path, _ = os.path.splitext(filename)
     out_path = f"{path}_small.mp4"
     cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vf scale=-1:{height} -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+    print(f"Running:\n  {cmd}")
     os.system(cmd)
 
 
