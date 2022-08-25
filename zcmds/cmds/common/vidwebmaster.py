@@ -22,7 +22,7 @@ def main():
     for height in args.heights:
         crf = args.crf
         path, _ = os.path.splitext(filename)
-        out_path = os.path.join(path, f"{height}.mp4")
+        out_path = os.path.join(path, f"{height}_{crf}.mp4")
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         downmix_stmt = "-ac 1" if height <= 480 else ""
         # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
