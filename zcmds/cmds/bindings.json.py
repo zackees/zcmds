@@ -21,7 +21,8 @@
         "vidvol = zcmds.cmds.common.vidvol:main",
         "vidshrink = zcmds.cmds.common.vidshrink:main",
         "vidmatrix = zcmds.cmds.common.vidmatrix:main",
-        "vidwebmaster = zcmds.cmds.common.vidwebmaster:main"
+        "vidwebmaster = zcmds.cmds.common.vidwebmaster:main",
+        "vidhero = zcmds.cmds.common.vidhero:main"
     ],
     "win32": [
         "cat = zcmds.cmds.win32.cat:main",

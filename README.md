@@ -57,6 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.10: Adds vidhero
   * 1.1.9: adds vidwebmaster
   * 1.1.8: adds vidmatrix to test out different settings.
   * 1.1.7: vidshrink and vidclip now both feature width argument

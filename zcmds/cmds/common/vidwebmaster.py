@@ -8,7 +8,7 @@ import sys
 def main():
 
     # Expects a single argument: the path to the video file to shrink
-    parser = argparse.ArgumentParser(description="Shrink a video file")
+    parser = argparse.ArgumentParser(description="Make Web masters at 480, 720 and 1080p")
     parser.add_argument("video_path", help="Path to the video file to shrink")
     # Adds optional crf argument
     parser.add_argument("--crf", help="CRF value to use", type=int, default=28)
