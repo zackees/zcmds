@@ -19,12 +19,16 @@ def timecode_to_seconds(timecode):
 
 def main():
     # Expects a single argument: the path to the video file to shrink
-    parser = argparse.ArgumentParser(description="Make a looping video with a fade in and out")
+    parser = argparse.ArgumentParser(
+        description="Make a looping video with a fade in and out"
+    )
     parser.add_argument("video_path", help="Path to the video input file")
     # Adds optional crf argument
     parser.add_argument("--crf", help="CRF value to use", type=int, default=28)
     # Adds optional height argument
-    parser.add_argument("--start_timecode", help="start timecode like 0:38", required=True)
+    parser.add_argument(
+        "--start_timecode", help="start timecode like 0:38", required=True
+    )
     parser.add_argument("--end_timecode", help="end timecode like 0:48", required=True)
     parser.add_argument("--height", help="output path", required=True)
     args = parser.parse_args()

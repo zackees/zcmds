@@ -35,11 +35,15 @@ def generate_filters(height: Optional[int]):
 
 
 def main():
-    parser = argparse.ArgumentParser("Encodes videos into a matrix of different quality settings.")
+    parser = argparse.ArgumentParser(
+        "Encodes videos into a matrix of different quality settings."
+    )
     parser.add_argument("input", help="input", nargs="?")
     parser.add_argument("--start_timestamp", help="start of the clip", required=True)
     parser.add_argument("--end_timestamp", help="length of the clip", required=True)
-    parser.add_argument("--height", help="height of the output video, e.g 1080 = 1080p", default=None)
+    parser.add_argument(
+        "--height", help="height of the output video, e.g 1080 = 1080p", default=None
+    )
     args = parser.parse_args()
     cpu_count = multiprocessing.cpu_count()
     print(f"Detected {cpu_count} cpus")

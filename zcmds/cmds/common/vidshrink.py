@@ -13,8 +13,12 @@ def main():
     # Adds optional crf argument
     parser.add_argument("--crf", help="CRF value to use", type=int, default=26)
     # Adds optional height argument
-    parser.add_argument("--height", help="height of the output video, e.g 1080 = 1080p", default=480)
-    parser.add_argument("--downmix", help="downmix the audio from stereo to mono", action="store_true")
+    parser.add_argument(
+        "--height", help="height of the output video, e.g 1080 = 1080p", default=480
+    )
+    parser.add_argument(
+        "--downmix", help="downmix the audio from stereo to mono", action="store_true"
+    )
     args = parser.parse_args()
     filename = args.video_path
     if not os.path.exists(filename):

@@ -12,12 +12,17 @@ def duration_to_timestamp(duration):
 def print_file(file):
     stdout = "ERROR"
     try:
-        stdout = subprocess.check_output(f'static_ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{file}"', shell=True, universal_newlines=True).strip()
+        stdout = subprocess.check_output(
+            f'static_ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{file}"',
+            shell=True,
+            universal_newlines=True,
+        ).strip()
         # convert to float
         duration = duration_to_timestamp(float(stdout))
         print(f"{file}: {duration}")
     except subprocess.CalledProcessError as e:
         print(f"ERROR: {file}: {e.output}")
+
 
 def main():
     # Walk the current directory and find all the video files with *.mp4 or *.webm
