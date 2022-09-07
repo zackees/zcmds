@@ -2,3 +2,5 @@ ytclip
 pdf2image
 ffmpeg-normalize
 appdirs
+PyQt5
+beepy
