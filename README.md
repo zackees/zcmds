@@ -57,6 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.13: vidwebmaster fixes () bash-bug in linux
   * 1.1.12: vidwebmaster now has a gui if no file is supplied
   * 1.1.11: Adds vidlist
   * 1.1.10: Adds vidhero
