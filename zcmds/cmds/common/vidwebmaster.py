@@ -19,7 +19,7 @@ def encode(videopath: str, crf: int, heights: list[int]) -> None:
         out_path = os.path.join(path, f"{height}_{crf}.mp4")
         downmix_stmt = "-ac 1" if height <= 480 else ""
         # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
-        cmd = f'static_ffmpeg -hide_banner -i "{videopath}" -vf scale=trunc(oh*a/2)*2:{height} {downmix_stmt} -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}" -y'
+        cmd = f'static_ffmpeg -hide_banner -i "{videopath}" -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt} -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}" -y'
         print(f"Running:\n  {cmd}")
         # os.system(cmd)
         # startupinfo = subprocess.STARTUPINFO()
