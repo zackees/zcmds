@@ -8,8 +8,8 @@ import sys
 from threading import Thread
 
 from beepy import beep  # type: ignore
-from PyQt5 import QtCore  # type: ignore
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
+from PyQt6 import QtCore  # type: ignore
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
 
 
 def encode(videopath: str, crf: int, heights: list[int]) -> None:
