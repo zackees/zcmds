@@ -38,7 +38,7 @@ class MainWidget(QMainWindow):
         # Add a label to the window on top of everythign elese
         self.label = QLabel(self)
         # Adjust label so it is centered
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label.setText("    Drag and Drop Large Video File Here")
         self.label.adjustSize()
         self.on_drop_callback = on_drop_callback
@@ -80,7 +80,7 @@ def run_gui(crf: int, heights: list[int]) -> None:
         Thread(target=_encode_then_beep, daemon=True).start()
     ui = MainWidget(callback)
     ui.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 def main():
