@@ -95,18 +95,18 @@ def main():
     parser.add_argument(
         "--heights",
         help="height of the output video, e.g 1080 = 1080p",
-        type=list[int],
-        default=[1080, 720, 480],
+        default="1080,720,480",
     )
     args = parser.parse_args()
     if not args.video_path:
         run_gui(args.crf, args.heights)
         return
     videopath = args.video_path
+    heights = [int(h) for h in args.heights.split(",")]
     if not os.path.exists(videopath):
         print(f"{videopath} does not exist")
         sys.exit(1)
-    encode(args.video_path, args.crf, args.heights)
+    encode(args.video_path, args.crf, heights)
 
 
 if __name__ == "__main__":
