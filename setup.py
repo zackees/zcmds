@@ -19,9 +19,7 @@ VERSION_FILE = os.path.join(PROJECT_ROOT, NAME, "version.py")
 README_FILE = os.path.join(PROJECT_ROOT, "README.md")
 REQUIREMENTS_FILE = os.path.join(PROJECT_ROOT, "requirements.txt")
 
-BINDINGS_JS_FILE = os.path.join(
-    PROJECT_ROOT, NAME, "cmds", "bindings.json.py"
-)
+BINDINGS_JS_FILE = os.path.join(PROJECT_ROOT, NAME, "cmds", "bindings.json.py")
 with open(BINDINGS_JS_FILE, encoding="utf-8", mode="rt") as fd:
     BINDINGS_JSON = json.load(fd)
 

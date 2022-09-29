@@ -15,6 +15,9 @@ BINDINGS = BINDINGS_JSON["common"]
 if sys.platform == "win32":
     BINDINGS.extend(BINDINGS_JSON["win32"])
 
+if sys.platform == "darwin":
+    BINDINGS.extend(BINDINGS_JSON["darwin"])
+
 
 def main():
     print("zcmds:")

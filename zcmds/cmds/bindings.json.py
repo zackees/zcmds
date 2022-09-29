@@ -38,5 +38,8 @@
         "which = zcmds.cmds.win32.which:main",
         "git-bash = zcmds.cmds.win32.git_bash:main",
         "touch = zcmds.cmds.win32.touch:main"
+    ],
+    "darwin": [
+        "test_net_connection = zcmds.cmds.darwin.test_net_connection:main"
     ]
 }
