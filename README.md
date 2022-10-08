@@ -57,7 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
-  * 1.1.16: vidwebmaster fixes heights argument for other code path
+  * 1.1.17: vidwebmaster fixes heights argument for other code path
   * 1.1.16: vidwebmaster fixes heights argument
   * 1.1.15: vidwebmaster fixed
   * 1.1.14: QT5 -> QT6
