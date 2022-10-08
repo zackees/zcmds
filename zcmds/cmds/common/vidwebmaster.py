@@ -98,11 +98,11 @@ def main():
         default="1080,720,480",
     )
     args = parser.parse_args()
+    heights = [int(h) for h in args.heights.split(",")]
     if not args.video_path:
-        run_gui(args.crf, args.heights)
+        run_gui(args.crf, heights)
         return
     videopath = args.video_path
-    heights = [int(h) for h in args.heights.split(",")]
     if not os.path.exists(videopath):
         print(f"{videopath} does not exist")
         sys.exit(1)
