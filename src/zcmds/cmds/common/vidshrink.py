@@ -19,6 +19,9 @@ def main():
     parser.add_argument(
         "--downmix", help="downmix the audio from stereo to mono", action="store_true"
     )
+    parser.add_argument(
+        "--fps", help="frames per second of the output video, default is no framerate change", default=None
+    )
     args = parser.parse_args()
     filename = args.video_path
     if not os.path.exists(filename):
@@ -30,8 +33,10 @@ def main():
     out_path = f"{path}_small.mp4"
 
     downmix_stmt = "-ac 1" if args.downmix else ""
+    fps_stmt = f"fps=fps={args.fps}," if args.fps else ""
+    filter_stmt = f'-vf "{fps_stmt}scale=trunc(oh*a/2)*2:{height}"'
     # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
-    cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vf scale=trunc(oh*a/2)*2:{height} {downmix_stmt} -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+    cmd = f'static_ffmpeg -hide_banner -y -i "{filename}" {filter_stmt} {downmix_stmt} -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
     print(f"Running:\n  {cmd}")
     os.system(cmd)
 

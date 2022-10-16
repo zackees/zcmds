@@ -22,7 +22,7 @@ dependencies = [
     "zcmds_win32==1.0.0; platform_system=='Windows'",
 ]
 # Change this with the version number bump.
-version = "1.1.20"
+version = "1.1.21"
 
 [project.scripts]
 zcmds = "zcmds.cmds.common.zcmds:main"
