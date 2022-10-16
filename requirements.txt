@@ -1,7 +1,0 @@
-ytclip
-pdf2image
-ffmpeg-normalize
-appdirs
-PyQt6==6.3.1
-beepy
-jsoncomment

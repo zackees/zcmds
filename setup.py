@@ -1,3 +1,5 @@
+
+'''
 import json
 import os
 import sys
@@ -132,3 +134,8 @@ setup(
         "upload": UploadCommand,
     },
 )
+'''
+import setuptools
+
+if __name__ == "__main__":
+    setuptools.setup()

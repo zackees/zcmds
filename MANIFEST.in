@@ -1,4 +1,4 @@
-include requirements.txt
+include pyproject.toml
 include requirements.testing.txt
 include zcmds/install/darwin/macOS_key_bindings.dict
 include zcmds/common/bindings.json

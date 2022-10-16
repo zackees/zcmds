@@ -14,8 +14,11 @@ def ffmpeg_multiply_speed(inputfile: str, speed: float, outfile: str) -> None:
     # cmd = f'ffmpeg -i {inputfile} -vf  "setpts=4*PTS" {outfile}'
     speed = 1 / speed
     atempo = 1 / speed
-    cmd = f'static_ffmpeg -y -i {inputfile} -filter_complex "[0:v]setpts={speed}*PTS[v];[0:a]atempo={atempo}[a]" -map "[v]" -map "[a]" {outfile}'
-    os.system(cmd)
+    cmd = f'static_ffmpeg -y -i "{inputfile}" -filter_complex "[0:v]setpts={speed}*PTS[v];[0:a]atempo={atempo}[a]" -map "[v]" -map "[a]" {outfile}'
+    print(f"Running:\n  {cmd}")
+    rtn = os.system(cmd)
+    if rtn != 0:
+        raise Exception(f"Failed to run: {cmd}")
 
 
 def _is_media_file(filename: str) -> bool:
