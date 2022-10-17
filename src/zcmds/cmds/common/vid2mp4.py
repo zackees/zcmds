@@ -22,6 +22,8 @@ def main():
         print(f"{filename} does not exist")
         sys.exit(1)
     out_path = Path(filename).with_suffix(".mp4")
+    if out_path.exists():
+        out_path = Path(filename).with_suffix("_converted.mp4")
 
     # -c:v libx264
     if args.rencode:

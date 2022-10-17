@@ -57,6 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.22: vid2mp4 - if file exists, try another name.
   * 1.1.21: Adds --fps option to vidshrink utility
   * 1.1.19: Using pyprojec.toml build system now.
   * 1.1.17: vidwebmaster fixes heights argument for other code path
