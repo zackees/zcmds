@@ -23,7 +23,8 @@ def main():
         sys.exit(1)
     out_path = Path(filename).with_suffix(".mp4")
     if out_path.exists():
-        out_path = Path(filename).with_suffix("_converted.mp4")
+        # Remove suffix from file name and add _converted.mp4
+        out_path = Path(filename).with_suffix("").with_name(f"{Path(filename).stem}_converted.mp4")
 
     # -c:v libx264
     if args.rencode:
