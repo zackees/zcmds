@@ -93,7 +93,7 @@ def main():
             sys.exit(1)
         vf_scale_part = ""
         if args.height:
-            vf_scale_part = f"-vf scale=-1:{args.height}"
+            vf_scale_part = f"-vf trunc(oh*a/2)*2:{args.height}"
         cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
         print(f"Executing:\n  {cmd}\n")
         rtn, _, _ = exec(cmd)
