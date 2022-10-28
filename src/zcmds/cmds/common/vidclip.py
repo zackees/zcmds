@@ -4,11 +4,12 @@ import argparse
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple
 
 
 def sanitize(s: str) -> str:
-    return s.replace(":", "-")
+    return s.replace(":", "_")
 
 
 def stripext(s: str) -> str:
@@ -39,8 +40,24 @@ def get_next_path(path: str) -> str:
         return get_next_path(f"{base}_alt{ext}")
 
 
-def main():
+def encode(infile, height, crf, start_timestamp, end_timestamp, output_path, print_fcn) -> bool:
+    vf_scale_part = ""
+    if height:
+        vf_scale_part = f"-vf trunc(oh*a/2)*2:{height}"
+    cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+    print_fcn(f"Executing:\n  {cmd}\n")
+    rtn, _, _ = exec(cmd)
+    if rtn != 0:
+        print_fcn(f"{__file__}: WARNING: '{cmd}' returned code {rtn}")
+    if not os.path.exists(output_path):
+        print_fcn(f"Error, did not generate {output_path}")
+        return False
+    else:
+        print_fcn(f"\nGenerated: {output_path}")
+        return True
 
+
+def main():
     parser = argparse.ArgumentParser(
         description="Cuts clips from local files.\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -53,6 +70,7 @@ def main():
         "--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file."
     )
     parser.add_argument("--height", help="height of the output video, e.g 1080 = 1080p")
+    parser.add_argument("--background", action="store_true", help="Use background thread to encode multiple videos")
     args = parser.parse_args()
 
     is_interactive = (
@@ -61,10 +79,13 @@ def main():
         and (args.outname is None)
         and (args.crf == _CRF_DEFAULT)
     )
+    is_interactive = is_interactive or (args.background)
 
     infile = args.input or input("Input video: ")
     ext = os.path.splitext(infile)[1]
     count = 0
+    executor = ThreadPoolExecutor(max_workers=1)
+    futures = []
 
     while True:
         start_timestamp = args.start_timestamp or input("start_timestamp: ")
@@ -72,7 +93,7 @@ def main():
         start_timestamp_str = sanitize(start_timestamp)
         end_timestamp_str = sanitize(end_timestamp)
         outpath_hint = (
-            stripext(infile) + f"_clip_{start_timestamp_str}_{end_timestamp_str}{ext}"
+            stripext(infile) + f"_clip_{start_timestamp_str}__{end_timestamp_str}{ext}"
         )
         output_path = args.outname or input(f"Output path [{outpath_hint}]: ")
         if output_path == "":
@@ -91,26 +112,26 @@ def main():
         if not os.path.exists(infile):
             print(f"{infile} does not exist")
             sys.exit(1)
-        vf_scale_part = ""
-        if args.height:
-            vf_scale_part = f"-vf trunc(oh*a/2)*2:{args.height}"
-        cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
-        print(f"Executing:\n  {cmd}\n")
-        rtn, _, _ = exec(cmd)
-        if rtn != 0:
-            print(f"{__file__}: WARNING: '{cmd}' returned code {rtn}")
-        if not os.path.exists(output_path):
-            print(f"Error, did not generate {output_path}")
-        else:
-            print(f"\nGenerated: {output_path}")
+
+        def print_fcn(s):
+            print(s)
+
+        def task() -> bool:
+            return encode(infile, args.height, crf, start_timestamp, end_timestamp, output_path, print_fcn=print_fcn)
+
         if not is_interactive:
+            task()
             break
+        else:
+            future = executor.submit(task)
+            futures.append(future)
         if "y" not in input("Continue? (y/n): ").lower():
             break
         args.start_timestamp = None
         args.end_timestamp = None
         args.outname = None
         args.output_path = None
+    executor.shutdown(wait=True)
 
 
 if __name__ == "__main__":
