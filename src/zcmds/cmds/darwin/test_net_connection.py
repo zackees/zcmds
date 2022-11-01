@@ -2,6 +2,7 @@
 
 import shlex
 import subprocess
+import sys
 
 DNS_BACKBONE = "8.8.8.8"
 
@@ -59,7 +60,12 @@ def GetTraceRoute(dest_ip):
     return trace_route
 
 
-def Main():
+def main():
+    # if os is not linux/darwin
+    #     print("This script is only for Linux and Darwin")
+    if sys.platform not in ("linux", "darwin"):
+        print("This script is only for Linux and Darwin")
+        return
     def IsIpPingable(ip):
         p = subprocess.Popen(
             "ping -c 5 -t 1 " + ip,
@@ -114,6 +120,6 @@ def Main():
 
 if __name__ == "__main__":
     try:
-        Main()
+        main()
     except KeyboardInterrupt:
         pass
