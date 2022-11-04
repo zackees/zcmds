@@ -85,6 +85,8 @@ def main() -> None:
         for name in files:
             fullpath = os.path.join(root, name)
             inque.put(fullpath)
+    if args.verbose:
+        print(f"  Found {fmt_num(inque.qsize())} files.")
     scan_diff = time.time() - scan_start_time
     size_start_time = time.time()
     tree: Dict[str, Any] = dict(name="root", size=0, children={})
