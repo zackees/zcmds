@@ -7,6 +7,8 @@ The search is started from the cwd.
 
 import os
 import sys
+import time
+from queue import Queue
 from typing import Any, Dict, List
 
 
@@ -39,22 +41,45 @@ def split_paths(path: str) -> List[str]:
 def fmt_num(num: int) -> str:
     return "{:,}".format(num)
 
+def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
+    while not inqueue.empty():
+        fullpath = inqueue.get()
+        try:
+            size = os.path.getsize(fullpath)
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+        outqueue.put((fullpath, size))
 
 def main() -> None:
-    tree: Dict[str, Any] = dict(name="root", size=0, children={})
+    # threading queue
+    inqueue = Queue()
+
+    scan_start_time = time.time()
     for root, _, files in os.walk(".", topdown=True):
-        split_paths(root)
         for name in files:
             fullpath = os.path.join(root, name)
-            try:
-                size = os.path.getsize(fullpath)
-                path_lst = split_paths(fullpath)
-                add_path(tree, path_lst, size)
-            except FileNotFoundError:
-                continue
-            except OSError:
-                continue
+            inqueue.put(fullpath)
+    scan_diff = time.time() - scan_start_time
 
+    size_start_time = time.time()
+    tree: Dict[str, Any] = dict(name="root", size=0, children={})
+    outque = Queue()
+    from concurrent.futures import ThreadPoolExecutor
+    tasks = []
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        task = executor.submit(get_size_runner, inqueue, outque)
+    [task.result() for task in tasks]
+    # get_size_runner(inqueue, outque)
+    while not outque.empty():
+        fullpath, size = outque.get()
+        # add_path(tree, split_paths(fullpath), size)
+        path_lst = split_paths(fullpath)
+        add_path(tree, path_lst, size)
+    size_diff = time.time() - size_start_time
+
+    partion_sort_start_time = time.time()
     top: dict = tree["children"]["."]
     top_sizes = []
     total_size = 0
@@ -80,7 +105,14 @@ def main() -> None:
             nm = "D " + nm
         num = fmt_num(size)
         lines.append(f"  {nm} {num} ({perc_num})")
+    partion_sort_diff = time.time() - partion_sort_start_time
+
     print("\n".join(lines))
+    total_time = time.time() - scan_start_time
+    print(f"Completed in: {total_time:.1f} seconds")
+    print(f"  Scan time: {scan_diff:.1f} seconds")
+    print(f"  Size time: {size_diff:.1f} seconds")
+    print(f"  Sort time: {partion_sort_diff:.1f} seconds")
 
 
 if __name__ == "__main__":
