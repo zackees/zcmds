@@ -57,6 +57,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.24 Fixes diskaudit from double counting
   * 1.1.23: Fixes test_net_connection
   * 1.1.22: vid2mp4 - if file exists, try another name.
   * 1.1.21: Adds --fps option to vidshrink utility
