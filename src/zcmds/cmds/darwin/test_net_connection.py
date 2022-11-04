@@ -66,6 +66,7 @@ def main():
     if sys.platform not in ("linux", "darwin"):
         print("This script is only for Linux and Darwin")
         return
+
     def IsIpPingable(ip):
         p = subprocess.Popen(
             "ping -c 5 -t 1 " + ip,
