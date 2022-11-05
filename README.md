@@ -44,7 +44,7 @@ More information will be added later.
   * `cd zcmds`
   * `python -pip install -e .`
   * Test by typing in `zcmds`
-  * `zcmds_install`
+
 
 # Additional install
 
