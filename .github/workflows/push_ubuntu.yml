@@ -27,7 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox tox-gh-actions
         sudo apt-get install libasound2-dev
-        python -m pip install zcmds
+        python -m pip install .
     - name: Run Tox
       run: |
         tox py38
