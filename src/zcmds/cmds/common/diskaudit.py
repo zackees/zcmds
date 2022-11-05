@@ -4,7 +4,6 @@ The search is started from the cwd.
 """
 # pylint: skip-file
 
-import argparse
 import os
 import signal
 import sys
@@ -13,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from typing import Any, Dict, List
 
+NUM_THREADS = 8
 
 # signal handler for ctrl-c
 def handle_ctrlc(sig, frame):  # pylint: disable=unused-argument
@@ -69,45 +69,39 @@ def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
         except KeyboardInterrupt:
             handle_ctrlc(None, None)
 
-
 def main() -> None:
     signal.signal(signal.SIGINT, handle_ctrlc)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", action="store_true")
-    args = parser.parse_args()
     # threading queue
     inque: Queue = Queue()
     scan_start_time = time.time()
-    if args.verbose:
-        print("Scanning files...")
+    print("Scanning for files...")
     for root, _, files in os.walk(".", topdown=True):
         for name in files:
             fullpath = os.path.join(root, name)
             inque.put(fullpath)
-    if args.verbose:
-        print(f"  Found {fmt_num(inque.qsize())} files.")
+    print(f"  Found {fmt_num(inque.qsize())} files.")
     scan_diff = time.time() - scan_start_time
     size_start_time = time.time()
     tree: Dict[str, Any] = dict(name="root", size=0, children={})
     outque: Queue = Queue()
     tasks = []
-    if args.verbose:
-        print("Calculating file sizes...")
-    with ThreadPoolExecutor(max_workers=16) as executor:
+    print("Collecting file sizes...")
+    executor = ThreadPoolExecutor(max_workers=NUM_THREADS)
+    for _ in range(NUM_THREADS):
         task = executor.submit(get_size_runner, inque, outque)
         tasks.append(task)
+    print(f"Waiting for {len(tasks)} tasks to complete.")
     [task.result() for task in tasks]
+    executor.shutdown()
     # get_size_runner(inqueue, outque)
-    if args.verbose:
-        print("Partitioning results...")
+    print("Partitioning results...")
+    partion_sort_start_time = time.time()
     while not outque.empty():
         fullpath, size = outque.get()
         path_lst = split_paths(fullpath)
         add_path(tree, path_lst, size)
     size_diff = time.time() - size_start_time
-
-    partion_sort_start_time = time.time()
     top: dict = tree["children"]["."]
     top_sizes = []
     total_size = 0
@@ -135,11 +129,10 @@ def main() -> None:
 
     print("\n".join(lines))
     total_time = time.time() - scan_start_time
-    if args.verbose:
-        print(f"Completed in: {total_time:.1f} seconds")
-        print(f"  Scan time: {scan_diff:.1f} seconds")
-        print(f"  Size time: {size_diff:.1f} seconds")
-        print(f"  Sort time: {partion_sort_diff:.1f} seconds")
+    print(f"\nCompleted in: {total_time:.1f} seconds")
+    print(f"  Scan time: {scan_diff:.1f} seconds")
+    print(f"  Size time: {size_diff:.1f} seconds")
+    print(f"  Sort time: {partion_sort_diff:.1f} seconds")
 
 
 if __name__ == "__main__":
