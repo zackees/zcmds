@@ -1,11 +1,17 @@
 import sys
 import unittest
 from shutil import which
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 
 
 def exec(cmd: str) -> str:
-    stdout = check_output(cmd, shell=True, universal_newlines=True)
+    try:
+      stdout = check_output(cmd, shell=True, universal_newlines=True)
+    except CalledProcessError as e:
+        # stdout
+        stdout = e.output
+        print("ERROR: ", stdout)
+        return stdout
     return stdout
 
 def has_cmd(cmd: str) -> bool:
