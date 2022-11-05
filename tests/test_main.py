@@ -25,7 +25,7 @@ class MainTester(unittest.TestCase):
 
     def test_zmcds(self) -> None:
         stdout = exec("zcmds")
-        self.assertIn("vidclip", stdout)
+        self.assertIn("vidclip", stdout, f"vidclip not found in:\n  {stdout}")
 
     @unittest.skipIf(sys.platform != "win32", "win32 test only")
     def test_win_cmds(self) -> None:
