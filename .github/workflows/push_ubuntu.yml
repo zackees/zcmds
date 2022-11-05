@@ -28,6 +28,6 @@ jobs:
         sudo apt-get install libasound2-dev
         python -m pip install .
         python -m pip install pytest
-    - name: Run Tox
+    - name: Run Tests
       run: |
         pytest tests
