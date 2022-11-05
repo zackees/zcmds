@@ -27,7 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         sudo apt-get install libasound2-dev
         python -m pip install .
-        python -m pip install requirements.testing.txt
+        python -m pip install -r requirements.testing.txt
     - name: Run Linting
       run: |
         flake8 src
