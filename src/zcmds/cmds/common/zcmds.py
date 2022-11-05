@@ -1,28 +1,60 @@
 """
     Normalizes the audio of a video file.
 """
-import json
-import os
 import sys
 
-HERE = os.path.dirname(__file__)
-CMD_DIR = os.path.abspath(os.path.dirname(HERE))
-BINDINGS_JS_FILE = os.path.join(CMD_DIR, "bindings.json.py")
-with open(BINDINGS_JS_FILE, encoding="utf-8", mode="rt") as fd:
-    BINDINGS_JSON = json.load(fd)
+COMMON = [
+    "audnorm",
+    "diskaudit",
+    "obs_organize",
+    "pdf2png",
+    "search_and_replace",
+    "search_in_files",
+    "sharedir",
+    "stereo2mono",
+    "stripaudio",
+    "vid2gif",
+    "vid2jpg",
+    "vid2mp3",
+    "vid2mp4",
+    "vid2webm",
+    "vidclip",
+    "viddur",
+    "vidspeed",
+    "vidvol",
+    "vidshrink",
+    "vidmatrix",
+    "vidwebmaster",
+    "vidhero",
+    "vidlist",
+    "test_net_connection",
+    "ytclip",
+]
 
-BINDINGS = BINDINGS_JSON["common"]
-if sys.platform == "win32":
-    BINDINGS.extend(BINDINGS_JSON["win32"])
-
-if sys.platform == "darwin":
-    BINDINGS.extend(BINDINGS_JSON["darwin"])
+WIN32 = [
+    "cat",
+    "cp",
+    "du",
+    "grep",
+    "home",
+    "ls",
+    "mv",
+    "open",
+    "rm",
+    "which",
+    "git-bash",
+    "touch",
+]
 
 
 def main():
+    cmds = COMMON
+    if sys.platform == "win32":
+        cmds.extend(WIN32)
+    cmds = sorted(cmds)
     print("zcmds:")
-    for binding in sorted(["ytclip"] + BINDINGS):
-        print(f"  {binding.split('=')[0]}")
+    for cmd in cmds:
+        print(f"  {cmd}")
 
 
 if __name__ == "__main__":
