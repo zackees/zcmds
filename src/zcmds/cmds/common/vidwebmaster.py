@@ -77,7 +77,9 @@ def run_gui(crf: int, heights: list[int]) -> None:
             encode(videofile, crf, heights)
             # do a beep when done
             beep(sound="ping")
+
         Thread(target=_encode_then_beep, daemon=True).start()
+
     ui = MainWidget(callback)
     ui.show()
     sys.exit(app.exec())
@@ -88,7 +90,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Make Web masters at 480, 720 and 1080p"
     )
-    parser.add_argument("video_path", help="Path to the video file to shrink", nargs="?")
+    parser.add_argument(
+        "video_path", help="Path to the video file to shrink", nargs="?"
+    )
     # Adds optional crf argument
     parser.add_argument("--crf", help="CRF value to use", type=int, default=28)
     # Adds optional height argument

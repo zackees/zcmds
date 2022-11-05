@@ -20,7 +20,9 @@ def main():
         "--downmix", help="downmix the audio from stereo to mono", action="store_true"
     )
     parser.add_argument(
-        "--fps", help="frames per second of the output video, default is no framerate change", default=None
+        "--fps",
+        help="frames per second of the output video, default is no framerate change",
+        default=None,
     )
     args = parser.parse_args()
     filename = args.video_path

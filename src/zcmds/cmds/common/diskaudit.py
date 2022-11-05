@@ -14,6 +14,7 @@ from typing import Any, Dict, List
 
 NUM_THREADS = 8
 
+
 # signal handler for ctrl-c
 def handle_ctrlc(sig, frame):  # pylint: disable=unused-argument
     print("Disk audit cancelled")
@@ -68,6 +69,7 @@ def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
                 count = 0
         except KeyboardInterrupt:
             handle_ctrlc(None, None)
+
 
 def main() -> None:
     signal.signal(signal.SIGINT, handle_ctrlc)

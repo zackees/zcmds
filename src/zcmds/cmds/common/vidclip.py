@@ -40,7 +40,9 @@ def get_next_path(path: str) -> str:
         return get_next_path(f"{base}_alt{ext}")
 
 
-def encode(infile, height, crf, start_timestamp, end_timestamp, output_path, print_fcn) -> bool:
+def encode(
+    infile, height, crf, start_timestamp, end_timestamp, output_path, print_fcn
+) -> bool:
     vf_scale_part = ""
     if height:
         vf_scale_part = f"-vf trunc(oh*a/2)*2:{height}"
@@ -70,7 +72,11 @@ def main():
         "--crf", default=_CRF_DEFAULT, type=int, help="crf quality of the file."
     )
     parser.add_argument("--height", help="height of the output video, e.g 1080 = 1080p")
-    parser.add_argument("--background", action="store_true", help="Use background thread to encode multiple videos")
+    parser.add_argument(
+        "--background",
+        action="store_true",
+        help="Use background thread to encode multiple videos",
+    )
     args = parser.parse_args()
 
     is_interactive = (
@@ -117,7 +123,15 @@ def main():
             print(s)
 
         def task() -> bool:
-            return encode(infile, args.height, crf, start_timestamp, end_timestamp, output_path, print_fcn=print_fcn)
+            return encode(
+                infile,
+                args.height,
+                crf,
+                start_timestamp,
+                end_timestamp,
+                output_path,
+                print_fcn=print_fcn,
+            )
 
         if not is_interactive:
             task()
