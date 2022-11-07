@@ -44,9 +44,13 @@ def encode(
     infile, height, crf, start_timestamp, end_timestamp, output_path, print_fcn
 ) -> bool:
     vf_scale_part = ""
+    to_stmt = ""
+    from_stmt = ""
     if height:
         vf_scale_part = f"-vf trunc(oh*a/2)*2:{height}"
-    cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        from_stmt = f"-ss {start_timestamp}"
+        to_stmt = f"-to {end_timestamp}"
+    cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} {from_stmt} {to_stmt} "{output_path}"'
     print_fcn(f"Executing:\n  {cmd}\n")
     rtn, _, _ = exec(cmd)
     if rtn != 0:
