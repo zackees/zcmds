@@ -59,6 +59,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.26: Vidclip now supports start_time end_time being omitted.
   * 1.1.25: Even better performance of diskaudit. 50% reduction in execution time.
   * 1.1.24: Fixes diskaudit from double counting
   * 1.1.23: Fixes test_net_connection
