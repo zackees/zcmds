@@ -82,6 +82,15 @@ def get_audio_channels(vidfile: str) -> int:
     return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
 
 
+def get_video_bitrate(vidfile: str) -> int:
+    """Returns the bitrate of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cuts clips from local files.\n",
@@ -102,6 +111,7 @@ def main():
         video_height = get_video_height(infile)
         video_width = get_video_width(infile)
         video_duration = get_video_duration(infile)
+        video_bitrate = get_video_bitrate(infile)
         audio_encoder = get_audio_encoder(infile)
         audio_bitrate = get_audio_bitrate(infile)
         audio_channels = get_audio_channels(infile)
@@ -110,6 +120,7 @@ def main():
         print(f"  Height: {video_height}")
         print(f"  Width: {video_width}")
         print(f"  Duration: {video_duration}")
+        print(f"  Bitrate: {video_bitrate}")
         print("Audio:")
         print(f"  Encoder: {audio_encoder}")
         print(f"  Bitrate: {audio_bitrate}")
