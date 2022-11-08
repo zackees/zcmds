@@ -48,7 +48,6 @@ def encode(
     from_stmt = ""
     if height:
         vf_scale_part = f"-vf trunc(oh*a/2)*2:{height}"
-    
     if start_timestamp:
         from_stmt = f"-ss {start_timestamp}"
     if end_timestamp:
