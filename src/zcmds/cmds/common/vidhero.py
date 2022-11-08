@@ -27,10 +27,10 @@ def main():
     parser.add_argument("--crf", help="CRF value to use", type=int, default=28)
     # Adds optional height argument
     parser.add_argument(
-        "--start_timecode", help="start timecode like 0:38", required=True
+        "--start_timecode", help="start timecode like 0:38"
     )
-    parser.add_argument("--end_timecode", help="end timecode like 0:48", required=True)
-    parser.add_argument("--height", help="output path", required=True)
+    parser.add_argument("--end_timecode", help="end timecode like 0:48")
+    parser.add_argument("--heights", help="1080,720,480", default="1080,720,480")
     args = parser.parse_args()
     video_path = args.video_path or input("Enter video path: ")
     start_timecode = args.start_timecode or input("Enter start timecode like 0:38: ")
@@ -39,18 +39,19 @@ def main():
     if not os.path.exists(video_path):
         print(f"{video_path} does not exist")
         sys.exit(1)
-    height = args.height
-    crf = args.crf
-    path, _ = os.path.splitext(video_path)
-    out_path = os.path.join(path, f"{os.path.basename(path)}_hero_{height}.mp4")
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
-    start_seconds = timecode_to_seconds(start_timecode)
-    end_seconds = timecode_to_seconds(end_timecode)
-    cmd = f'static_ffmpeg -hide_banner -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
-    print(f"Running:\n\n  {cmd}\n")
-    os.system(cmd)
-    print("Generted file: " + out_path)
+    for height in args.heights.split(","):
+        crf = args.crf
+        path, _ = os.path.splitext(video_path)
+        out_path = os.path.join(path, f"hero_{height}.mp4")
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
+        start_seconds = timecode_to_seconds(start_timecode)
+        end_seconds = timecode_to_seconds(end_timecode)
+        cmd = f'static_ffmpeg -hide_banner -v quiet -stats -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+        print(f"RUNNING:\n  {cmd}\n")
+        os.system(cmd)
+        print("Generted file: " + out_path)
+    print("\nDone!\n")
 
 
 if __name__ == "__main__":
