@@ -112,18 +112,20 @@ def main():
         video_width = get_video_width(infile)
         video_duration = get_video_duration(infile)
         video_bitrate = get_video_bitrate(infile)
+        video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
         audio_encoder = get_audio_encoder(infile)
         audio_bitrate = get_audio_bitrate(infile)
+        audio_bitrate_str = f"{audio_bitrate / 1000:.0f} kbps"
         audio_channels = get_audio_channels(infile)
         print("Video:")
         print(f"  Encoder: {video_encoder}")
         print(f"  Height: {video_height}")
         print(f"  Width: {video_width}")
         print(f"  Duration: {video_duration}")
-        print(f"  Bitrate: {video_bitrate}")
+        print(f"  Bitrate: {video_bitrate_str}")
         print("Audio:")
         print(f"  Encoder: {audio_encoder}")
-        print(f"  Bitrate: {audio_bitrate}")
+        print(f"  Bitrate: {audio_bitrate_str}")
         print(f"  Channels: {audio_channels}")
 
     else:
