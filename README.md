@@ -60,6 +60,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.1.30: Improves vidinfo with less spam on the console and allows passing height list
   * 1.1.29: More improvements to vidinfo
   * 1.1.28: vidinfo now has more encodingg information
   * 1.1.27: Fix issues with spaces in vidinfo
