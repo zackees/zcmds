@@ -42,7 +42,7 @@ def main():
     for height in args.heights.split(","):
         crf = args.crf
         path, _ = os.path.splitext(video_path)
-        out_path = os.path.join(path, f"hero_{height}.mp4")
+        out_path = os.path.join(path, f"hero_{height}_crf{crf}.mp4")
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
         start_seconds = timecode_to_seconds(start_timecode)
