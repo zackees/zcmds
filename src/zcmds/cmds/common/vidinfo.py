@@ -37,6 +37,42 @@ def get_audio_encoder(vidfile: str) -> str:
     return subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
 
 
+def get_video_height(vidfile: str) -> int:
+    """Returns the height of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams v:0 -show_entries stream=height"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+
+
+def get_video_width(vidfile: str) -> int:
+    """Returns the width of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams v:0 -show_entries stream=width"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+
+
+def get_video_duration(vidfile: str) -> float:
+    """Returns the duration of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams v:0 -show_entries stream=duration"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return float(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+
+
+def get_audio_bitrate(vidfile: str) -> int:
+    """Returns the bitrate of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cuts clips from local files.\n",
@@ -54,9 +90,20 @@ def main():
         sys.exit(1)
     if not args.full:
         video_encoder = get_video_encoder(infile)
+        video_height = get_video_height(infile)
+        video_width = get_video_width(infile)
+        video_duration = get_video_duration(infile)
         audio_encoder = get_audio_encoder(infile)
-        print(f"Video Encoder: {video_encoder}")
-        print(f"Audio Encoder: {audio_encoder}")
+        audio_bitrate = get_audio_bitrate(infile)
+        print("Video:")
+        print(f"  Encoder: {video_encoder}")
+        print(f"  Height: {video_height}")
+        print(f"  Width: {video_width}")
+        print(f"  Duration: {video_duration}")
+        print("Audio:")
+        print(f"  Encoder: {audio_encoder}")
+        print(f"  Bitrate: {audio_bitrate}")
+
     else:
         cmd = f'static_ffprobe -v error -show_format -show_streams "{infile}"'
         rtn, stdout, stderr = exec(cmd)
