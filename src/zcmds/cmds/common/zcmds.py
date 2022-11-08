@@ -13,6 +13,7 @@ COMMON = [
     "sharedir",
     "stereo2mono",
     "stripaudio",
+    "vidinfo",
     "vid2gif",
     "vid2jpg",
     "vid2mp3",
