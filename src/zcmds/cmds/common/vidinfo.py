@@ -91,6 +91,21 @@ def get_video_bitrate(vidfile: str) -> int:
     return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
 
 
+def format_duration(duration: float) -> str:
+    """Returns a string representation of the given duration."""
+    hours = int(duration / 3600)
+    duration -= hours * 3600
+    minutes = int(duration / 60)
+    duration -= minutes * 60
+    seconds = int(duration)
+    duration -= seconds
+    milliseconds = int(duration * 1000)
+    out = f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+    while out.startswith("00:"):
+        out = out[3:]
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cuts clips from local files.\n",
@@ -111,6 +126,7 @@ def main():
         video_height = get_video_height(infile)
         video_width = get_video_width(infile)
         video_duration = get_video_duration(infile)
+        video_duration_str = format_duration(video_duration)
         video_bitrate = get_video_bitrate(infile)
         video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
         audio_encoder = get_audio_encoder(infile)
@@ -121,7 +137,7 @@ def main():
         print(f"  Encoder: {video_encoder}")
         print(f"  Height: {video_height}")
         print(f"  Width: {video_width}")
-        print(f"  Duration: {video_duration}")
+        print(f"  Duration: {video_duration_str}")
         print(f"  Bitrate: {video_bitrate_str}")
         print("Audio:")
         print(f"  Encoder: {audio_encoder}")
