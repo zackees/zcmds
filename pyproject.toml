@@ -23,7 +23,7 @@ dependencies = [
 ]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
-version = "1.1.30"
+version = "1.2.0"
 
 [project.scripts]
 zcmds = "zcmds.cmds.common.zcmds:main"
@@ -35,7 +35,7 @@ search_and_replace = "zcmds.cmds.common.search_and_replace:main"
 search_in_files = "zcmds.cmds.common.search_in_files:main"
 sharedir = "zcmds.cmds.common.sharedir:main"
 stereo2mono = "zcmds.cmds.common.stereo2mono:main"
-stripaudio = "zcmds.cmds.common.stripaudio:main"
+vidmute = "zcmds.cmds.common.vidmute:main"
 vidinfo = "zcmds.cmds.common.vidinfo:main"
 vid2gif = "zcmds.cmds.common.vid2gif:main"
 vid2jpg = "zcmds.cmds.common.vid2jpg:main"

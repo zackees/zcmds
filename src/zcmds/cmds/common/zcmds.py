@@ -12,7 +12,7 @@ COMMON = [
     "search_in_files",
     "sharedir",
     "stereo2mono",
-    "stripaudio",
+    "vidmute",
     "vidinfo",
     "vid2gif",
     "vid2jpg",

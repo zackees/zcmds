@@ -26,7 +26,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * search_in_files
   * sharedir
   * stereo2mono
-  * stripaudio
+  * vidmute
   * vidinfo
   * vid2gif
   * vid2jpg
@@ -60,6 +60,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.2.0: stripaudio -> vidmute
   * 1.1.30: Improves vidinfo with less spam on the console and allows passing height list
   * 1.1.29: More improvements to vidinfo
   * 1.1.28: vidinfo now has more encodingg information

@@ -35,11 +35,13 @@ def main():
     video_path = args.video_path or input("Enter video path: ")
     start_timecode = args.start_timecode or input("Enter start timecode like 0:38: ")
     end_timecode = args.end_timecode or input("Enter end timecode like 0:48: ")
-
+    heights = [int(val) for val in args.heights.split(",")]
+    # sort so that smallest value / fastest encoded first.
+    heights.sort()
     if not os.path.exists(video_path):
         print(f"{video_path} does not exist")
         sys.exit(1)
-    for height in args.heights.split(","):
+    for height in heights:
         crf = args.crf
         path, _ = os.path.splitext(video_path)
         out_path = os.path.join(path, f"hero_{height}_crf{crf}.mp4")
@@ -47,8 +49,9 @@ def main():
         # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
         start_seconds = timecode_to_seconds(start_timecode)
         end_seconds = timecode_to_seconds(end_timecode)
-        cmd = f'static_ffmpeg -hide_banner -v quiet -stats -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
-        print(f"RUNNING:\n  {cmd}\n")
+        cmd = f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+        print(f"\nRUNNING:\n  {cmd}\n")
+        print("Writing file: " + out_path)
         os.system(cmd)
         print("Generted file: " + out_path)
     print("\nDone!\n")
