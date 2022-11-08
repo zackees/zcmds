@@ -48,7 +48,10 @@ def encode(
     from_stmt = ""
     if height:
         vf_scale_part = f"-vf trunc(oh*a/2)*2:{height}"
+    
+    if start_timestamp:
         from_stmt = f"-ss {start_timestamp}"
+    if end_timestamp:
         to_stmt = f"-to {end_timestamp}"
     cmd = f'static_ffmpeg -hide_banner -i "{infile}" -c:v libx264 {vf_scale_part} -preset veryslow -crf {crf} {from_stmt} {to_stmt} "{output_path}"'
     print_fcn(f"Executing:\n  {cmd}\n")
@@ -143,8 +146,9 @@ def main():
         else:
             future = executor.submit(task)
             futures.append(future)
-        if "y" not in input("Continue? (y/n): ").lower():
+        if "y" not in input("Job is running\nSpecify another cut? (y/n): ").lower():
             break
+        print("Waiting for jobs to finish...")
         args.start_timestamp = None
         args.end_timestamp = None
         args.outname = None
