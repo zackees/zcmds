@@ -52,8 +52,12 @@ def main():
         cmd = f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
         print(f"\nRUNNING:\n  {cmd}\n")
         print("Writing file: " + out_path)
+        import time
+        start_time = time.time()
         os.system(cmd)
-        print("Generted file: " + out_path)
+        diff_time = time.time() - start_time
+        diff_time_str = str(round(diff_time, 1))
+        print(f"Generted file: {out_path} in {diff_time_str} seconds")
     print("\nDone!\n")
 
 
