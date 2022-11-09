@@ -106,6 +106,12 @@ def format_duration(duration: float) -> str:
     return out
 
 
+def get_format_json(vidfile: str) -> str:
+    """Returns the format json of the given video file."""
+    cmd = f'static_ffprobe -v error -print_format json -show_format -show_streams "{vidfile}"'
+    return subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cuts clips from local files.\n",
@@ -122,35 +128,40 @@ def main():
         print(f"File '{infile}' does not exist")
         sys.exit(1)
     if not args.full:
-        video_encoder = get_video_encoder(infile)
-        video_height = get_video_height(infile)
-        video_width = get_video_width(infile)
-        video_duration = get_video_duration(infile)
-        video_duration_str = format_duration(video_duration)
-        video_bitrate = get_video_bitrate(infile)
-        video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
-        audio_encoder = get_audio_encoder(infile)
-        audio_bitrate = get_audio_bitrate(infile)
-        audio_bitrate_str = f"{audio_bitrate / 1000:.0f} kbps"
-        audio_channels = get_audio_channels(infile)
-        print("Video:")
-        print(f"  Encoder: {video_encoder}")
-        print(f"  Height: {video_height}")
-        print(f"  Width: {video_width}")
-        print(f"  Duration: {video_duration_str}")
-        print(f"  Bitrate: {video_bitrate_str}")
-        print("Audio:")
-        print(f"  Encoder: {audio_encoder}")
-        print(f"  Bitrate: {audio_bitrate_str}")
-        print(f"  Channels: {audio_channels}")
+        try:
+            video_encoder = get_video_encoder(infile)
+            video_height = get_video_height(infile)
+            video_width = get_video_width(infile)
+            video_duration = get_video_duration(infile)
+            video_duration_str = format_duration(video_duration)
+            video_bitrate = get_video_bitrate(infile)
+            video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
+            print("Video:")
+            print(f"  Encoder: {video_encoder}")
+            print(f"  Height: {video_height}")
+            print(f"  Width: {video_width}")
+            print(f"  Duration: {video_duration_str}")
+            print(f"  Bitrate: {video_bitrate_str}")
+        except subprocess.CalledProcessError:
+            print("No video stream found")
 
+        try:
+            audio_encoder = get_audio_encoder(infile)
+            if not audio_encoder:
+                print("No audio stream found")
+            else:
+                audio_bitrate = get_audio_bitrate(infile)
+                audio_bitrate_str = f"{audio_bitrate / 1000:.0f} kbps"
+                audio_channels = get_audio_channels(infile)
+                print("Audio:")
+                print(f"  Encoder: {audio_encoder}")
+                print(f"  Bitrate: {audio_bitrate_str}")
+                print(f"  Channels: {audio_channels}")
+        except subprocess.CalledProcessError:
+            print("No audio stream found")
     else:
-        cmd = f'static_ffprobe -v error -show_format -show_streams "{infile}"'
-        rtn, stdout, stderr = exec(cmd)
-        if rtn != 0:
-            print(f"Error: {stderr}")
-            sys.exit(1)
-        print(stdout)
+        json_str = get_format_json(infile)
+        print(json_str)
 
 
 if __name__ == "__main__":
