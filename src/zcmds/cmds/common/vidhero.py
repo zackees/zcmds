@@ -31,7 +31,14 @@ def main():
     )
     parser.add_argument("--end_timecode", help="end timecode like 0:48")
     parser.add_argument("--heights", help="1080,720,480", default="1080,720,480")
+    parser.add_argument("--mute", help="mute video", action="store_true")
     args = parser.parse_args()
+    if os.path.isdir(args.video_path):
+        print(f"{args.video_path} is a directory")
+        sys.exit(1)
+    if not os.path.exists(args.video_path):
+        print(f"{args.video_path} does not exist")
+        sys.exit(1)
     video_path = args.video_path or input("Enter video path: ")
     start_timecode = args.start_timecode or input("Enter start timecode like 0:38: ")
     end_timecode = args.end_timecode or input("Enter end timecode like 0:48: ")
@@ -55,6 +62,10 @@ def main():
         import time
         start_time = time.time()
         os.system(cmd)
+        if args.mute:
+            cmd = f'vidmute "{out_path}"'
+            print(f"\nRUNNING:\n  {cmd}\n")
+            os.system(cmd)
         diff_time = time.time() - start_time
         diff_time_str = str(round(diff_time, 1))
         print(f"Generted file: {out_path} in {diff_time_str} seconds")
