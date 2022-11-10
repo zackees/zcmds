@@ -146,8 +146,8 @@ def main():
             future = executor.submit(task)
             futures.append(future)
         if "y" not in input("Job is running\nSpecify another cut? (y/n): ").lower():
+            print("Waiting for jobs to finish...")
             break
-        print("Waiting for jobs to finish...")
         args.start_timestamp = None
         args.end_timestamp = None
         args.outname = None
