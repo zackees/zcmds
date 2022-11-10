@@ -60,6 +60,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.2.1: Adds improvements to vidhero for audio fade and makes vidclip improves usability
   * 1.2.0: stripaudio -> vidmute
   * 1.1.30: Improves vidinfo with less spam on the console and allows passing height list
   * 1.1.29: More improvements to vidinfo
