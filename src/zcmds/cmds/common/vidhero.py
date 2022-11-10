@@ -57,7 +57,23 @@ def main():
         # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
         start_seconds = timecode_to_seconds(start_timecode)
         end_seconds = timecode_to_seconds(end_timecode)
-        cmd = f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}" -ss {start_timecode} -to {end_timecode} -vf "scale=trunc(oh*a/2)*2:{height},fade=t=in:st={start_seconds}:d=1,fade=t=out:st={end_seconds-1}:d=1" -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+        videofilter_stmt = (
+            '-vf '
+            f'"scale=trunc(oh*a/2)*2:{height},'
+            f'fade=t=in:st={start_seconds}:d=1,'
+            f'fade=t=out:st={end_seconds-1}:d=1"'
+        )
+        audiofilter_stmt = (
+            f'-af "afade=type=in:start_time={start_seconds}:duration=1,'
+            f'afade=type=out:start_time={end_seconds-1}:duration=1"'
+        )
+        cmd = (
+            f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}"'
+            f' -ss {start_timecode} -to {end_timecode}'
+            f' {videofilter_stmt} '
+            f' {audiofilter_stmt} '
+            f' -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
+        )
         print(f"\nRUNNING:\n  {cmd}\n")
         print("Writing file: " + out_path)
         start_time = time.time()
