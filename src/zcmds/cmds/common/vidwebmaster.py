@@ -103,6 +103,8 @@ def main():
     )
     args = parser.parse_args()
     heights = [int(h) for h in args.heights.split(",")]
+    # sort by smallest first
+    heights.sort()
     if not args.video_path:
         run_gui(args.crf, heights)
         return
