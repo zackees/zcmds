@@ -23,7 +23,7 @@ dependencies = [
 ]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
-version = "1.2.1"
+version = "1.3.0"
 
 [project.scripts]
 zcmds = "zcmds.cmds.common.zcmds:main"
