@@ -5,6 +5,7 @@ import os
 import platform
 import subprocess
 import sys
+import tempfile
 
 # import dataclass
 from dataclasses import dataclass
@@ -24,37 +25,39 @@ class VidInfo:
 def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
     path, _ = os.path.splitext(videopath)
     os.makedirs(path, exist_ok=True)
-    for vidinfo in vidinfos:
-        height = vidinfo.height
-        vidbitrate = vidinfo.vidbitrate
-        bitrate_str = vidbitrate.replace(".", "_")
-        out_path = os.path.join(path, f"{height}_{bitrate_str}.mp4")
-        downmix_stmt = "-ac 1" if height <= 480 else ""
-        # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
-        null_stm: str = "/dev/null" if platform.system() != "Windows" else "NUL"
-        cmd_1stpass = (
-            f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
-            f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-            " -movflags +faststart -preset veryslow -c:v libx264"
-            f" -an -pass 1 -f null {null_stm}"
-            f' -b:v {vidbitrate} "{out_path}"'
-        )
-
-        cmd_2ndpass = (
-            f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
-            f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-            " -movflags +faststart -preset veryslow -c:v libx264"
-            f' -pass 2 -b:v {vidbitrate} "{out_path}"'
-        )
-        print(f"\nRunning first pass:\n  {cmd_1stpass}\n")
-        proc = subprocess.Popen(cmd_1stpass, shell=True)
-        proc.wait()
-        print(f"\nRunning second pass:\n  {cmd_2ndpass}\n")
-        proc = subprocess.Popen(cmd_2ndpass, shell=True)
-        proc.wait()
-        print(
-            f"\n########################\n# Generated file:\n#  {out_path}\n########################"
-        )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        passlogfile = os.path.join(tmpdir, "ffmpeg2pass-0.log")
+        for vidinfo in vidinfos:
+            height = vidinfo.height
+            vidbitrate = vidinfo.vidbitrate
+            bitrate_str = vidbitrate.replace(".", "_")
+            out_path = os.path.join(path, f"{height}_{bitrate_str}.mp4")
+            downmix_stmt = "-ac 1" if height <= 480 else ""
+            # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
+            null_stm: str = "/dev/null" if platform.system() != "Windows" else "NUL"
+            cmd_1stpass = (
+                f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
+                f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
+                " -movflags +faststart -preset veryslow -c:v libx264"
+                f" -an -passlogfile {passlogfile} -pass 1 -f null {null_stm}"
+                f' -b:v {vidbitrate} "{out_path}"'
+            )
+            cmd_2ndpass = (
+                f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
+                f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
+                " -movflags +faststart -preset veryslow -c:v libx264"
+                f" -passlogfile {passlogfile}"
+                f' -pass 2 -b:v {vidbitrate} "{out_path}"'
+            )
+            print(f"\nRunning first pass:\n  {cmd_1stpass}\n")
+            proc = subprocess.Popen(cmd_1stpass, shell=True)
+            proc.wait()
+            print(f"\nRunning second pass:\n  {cmd_2ndpass}\n")
+            proc = subprocess.Popen(cmd_2ndpass, shell=True)
+            proc.wait()
+            print(
+                f"\n########################\n# Generated file:\n#  {out_path}\n########################"
+            )
 
 
 class MainWidget(QMainWindow):
