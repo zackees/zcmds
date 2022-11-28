@@ -20,6 +20,14 @@ from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
 class VidInfo:
     vidbitrate: str
     height: int
+    filetype: str = "mp4"
+
+
+def get_encoder(filetype: str) -> str:
+    if filetype == "mp4":
+        return "libx264"
+    if filetype == "webm":
+        return "libvpx-vp9"
 
 
 def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
@@ -30,22 +38,24 @@ def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
         for vidinfo in vidinfos:
             height = vidinfo.height
             vidbitrate = vidinfo.vidbitrate
+            encoder = get_encoder(vidinfo.filetype)
             bitrate_str = vidbitrate.replace(".", "_")
-            out_path = os.path.join(path, f"{height}_{bitrate_str}.mp4")
+            ext = vidinfo.filetype
+            out_path = os.path.join(path, f"{height}_{bitrate_str}.{ext}")
             downmix_stmt = "-ac 1" if height <= 480 else ""
             # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
             null_stm: str = "/dev/null" if platform.system() != "Windows" else "NUL"
             cmd_1stpass = (
                 f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
                 f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-                " -movflags +faststart -preset veryslow -c:v libx264"
+                f" -movflags +faststart -preset veryslow -c:v {encoder}"
                 f" -an -passlogfile {passlogfile} -pass 1 -f null {null_stm}"
                 f' -b:v {vidbitrate} "{out_path}"'
             )
             cmd_2ndpass = (
                 f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
                 f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-                " -movflags +faststart -preset veryslow -c:v libx264"
+                f" -movflags +faststart -preset veryslow -c:v {encoder}"
                 f" -passlogfile {passlogfile}"
                 f' -pass 2 -b:v {vidbitrate} "{out_path}"'
             )
@@ -136,8 +146,11 @@ def main():
         help="height of the output video, e.g 1080 = 1080p",
         default="1080:3.0M,720:1.6M,480:0.9M",
     )
+    parser.add_argument("--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"])
     args = parser.parse_args()
     vidinfos = parse_vidinfos(args.encodings)
+    for vidinfo in vidinfos:
+        vidinfo.filetype = args.type
     # sort by smallest first
     if not args.video_path:
         run_gui(vidinfos)
