@@ -28,6 +28,7 @@ def get_encoder(filetype: str) -> str:
         return "libx264"
     if filetype == "webm":
         return "libvpx-vp9"
+    raise ValueError(f"Unknown filetype: {filetype}")
 
 
 def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
