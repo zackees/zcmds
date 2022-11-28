@@ -92,3 +92,9 @@ TODO: Add a cleanup function to undo this.
   * 1.1.3: Fix up cmds so it returns int
   * 1.1.2: Fix git-bash on win32
   * 1.1.1: Release
+
+
+# TODO:
+
+  * Add silence remover:
+    * https://github.com/bambax/Remsi
