@@ -144,7 +144,7 @@ def main():
     # Adds optional height argument
     parser.add_argument(
         "--encodings",
-        help="height of the output video, e.g 1080 = 1080p",
+        help="Height and avg bitrate, seperated by commas. Example: 1080:3.0M,720:1.6M,480:0.9M",
         default="1080:3.0M,720:1.6M,480:0.9M",
     )
     parser.add_argument("--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"])
