@@ -21,10 +21,12 @@ def main():
         for i, line in enumerate(file_data.splitlines()):
             if args.search_string in line:
                 matches.append((i, line))
-        print(f"Found {len(matches)} matches in {os.path.abspath(file)}:\n")
-        for match in matches:
-            haystack = match[1].strip()
-            print(f"  {match[0]}: {haystack}")
+        if len(matches):
+            print(f"Found {len(matches)} matches in {os.path.abspath(file)}:")
+            for match in matches:
+                haystack = match[1].strip()
+                print(f"  {match[0]}: {haystack}")
+            print()
 
 
 if __name__ == "__main__":
