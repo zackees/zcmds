@@ -132,11 +132,11 @@ def main() -> None:
     print("\n" + "\n".join(lines))
     total_time = time.time() - scan_start_time
     if total_time > 60:
-        total_time = f"{total_time / 60:.2f} minutes"
-    print(f"\nCompleted in: {total_time:.1f} seconds")
-    print(f"  Scan time: {scan_diff:.1f} seconds")
-    print(f"  Size time: {size_diff:.1f} seconds")
-    print(f"  Sort time: {partion_sort_diff:.1f} seconds")
+        total_time_str = f"{total_time / 60:.2f} minutes"
+        print(f"\nCompleted in: {total_time_str}")
+        print(f"  Scan time: {scan_diff:.1f} seconds")
+        print(f"  Size time: {size_diff:.1f} seconds")
+        print(f"  Sort time: {partion_sort_diff:.1f} seconds")
 
 
 if __name__ == "__main__":
