@@ -129,8 +129,10 @@ def main() -> None:
         lines.append(f"  {nm} {num} ({perc_num})")
     partion_sort_diff = time.time() - partion_sort_start_time
 
-    print("\n".join(lines))
+    print("\n" + "\n".join(lines))
     total_time = time.time() - scan_start_time
+    if total_time > 60:
+        total_time = f"{total_time / 60:.2f} minutes"
     print(f"\nCompleted in: {total_time:.1f} seconds")
     print(f"  Scan time: {scan_diff:.1f} seconds")
     print(f"  Size time: {size_diff:.1f} seconds")
