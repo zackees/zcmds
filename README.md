@@ -99,3 +99,5 @@ TODO: Add a cleanup function to undo this.
 
   * Add silence remover:
     * https://github.com/bambax/Remsi
+  * Add lossless cut to vidclip
+    * https://github.com/mifi/lossless-cut
