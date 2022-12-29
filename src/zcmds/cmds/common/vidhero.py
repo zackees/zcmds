@@ -27,9 +27,7 @@ def main():
     # Adds optional crf argument
     parser.add_argument("--crf", help="CRF value to use", type=int, default=28)
     # Adds optional height argument
-    parser.add_argument(
-        "--start_timecode", help="start timecode like 0:38"
-    )
+    parser.add_argument("--start_timecode", help="start timecode like 0:38")
     parser.add_argument("--end_timecode", help="end timecode like 0:48")
     parser.add_argument("--heights", help="1080,720,480", default="1080,720,480")
     parser.add_argument("--mute", help="mute video", action="store_true")
@@ -58,9 +56,9 @@ def main():
         start_seconds = timecode_to_seconds(start_timecode)
         end_seconds = timecode_to_seconds(end_timecode)
         videofilter_stmt = (
-            '-vf '
+            "-vf "
             f'"scale=trunc(oh*a/2)*2:{height},'
-            f'fade=t=in:st={start_seconds}:d=1,'
+            f"fade=t=in:st={start_seconds}:d=1,"
             f'fade=t=out:st={end_seconds-1}:d=1"'
         )
         audiofilter_stmt = (
@@ -69,9 +67,9 @@ def main():
         )
         cmd = (
             f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}"'
-            f' -ss {start_timecode} -to {end_timecode}'
-            f' {videofilter_stmt} '
-            f' {audiofilter_stmt} '
+            f" -ss {start_timecode} -to {end_timecode}"
+            f" {videofilter_stmt} "
+            f" {audiofilter_stmt} "
             f' -movflags +faststart -preset veryslow -c:v libx264 -crf {crf} "{out_path}"'
         )
         print(f"\nRUNNING:\n  {cmd}\n")

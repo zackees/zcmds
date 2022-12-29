@@ -21,6 +21,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * comports
   * diskaudit
   * git-bash
+  * findfile
   * obs_organize
   * pdf2png
   * search_and_replace
@@ -61,6 +62,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.3: Adds `findfile` utility.
   * 1.3.2: Adds `comports` to display all comports that are active on the computer.
   * 1.3.1: Nit improvement in search_and_replace to improve ui
   * 1.3.0: vidwebmaster now does variable rate encoding. --crf and --heights has been replaced by --encodings

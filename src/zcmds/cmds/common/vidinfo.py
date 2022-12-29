@@ -43,7 +43,9 @@ def get_video_height(vidfile: str) -> int:
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=height"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def get_video_width(vidfile: str) -> int:
@@ -52,7 +54,9 @@ def get_video_width(vidfile: str) -> int:
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=width"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def get_video_duration(vidfile: str) -> float:
@@ -61,7 +65,9 @@ def get_video_duration(vidfile: str) -> float:
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=duration"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return float(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return float(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def get_audio_bitrate(vidfile: str) -> int:
@@ -70,7 +76,9 @@ def get_audio_bitrate(vidfile: str) -> int:
         "static_ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def get_audio_channels(vidfile: str) -> int:
@@ -79,7 +87,9 @@ def get_audio_channels(vidfile: str) -> int:
         "static_ffprobe -v error -select_streams a:0 -show_entries stream=channels"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def get_video_bitrate(vidfile: str) -> int:
@@ -88,7 +98,9 @@ def get_video_bitrate(vidfile: str) -> int:
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(subprocess.check_output(cmd, shell=True, universal_newlines=True).strip())
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
 
 
 def format_duration(duration: float) -> str:
