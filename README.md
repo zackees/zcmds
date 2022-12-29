@@ -18,6 +18,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 # Commands
 
   * audnorm
+  * comports
   * diskaudit
   * git-bash
   * obs_organize
