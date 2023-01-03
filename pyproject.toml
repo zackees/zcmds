@@ -24,7 +24,7 @@ dependencies = [
 ]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
-version = "1.3.3"
+version = "1.3.4"
 
 [project.scripts]
 zcmds = "zcmds.cmds.common.zcmds:main"
@@ -33,6 +33,7 @@ comports = "zcmds.cmds.common.comports:main"
 diskaudit = "zcmds.cmds.common.diskaudit:main"
 findfile = "zcmds.cmds.common.findfile:main"
 obs_organize = "zcmds.cmds.common.obs_organize:main"
+printenv = "zcmds.cmds.common.printenv:main"
 pdf2png = "zcmds.cmds.common.pdf2png:main"
 search_and_replace = "zcmds.cmds.common.search_and_replace:main"
 search_in_files = "zcmds.cmds.common.search_in_files:main"

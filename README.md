@@ -23,6 +23,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * git-bash
   * findfile
   * obs_organize
+  * printenv
   * pdf2png
   * search_and_replace
   * search_in_files
@@ -62,6 +63,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.4: Adds `printenv` utility
   * 1.3.3: Adds `findfile` utility.
   * 1.3.2: Adds `comports` to display all comports that are active on the computer.
   * 1.3.1: Nit improvement in search_and_replace to improve ui
