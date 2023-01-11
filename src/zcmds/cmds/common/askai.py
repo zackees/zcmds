@@ -2,10 +2,14 @@ import argparse
 import json
 import os
 import sys
+import time
+from typing import Tuple
 
 import openai
 from appdirs import user_config_dir  # type: ignore
 from openai.error import AuthenticationError
+
+from .inputimeout import TimeoutOccurred, inputimeout
 
 
 def get_config_path() -> str:
@@ -33,6 +37,47 @@ def create_or_load_config() -> dict:
         return {}
 
 
+def read_console(timeout: int = 1) -> Tuple[bool, str, float]:
+    start_time = time.time()
+    end_time = 0.0
+    try:
+        out = inputimeout(timeout=timeout)
+        end_time = time.time()
+        return (True, out, end_time - start_time)
+    except TimeoutOccurred:
+        return (False, "", end_time - start_time)
+
+
+def prompt_input() -> str:
+    lines: list[str] = []
+    times: list[float] = []
+    streaming_mode = False
+    while True:
+        if streaming_mode:
+            ok, line, elapsed = read_console(timeout=1)
+            if not ok:
+                break  # timed out
+            lines.append(line)
+            times.append(elapsed)
+        else:
+            if len(lines) == 0:
+                print("input: ", end="")
+            start = time.time()
+            line = input("")
+            times.append(time.time() - start)
+            lines.append(line)
+        # if the two lines lines were all fast, switch to streaming mode
+        if not streaming_mode and len(times) > 2 and all(t < 0.1 for t in times[-2:]):
+            streaming_mode = True
+        # print(lines)
+        if not streaming_mode:
+            if lines[-2:] == ["", ""]:
+                # chop of the last two lines
+                lines = lines[:-2]
+                break
+    return "\n".join(lines)
+
+
 MODELS = {"code": "text-davinci-003"}
 
 
@@ -41,8 +86,11 @@ def main() -> int:
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--mode", default="code", choices=MODELS.keys())
+    argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
+    argparser.add_argument(
+        "--max-tokens", help="Max tokens to return", type=int, default=600
+    )
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -53,14 +101,21 @@ def main() -> int:
         config["openai_key"] = key
         save_config(config)
     key = config["openai_key"]
-    prompt = args.prompt or input("Prompt: ")
+    prompt = args.prompt or prompt_input()
+    print("Processing: ")
     # wow this makes all the difference with this ai
     stop = '"""'
     prompt += f"\n{stop}\nHere's my response:\n"
     openai.api_key = key
-    print("\n############ BEGIN PROMPT OpenAI")
-    print(prompt)
-    print("############ END PROMPT")
+
+    def log(*pargs, **kwargs):
+        if not args.verbose:
+            return
+        print(*pargs, **kwargs)
+
+    log("\n############ BEGIN PROMPT OpenAI")
+    log(prompt)
+    log("############ END PROMPT")
     try:
         response = openai.Completion.create(
             model=MODELS[args.mode],
@@ -73,7 +128,9 @@ def main() -> int:
             stop=[stop],
         )
     except AuthenticationError as e:
-        print("Error authenticating with OpenAI, deleting password from config and exiting.")
+        print(
+            "Error authenticating with OpenAI, deleting password from config and exiting."
+        )
         print(e)
         save_config({})
         return 1
