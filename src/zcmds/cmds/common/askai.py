@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import time
-from typing import Tuple
+from typing import Optional, Tuple
 
 import openai
 from appdirs import user_config_dir  # type: ignore
@@ -37,7 +37,7 @@ def create_or_load_config() -> dict:
         return {}
 
 
-def read_console(prompt: str | None = None, timeout: int = 1) -> Tuple[bool, str, float]:
+def read_console(prompt: Optional[str] = None, timeout: float = 1.0) -> Tuple[bool, str, float]:
     start_time = time.time()
     end_time = 0.0
     try:

@@ -89,11 +89,3 @@ else:
     import time
 
     inputimeout = win_inputimeout
-
-
-def read_console_timeout(prompt="", timeout=DEFAULT_TIMEOUT):
-    try:
-        return inputimeout(prompt=prompt, timeout=timeout)
-
-    except TimeoutOccurred:
-        return None
