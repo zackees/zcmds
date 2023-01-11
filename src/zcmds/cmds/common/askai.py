@@ -5,6 +5,7 @@ import sys
 
 import openai
 from appdirs import user_config_dir  # type: ignore
+from openai.error import AuthenticationError
 
 
 def get_config_path() -> str:
@@ -60,16 +61,22 @@ def main() -> int:
     print("\n############ BEGIN PROMPT OpenAI")
     print(prompt)
     print("############ END PROMPT")
-    response = openai.Completion.create(
-        model=MODELS[args.mode],
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=args.max_tokens,
-        top_p=0.3,
-        frequency_penalty=0.5,
-        presence_penalty=0,
-        stop=[stop],
-    )
+    try:
+        response = openai.Completion.create(
+            model=MODELS[args.mode],
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=args.max_tokens,
+            top_p=0.3,
+            frequency_penalty=0.5,
+            presence_penalty=0,
+            stop=[stop],
+        )
+    except AuthenticationError as e:
+        print("Error authenticating with OpenAI, deleting password from config and exiting.")
+        print(e)
+        save_config({})
+        return 1
     # print(response)
     if response is None or not response.choices:
         print("No error response recieved from from OpenAI, response was:")
