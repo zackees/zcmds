@@ -37,7 +37,7 @@ MODELS = {"code": "text-davinci-003"}
 
 def main() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
-    argparser.add_argument("prompt", help="Prompt to ask OpenAI")
+    argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--mode", default="code", choices=MODELS.keys())
     # max tokens
