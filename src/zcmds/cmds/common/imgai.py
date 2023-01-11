@@ -1,10 +1,10 @@
 import argparse
 import sys
 import time
+import webbrowser
 from typing import Optional, Tuple
 
 import openai
-from openai.error import AuthenticationError
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 
@@ -59,14 +59,10 @@ def prompt_input() -> str:
     return "\n".join(lines)
 
 
-MODELS = {"code": "text-davinci-003"}
-
-
 def cli() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument("--mode", default="code", choices=MODELS.keys())
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
     argparser.add_argument(
@@ -89,49 +85,11 @@ def cli() -> int:
     prompt += f"\n{stop}\nHere's my response:\n"
     openai.api_key = key
 
-    def log(*pargs, **kwargs):
-        if not args.verbose:
-            return
-        print(*pargs, **kwargs)
-
-    log("\n############ BEGIN PROMPT OpenAI")
-    log(prompt)
-    log("############ END PROMPT")
-
-    print("############ OPEN-AI QUERY")
-    try:
-        response = openai.Completion.create(
-            model=MODELS[args.mode],
-            prompt=prompt,
-            temperature=0.7,
-            max_tokens=args.max_tokens,
-            top_p=0.3,
-            frequency_penalty=0.5,
-            presence_penalty=0,
-            stop=[stop],
-        )
-    except AuthenticationError as e:
-        print(
-            "Error authenticating with OpenAI, deleting password from config and exiting."
-        )
-        print(e)
-        save_config({})
-        return 1
-    # print(response)
-    if response is None or not response.choices:
-        print("No error response recieved from from OpenAI, response was:")
-        print(response)
-        return 1
-    # print(response)
-    for choice in response.choices:
-        print("############ OPEN-AI RESPONSE")
-        print(choice.text)
-        if choice.finish_reason != "stop":
-            print(
-                "Warning: Weird response from OpenAI - choice.finish_reason: "
-                + choice.finish_reason
-            )
-            break
+    response = openai.Image.create(prompt=prompt, n=1, size="1024x1024")
+    image_url = response["data"][0]["url"]
+    print(f"Image URL: {image_url}")
+    # open a webbrowser to the image
+    webbrowser.open(image_url)
     return 0
 
 

@@ -30,6 +30,7 @@ version = "1.3.8.4"
 
 [project.scripts]
 askai = "zcmds.cmds.common.askai:main"
+imgai= "zcmds.cmds.common.imgai:main"
 zcmds = "zcmds.cmds.common.zcmds:main"
 audnorm = "zcmds.cmds.common.audnorm:main"
 comports = "zcmds.cmds.common.comports:main"

@@ -65,9 +65,9 @@ def win_inputimeout(prompt="", timeout=DEFAULT_TIMEOUT):
                     WIN_BUFFER = ""
                     raise KeyboardInterrupt
                 if c == "\b":
-                    line = line[:-1]
-                    cover = SP * len(prompt + line + SP)
-                    echo("".join([CR, cover, CR, prompt, line]))
+                    WIN_BUFFER = WIN_BUFFER[:-1]
+                    cover = SP * len(prompt + WIN_BUFFER + SP)
+                    echo("".join([CR, cover, CR, prompt, WIN_BUFFER]))
                 else:
                     WIN_BUFFER += c
         time.sleep(INTERVAL)
