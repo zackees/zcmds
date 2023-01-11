@@ -37,11 +37,11 @@ def create_or_load_config() -> dict:
         return {}
 
 
-def read_console(timeout: int = 1) -> Tuple[bool, str, float]:
+def read_console(prompt: str | None = None, timeout: int = 1) -> Tuple[bool, str, float]:
     start_time = time.time()
     end_time = 0.0
     try:
-        out = inputimeout(timeout=timeout)
+        out = inputimeout(prompt=prompt, timeout=timeout)
         end_time = time.time()
         return (True, out, end_time - start_time)
     except TimeoutOccurred:
@@ -54,8 +54,11 @@ def prompt_input() -> str:
     streaming_mode = False
     while True:
         if streaming_mode:
-            ok, line, elapsed = read_console(timeout=1)
+            ok, line, elapsed = read_console(timeout=0.1)
             if not ok:
+                ok, line, elapsed = read_console(prompt=None, timeout=99999)  # wait for input
+                lines.append(line)
+                times.append(elapsed)
                 break  # timed out
             lines.append(line)
             times.append(elapsed)
@@ -88,9 +91,7 @@ def main() -> int:
     argparser.add_argument("--mode", default="code", choices=MODELS.keys())
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument(
-        "--max-tokens", help="Max tokens to return", type=int, default=600
-    )
+    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -102,7 +103,7 @@ def main() -> int:
         save_config(config)
     key = config["openai_key"]
     prompt = args.prompt or prompt_input()
-    print("Processing: ")
+
     # wow this makes all the difference with this ai
     stop = '"""'
     prompt += f"\n{stop}\nHere's my response:\n"
@@ -116,6 +117,8 @@ def main() -> int:
     log("\n############ BEGIN PROMPT OpenAI")
     log(prompt)
     log("############ END PROMPT")
+
+    print("############ OPEN-AI QUERY")
     try:
         response = openai.Completion.create(
             model=MODELS[args.mode],
@@ -128,9 +131,7 @@ def main() -> int:
             stop=[stop],
         )
     except AuthenticationError as e:
-        print(
-            "Error authenticating with OpenAI, deleting password from config and exiting."
-        )
+        print("Error authenticating with OpenAI, deleting password from config and exiting.")
         print(e)
         save_config({})
         return 1
@@ -141,7 +142,7 @@ def main() -> int:
         return 1
     # print(response)
     for choice in response.choices:
-        print("\n############ BEGIN RESPONSE OpenAI")
+        print("############ OPEN-AI RESPONSE")
         print(choice.text)
         if choice.finish_reason != "stop":
             print(

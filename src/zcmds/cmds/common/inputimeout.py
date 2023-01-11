@@ -20,12 +20,15 @@ class TimeoutOccurred(Exception):
 
 
 def echo(string):
+    if string is None:
+        return
     sys.stdout.write(string)
     sys.stdout.flush()
 
 
 def posix_inputimeout(prompt="", timeout=DEFAULT_TIMEOUT):
-    echo(prompt)
+    if prompt is not None:
+        echo(prompt)
     sel = selectors.DefaultSelector()  # type: ignore
     sel.register(sys.stdin, selectors.EVENT_READ)
     events = sel.select(timeout)
@@ -39,26 +42,34 @@ def posix_inputimeout(prompt="", timeout=DEFAULT_TIMEOUT):
         raise TimeoutOccurred
 
 
+WIN_BUFFER = ""
+
+
 def win_inputimeout(prompt="", timeout=DEFAULT_TIMEOUT):
-    echo(prompt)
+    if prompt is not None:
+        echo(prompt)
     begin = time.monotonic()
     end = begin + timeout
-    line = ""
+    # line = ""
+    global WIN_BUFFER
 
     while time.monotonic() < end:
         if msvcrt.kbhit():
             while c := msvcrt.getwche():
                 if c in (CR, LF):
                     echo(CRLF)
+                    line = WIN_BUFFER
+                    WIN_BUFFER = ""
                     return line
                 if c == "\003":
+                    WIN_BUFFER = ""
                     raise KeyboardInterrupt
                 if c == "\b":
                     line = line[:-1]
                     cover = SP * len(prompt + line + SP)
                     echo("".join([CR, cover, CR, prompt, line]))
                 else:
-                    line += c
+                    WIN_BUFFER += c
         time.sleep(INTERVAL)
 
     echo(CRLF)
