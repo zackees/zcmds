@@ -17,6 +17,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 
 # Commands
 
+  * askai
   * audnorm
   * comports
   * diskaudit
@@ -63,6 +64,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.8: Adds askai tool
   * 1.3.7: findfile -> findfiles
   * 1.3.6: zcmds[win32] is now at 1.0.2 (includes `unzip`)
   * 1.3.5: zcmds[win32] is now at 1.0.1 (includes `nano` and `pico`)
