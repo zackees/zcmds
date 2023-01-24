@@ -27,7 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install .
         python -m pip install pytest
-    - name: Audio device
+    - name: Print device
       run: Get-CimInstance Win32_SoundDevice | fl *
     - name: Install Scream
       shell: powershell
@@ -42,7 +42,7 @@ jobs:
         $store.Close()
         cd C:\Scream\Install\driver
         C:\Scream\Install\helpers\devcon install Scream.inf *Scream
-    - name: Audio device
+    - name: Print Audio Device
       run: Get-CimInstance Win32_SoundDevice | fl *
     - name: Run Test
       run: |

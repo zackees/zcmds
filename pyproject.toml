@@ -22,8 +22,6 @@ dependencies = [
     "openai",
     "inputimeout",
     "pyserial",
-    "playsound; platform_system!='Windows'",
-    "PyObjC; platform_system=='Darwin'",
     "zcmds_win32>=1.0.2; platform_system=='Windows'"
 ]
 # Change this with the version number bump.
