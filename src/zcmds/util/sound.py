@@ -20,7 +20,7 @@ def beep() -> None:
 def do_playsound(file: str) -> None:
     prev_cwd = os.getcwd()
     basedir = os.path.dirname(file)
-    os.chdir(basedir)
+
     file_name = os.path.basename(file)
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -28,7 +28,8 @@ def do_playsound(file: str) -> None:
         sound = AudioSegment.from_mp3(file_name)
         sound.export(dst, format="wav")
         try:
-            playsound(dst, block=True)
+            os.chdir(os.path.dirname(dst))
+            playsound(os.path.basename(dst), block=True)
         finally:
             os.chdir(prev_cwd)
 
