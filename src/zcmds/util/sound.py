@@ -5,6 +5,7 @@ import tempfile
 
 from playsound import playsound  # type: ignore
 from pydub import AudioSegment  # type: ignore
+from static_ffmpeg import add_paths  # type: ignore
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SOUND_FILE = os.path.abspath(os.path.join(HERE, "..", "assets", "bell.mp3"))
@@ -18,6 +19,7 @@ def beep() -> None:
 
 
 def do_playsound(file: str) -> None:
+    add_paths()
     prev_cwd = os.getcwd()
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
