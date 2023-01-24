@@ -18,31 +18,57 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 # Commands
 
   * askai
+    * Asks a question to OpenAI from the terminal command. Requires an openai token which will be requested and saved on first use.
   * audnorm
+    * Normalizes the audio.
   * comports
+    * Shows all the ports that are in use at the current computer (useful for Arduino debugging).
   * diskaudit
+    * walks the directory from the current directory and shows which folders / files take up the most disk.
   * git-bash
+    * launches git-bash terminal (windows only).
   * findfile
+    * finds a file with the given glob.
   * obs_organize
+    * organizes the files in your default obs directory.
   * printenv
+    * prints the current environment variables, including path.
   * pdf2png
+    * Converts a pdf to a series of images
   * search_and_replace
+    * Search all the files from the current directory and apply search and replace changes.
   * search_in_files
+    * Search all files from current working directory for matches.
   * sharedir
+    * takes the current folder and shares it via a reverse proxy (think ngrok).
   * stereo2mono
+    * Reduces a stereo audio / video to a single mono track.
   * vidmute
+    * Strips out the audio in a video file.
   * vidinfo
+    * Uses ffprobe to find the information from a video file.
   * vid2gif
+    * A video is converted into an animated gif.
   * vid2jpg
+    * A video is converted to a series of jpegs.
   * vid2mp3
+    * A video is converted to an mp3.
   * vid2mp4
+    * A video is converted to mp4. Useful for obs which saves everything as mkv. Extremely fast with mkv -> mp4 converstion.
   * vidclip
+    * Clips a video using timestamps.
   * viddur
+    * Get's the. Use vidinfo instead.
   * vidshrink
+    * Shrinks a video. Useful for social media posts.
   * vidspeed
+    * Changes the speed of a video.
   * vidvol
+    * Changes the volume of a video.
   * ytclip
+    * Download and clip a video from a url from youtube, rumble, bitchute, twitter... The timestamps are prompted by this program.
   * unzip
+    * unzip the provided file
 
 
 # Install (dev):
