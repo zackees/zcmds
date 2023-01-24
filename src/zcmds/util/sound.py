@@ -1,6 +1,7 @@
 """Sound utilities."""
 
 import os
+import sys
 import tempfile
 
 from playsound import playsound  # type: ignore
@@ -13,13 +14,16 @@ SOUND_FILE = os.path.abspath(os.path.join(HERE, "..", "assets", "bell.mp3"))
 
 def beep() -> None:
     """Play a beep sound."""
-
-    assert os.path.exists(SOUND_FILE), f"Sound file {SOUND_FILE} does not exist."
     do_playsound(SOUND_FILE)
 
 
 def do_playsound(file: str) -> None:
-    add_paths()
+    assert os.path.exists(SOUND_FILE), f"Sound file {SOUND_FILE} does not exist."
+    ext = os.path.splitext(file)[1]
+    if sys.platform != "win32" or ext == ".wav":
+        playsound(file, block=True)
+    # Windows needs to convert the mp3 to wav
+    add_paths()  # make sure ffprobe/ffmpeg is in PATH
     prev_cwd = os.getcwd()
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
