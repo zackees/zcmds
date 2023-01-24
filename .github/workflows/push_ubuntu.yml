@@ -27,8 +27,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install .
         python -m pip install pytest
-    - name: Install ubuntu sound drivers
-      run: sudo apt-get install gir1.2-gst-plugins-base-1.0 gir1.2-polkit-1.0 gpicview gstreamer1.0-alsa gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-x
     - name: Run Tests
       run: |
         pytest tests

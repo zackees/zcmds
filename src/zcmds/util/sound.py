@@ -15,17 +15,11 @@ def beep() -> None:
 
 def do_playsound(file: str) -> None:
     assert os.path.exists(SOUND_FILE), f"Sound file {SOUND_FILE} does not exist."
-    ext = os.path.splitext(file)[1]
-    if sys.platform != "win32" or ext == ".wav":
-        # from playsound import playsound  # type: ignore  # pylint: disable=all
-
-        # playsound(file, block=True)
-
+    if sys.platform != "win32":
         if "linux" in sys.platform:
             call(["xdg-open", file])
         elif sys.platform == "darwin":
             call(["afplay", file])
-
         return
     import winsound  # type: ignore  # pylint: disable=all
 
