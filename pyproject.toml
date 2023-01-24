@@ -17,13 +17,12 @@ dependencies = [
     "ffmpeg-normalize",
     "appdirs",
     "PyQt6==6.3.1",
-    "playsound",
     "jsoncomment",
     "pyserial",
     "openai",
     "inputimeout",
     "pyserial",
-    "pydub",
+    "playsound; platform_system!='Windows'",
     "PyObjC; platform_system=='Darwin'",
     "zcmds_win32>=1.0.2; platform_system=='Windows'"
 ]
