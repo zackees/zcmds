@@ -11,9 +11,10 @@ import tempfile
 from dataclasses import dataclass
 from threading import Thread
 
-from beepy import beep  # type: ignore
 from PyQt6 import QtCore  # type: ignore
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
+
+from zcmds.util.sound import beep
 
 
 @dataclass
@@ -118,7 +119,7 @@ def run_gui(vidinfos: list[VidInfo]) -> None:
         def _encode_then_beep():
             encode(videofile, vidinfos=vidinfos)
             # do a beep when done
-            beep(sound="ping")
+            beep()
 
         Thread(target=_encode_then_beep, daemon=True).start()
 

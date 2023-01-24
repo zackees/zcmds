@@ -17,12 +17,14 @@ dependencies = [
     "ffmpeg-normalize",
     "appdirs",
     "PyQt6==6.3.1",
-    "beepy",
+    "playsound",
     "jsoncomment",
-    "zcmds_win32>=1.0.2; platform_system=='Windows'",
     "pyserial",
     "openai",
-    "inputimeout"
+    "inputimeout",
+    "pyserial",
+    "PyObjC; platform_system=='Darwin'",
+    "zcmds_win32>=1.0.2; platform_system=='Windows'"
 ]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py

@@ -10,6 +10,10 @@
             "path": "C:\\Program Files\\Git\\bin\\bash.exe"
         }
     },
+    // adds activate virtualenv to terminal
+    "terminal.integrated.env.windows": {
+        "VIRTUAL_ENV": "${workspaceFolder}/venv"
+    },
     "files.eol": "\n", // Unix
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
