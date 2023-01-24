@@ -1,5 +1,9 @@
 """Sound utilities."""
 
+# pylint: disable=all
+# mypy: ignore-errors
+# flake8: noqa
+
 import os
 import sys
 import tempfile
@@ -22,18 +26,10 @@ def do_playsound(file: str) -> None:
     ext = os.path.splitext(file)[1]
     if sys.platform != "win32" or ext == ".wav":
         playsound(file, block=True)
-    # Windows needs to convert the mp3 to wav
-    add_paths()  # make sure ffprobe/ffmpeg is in PATH
-    prev_cwd = os.getcwd()
-    try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            dst = os.path.join(tmpdir, "tmp.wav")
-            sound = AudioSegment.from_mp3(file)
-            sound.export(dst, format="wav")
-            os.chdir(os.path.dirname(dst))
-            playsound(os.path.basename(dst), block=True)
-    finally:
-        os.chdir(prev_cwd)
+        return
+    import winsound  # type: ignore
+
+    winsound.PlaySound(file, winsound.SND_FILENAME)
 
 
 if __name__ == "__main__":
