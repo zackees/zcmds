@@ -42,6 +42,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * vidspeed
   * vidvol
   * ytclip
+  * unzip
 
 
 # Install (dev):
