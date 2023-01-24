@@ -16,7 +16,9 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from .inputimeout import TimeoutOccurred, inputimeout
 
 
-def read_console(prompt: Optional[str] = None, timeout: float = 1.0) -> Tuple[bool, str, float]:
+def read_console(
+    prompt: Optional[str] = None, timeout: float = 1.0
+) -> Tuple[bool, str, float]:
     start_time = time.time()
     end_time = 0.0
     try:
@@ -35,7 +37,9 @@ def prompt_input() -> str:
         if streaming_mode:
             ok, line, elapsed = read_console(timeout=0.1)
             if not ok:
-                ok, line, elapsed = read_console(prompt=None, timeout=99999)  # wait for input
+                ok, line, elapsed = read_console(
+                    prompt=None, timeout=99999
+                )  # wait for input
                 lines.append(line)
                 times.append(elapsed)
                 break  # timed out
@@ -66,7 +70,9 @@ def cli() -> int:
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
+    argparser.add_argument(
+        "--max-tokens", help="Max tokens to return", type=int, default=600
+    )
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
