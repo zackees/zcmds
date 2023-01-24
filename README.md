@@ -64,6 +64,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.11: Fix badges.
   * 1.3.10: Suppress spurious warnings with chardet in openai
   * 1.3.9: Changes sound driver, should eliminate the runtime dependency on win32.
   * 1.3.8: Adds askai tool
