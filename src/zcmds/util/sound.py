@@ -18,15 +18,12 @@ def beep() -> None:
 
 
 def do_playsound(file: str) -> None:
-    prev_cwd = os.getcwd()
-    basedir = os.path.dirname(file)
-
     file_name = os.path.basename(file)
-
     with tempfile.TemporaryDirectory() as tmpdir:
         dst = os.path.join(tmpdir, "tmp.wav")
         sound = AudioSegment.from_mp3(file_name)
         sound.export(dst, format="wav")
+        prev_cwd = os.getcwd()
         try:
             os.chdir(os.path.dirname(dst))
             playsound(os.path.basename(dst), block=True)
