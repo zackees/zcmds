@@ -61,14 +61,17 @@ def prompt_input() -> str:
     return "\n".join(lines)
 
 
-MODELS = {"code": "text-davinci-003"}
+
+DEFAULT_MODEL = "text-davinci-003"
 
 
 def cli() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
+    argparser.add_argument("--json", help="Print response as json", action="store_true")
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument("--mode", default="code", choices=MODELS.keys())
+    argparser.add_argument("--output", help="Output file")
+    argparser.add_argument("--model", default=DEFAULT_MODEL)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
     argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
@@ -83,6 +86,7 @@ def cli() -> int:
         save_config(config)
     key = config["openai_key"]
     prompt = args.prompt or prompt_input()
+    as_json = args.json
 
     # wow this makes all the difference with this ai
     stop = '"""'
@@ -98,13 +102,21 @@ def cli() -> int:
     log(prompt)
     log("############ END PROMPT")
 
-    print("############ OPEN-AI QUERY")
+    def output(text: str):
+        if args.output:
+            with open(args.output, "a") as f:
+                f.write(text)
+        else:
+            print(text)
+
+    if not as_json:
+        print("############ OPEN-AI QUERY")
     try:
         import warnings  # type: ignore  # pylint: disable=import-outside-toplevel
 
         warnings.simplefilter("ignore")
         response = openai.Completion.create(
-            model=MODELS[args.mode],
+            model=args.model,
             prompt=prompt,
             temperature=0.7,
             max_tokens=args.max_tokens,
@@ -118,15 +130,19 @@ def cli() -> int:
         print(e)
         save_config({})
         return 1
+    if as_json:
+        print(response)
+        return 0
     # print(response)
     if response is None or not response.choices:
         print("No error response recieved from from OpenAI, response was:")
-        print(response)
+        output(response)
         return 1
     # print(response)
     for choice in response.choices:
-        print("############ OPEN-AI RESPONSE")
-        print(choice.text)
+        if not args.output:
+            print("############ OPEN-AI RESPONSE")
+        output(choice.text)
         if choice.finish_reason != "stop":
             print(
                 "Warning: Weird response from OpenAI - choice.finish_reason: "
