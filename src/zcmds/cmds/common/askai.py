@@ -10,7 +10,7 @@ import time
 from typing import Optional, Tuple
 
 import openai
-from openai.error import AuthenticationError
+from openai.error import AuthenticationError, ServiceUnavailableError
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 
@@ -130,6 +130,9 @@ def cli() -> int:
             presence_penalty=0,
             stop=[stop],
         )
+    except ServiceUnavailableError as sua:
+        print(sua)
+        return 1
     except AuthenticationError as e:
         print(
             "Error authenticating with OpenAI, deleting password from config and exiting."
