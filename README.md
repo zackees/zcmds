@@ -69,6 +69,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Download and clip a video from a url from youtube, rumble, bitchute, twitter... The timestamps are prompted by this program.
   * unzip
     * unzip the provided file
+  * fixinternet
+    * Attempts to fix the internet connection by flushing the dns and resetting the network adapter.
 
 
 # Install (dev):
@@ -91,6 +93,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.12: Added `fixinternet` command.
   * 1.3.11: Fix badges.
   * 1.3.10: Suppress spurious warnings with chardet in openai
   * 1.3.9: Changes sound driver, should eliminate the runtime dependency on win32.
