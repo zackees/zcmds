@@ -4,16 +4,22 @@ import os
 import sys
 
 
+def execute(cmd: str) -> str:
+    """Execute a command."""
+    print(cmd)
+    return os.system(cmd)
+
+
 def main() -> None:
     """Try and fix"""
     if sys.platform == "win32":
-        os.system("ipconfig /flushdns")
-        os.system("ipconfig /release")
-        os.system("ipconfig /renew")
+        execute("ipconfig /flushdns")
+        execute("ipconfig /release")
+        execute("ipconfig /renew")
     elif sys.platform == "linux":
-        os.system("sudo systemctl restart network-manager")
+        execute("sudo systemctl restart network-manager")
     elif sys.platform == "darwin":
-        os.system("sudo killall -HUP mDNSResponder")
+        execute("sudo killall -HUP mDNSResponder")
     else:
         print("Unsupported platform")
         return
