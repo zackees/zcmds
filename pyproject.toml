@@ -61,4 +61,5 @@ vidwebmaster = "zcmds.cmds.common.vidwebmaster:main"
 vidhero = "zcmds.cmds.common.vidhero:main"
 vidlist = "zcmds.cmds.common.vidlist:main"
 test_net_connection = "zcmds.cmds.darwin.test_net_connection:main"
+fixinternet = "zcmds.cmds.common.fixinternet:main"
 
