@@ -4,7 +4,7 @@ import os
 import sys
 
 
-def execute(cmd: str) -> str:
+def execute(cmd: str) -> int:
     """Execute a command."""
     print(cmd)
     return os.system(cmd)
