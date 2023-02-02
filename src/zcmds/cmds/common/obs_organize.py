@@ -1,3 +1,4 @@
+import builtins
 import os
 import shutil
 import traceback
@@ -42,7 +43,7 @@ def organize(path: str = PATH_DEFAULT_OBS) -> None:
             new_path = os.path.join(new_dir, f"{date_time[1]}{ext}")
             makedirs(os.path.dirname(new_path), exist_ok=True)
             movefile(p, new_path)
-        except Exception as e:
+        except builtins.Exception as e:
             traceback.print_exc()
             print(f"Could not process {p} because of {e}")
 

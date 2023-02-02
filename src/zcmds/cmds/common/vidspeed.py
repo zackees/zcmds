@@ -2,6 +2,7 @@
     Normalizes the audio of a video file.
 """
 
+import builtins
 import argparse
 import os
 
@@ -18,7 +19,7 @@ def ffmpeg_multiply_speed(inputfile: str, speed: float, outfile: str) -> None:
     print(f"Running:\n  {cmd}")
     rtn = os.system(cmd)
     if rtn != 0:
-        raise Exception(f"Failed to run: {cmd}")
+        raise builtins.Exception(f"Failed to run: {cmd}")
 
 
 def _is_media_file(filename: str) -> bool:

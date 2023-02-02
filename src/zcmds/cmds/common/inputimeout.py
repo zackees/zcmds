@@ -4,6 +4,7 @@ Handles input timeout for Windows and Linux.
 
 # pylint: disable=used-before-assignment
 
+import builtins
 import sys
 
 DEFAULT_TIMEOUT = 30.0
@@ -15,7 +16,7 @@ LF = "\n"
 CRLF = CR + LF
 
 
-class TimeoutOccurred(Exception):
+class TimeoutOccurred(builtins.Exception):
     pass
 
 
