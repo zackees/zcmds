@@ -11,7 +11,9 @@ def main() -> int:
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument("file", help="glob file name", nargs="?")
-        parser.add_argument("--cwd", help="current working directory", default=os.getcwd())
+        parser.add_argument(
+            "--cwd", help="current working directory", default=os.getcwd()
+        )
         args = parser.parse_args()
 
         file: str = os.path.expanduser(args.file) if args.file else input("File: ")
