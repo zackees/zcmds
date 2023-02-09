@@ -26,12 +26,12 @@ def main() -> None:
     if args.first_page is None:
         args.first_page = int(input("first page: "))
         if args.first_page < 0:
-            args.first_page = None
+            raise ValueError("first page must be >= 0")
 
     if args.last_page is None:
         args.last_page = int(input("last page: "))
         if args.last_page < 0:
-            args.last_page = None
+            raise ValueError("last page must be >= 0")
 
     if args.dpi is None:
         args.dpi = int(input("dpi: "))
