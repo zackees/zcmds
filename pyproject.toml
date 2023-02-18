@@ -23,7 +23,7 @@ dependencies = [
     "inputimeout",
     "pyserial",
     "playaudio",
-    "zcmds_win32>=1.0.2; platform_system=='Windows'"
+    "zcmds_win32>=1.0.3; platform_system=='Windows'"
 ]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
