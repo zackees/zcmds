@@ -15,6 +15,7 @@ def get_search_args(require_replace_args=False):
     parser.add_argument("--file_pattern", default=None)
     parser.add_argument("--search_string", default=None)
     parser.add_argument("--replace_string", default=None)
+    parser.add_argument("--ignore_errors", action="store_true")
     args = parser.parse_args()
     if args.search_string is None:
         args.search_string = input("search string: ")
@@ -25,7 +26,7 @@ def get_search_args(require_replace_args=False):
     return args
 
 
-def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
+def iter_matching_files(cur_dir, file_pattern, text_search_string=None, ignore_errors=False):
     """Generates an iterator for matching files."""
     for path, dirs, files in os.walk(cur_dir):  # pylint: disable=unused-variable
         if ".git" in path.split(os.sep):
@@ -42,6 +43,8 @@ def iter_matching_files(cur_dir, file_pattern, text_search_string=None):
                         try:
                             file_data = fd.read()
                         except UnicodeDecodeError:
+                            if ignore_errors:
+                                continue
                             sys.stderr.write(
                                 f"  {__file__}: Could not read file: {full_path}\n"
                             )

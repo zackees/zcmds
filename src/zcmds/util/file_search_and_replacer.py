@@ -15,6 +15,7 @@ def main():
         cur_dir=args.cur_dir,
         file_pattern=args.file_pattern,
         text_search_string=args.search_string,
+        ignore_errors=args.ignore_errors,
     ):
         files.append(file)
         with open(
