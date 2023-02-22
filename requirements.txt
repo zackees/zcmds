@@ -9,4 +9,4 @@ openai
 inputimeout
 pyserial
 playaudio
-zcmds_win32>=1.0.3; platform_system=='Windows'
+zcmds_win32>=1.0.4; platform_system=='Windows'
