@@ -2,8 +2,8 @@
     Normalizes the audio of a video file.
 """
 
-import builtins
 import argparse
+import builtins
 import os
 
 

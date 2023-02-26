@@ -45,7 +45,7 @@ WIN32 = [
     "which",
     "git-bash",
     "touch",
-    "fixvmmem"
+    "fixvmmem",
 ]
 
 

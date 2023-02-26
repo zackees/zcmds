@@ -26,7 +26,9 @@ def get_search_args(require_replace_args=False):
     return args
 
 
-def iter_matching_files(cur_dir, file_pattern, text_search_string=None, ignore_errors=False):
+def iter_matching_files(
+    cur_dir, file_pattern, text_search_string=None, ignore_errors=False
+):
     """Generates an iterator for matching files."""
     for path, dirs, files in os.walk(cur_dir):  # pylint: disable=unused-variable
         if ".git" in path.split(os.sep):

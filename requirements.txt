@@ -9,4 +9,5 @@ openai
 inputimeout
 pyserial
 playaudio
+static-ffmpeg>=2.5
 zcmds_win32>=1.0.4; platform_system=='Windows'

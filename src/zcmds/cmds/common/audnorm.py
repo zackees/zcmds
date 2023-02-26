@@ -6,12 +6,15 @@ import argparse
 import os
 import subprocess
 
+from static_ffmpeg import add_paths  # type: ignore
+
 
 def ffprobe_duration(filename: str) -> float:
     """
     Uses ffprobe to get the duration of a video file.
     """
-    cmd = f"static_ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {filename}"
+    add_paths(weak=True)
+    cmd = f"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {filename}"
     result = subprocess.check_output(cmd, shell=True, universal_newlines=True)
     result = result.replace("\n", "").replace(" ", "")
     return float(result)
@@ -37,6 +40,7 @@ def main():
     if len(os.path.dirname(out)):
         os.makedirs(os.path.dirname(out), exist_ok=True)
     assert _is_media_file(path), f"{path} is not a media file"
+    add_paths(weak=True)
     cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a aac -b:a 192k'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
