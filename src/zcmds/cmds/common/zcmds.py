@@ -6,6 +6,7 @@ import sys
 COMMON = [
     "audnorm",
     "diskaudit",
+    "img2vid",
     "obs_organize",
     "pdf2png",
     "search_and_replace",

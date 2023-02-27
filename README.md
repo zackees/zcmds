@@ -29,6 +29,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * launches git-bash terminal (windows only).
   * findfile
     * finds a file with the given glob.
+  * img2vid
+    * Converts a series of images to a video.
   * obs_organize
     * organizes the files in your default obs directory.
   * printenv
@@ -94,6 +96,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.13: Added `img2vid` command.
   * 1.3.12: Added `fixinternet` command.
   * 1.3.11: Fix badges.
   * 1.3.10: Suppress spurious warnings with chardet in openai
