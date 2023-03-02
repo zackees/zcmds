@@ -118,6 +118,17 @@ def format_duration(duration: float) -> str:
     return out
 
 
+def get_frame_count(vidfile: str) -> int:
+    """Returns the number of frames of the given video file."""
+    cmd = (
+        "static_ffprobe -v error -select_streams v:0 -show_entries stream=nb_frames"
+        f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
+    )
+    return int(
+        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    )
+
+
 def get_format_json(vidfile: str) -> str:
     """Returns the format json of the given video file."""
     cmd = f'static_ffprobe -v error -print_format json -show_format -show_streams "{vidfile}"'
@@ -148,12 +159,14 @@ def main():
             video_duration_str = format_duration(video_duration)
             video_bitrate = get_video_bitrate(infile)
             video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
+            video_frame_count = get_frame_count(infile)
             print("Video:")
             print(f"  Encoder: {video_encoder}")
             print(f"  Height: {video_height}")
             print(f"  Width: {video_width}")
             print(f"  Duration: {video_duration_str}")
             print(f"  Bitrate: {video_bitrate_str}")
+            print(f"  Frame count: {video_frame_count}")
         except subprocess.CalledProcessError:
             print("No video stream found")
 
