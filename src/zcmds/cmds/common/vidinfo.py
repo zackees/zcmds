@@ -92,15 +92,13 @@ def get_audio_channels(vidfile: str) -> int:
     )
 
 
-def get_video_bitrate(vidfile: str) -> int:
+def get_video_bitrate(vidfile: str) -> str:
     """Returns the bitrate of the given video file."""
     cmd = (
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(
-        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
-    )
+    return subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
 
 
 def format_duration(duration: float) -> str:
@@ -158,7 +156,12 @@ def main():
             video_duration = get_video_duration(infile)
             video_duration_str = format_duration(video_duration)
             video_bitrate = get_video_bitrate(infile)
-            video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
+            # if is integer
+            if video_bitrate.isdigit():
+                video_bitrate = int(video_bitrate)
+                video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
+            else:
+                video_bitrate_str = f"{video_bitrate}"
             video_frame_count = get_frame_count(infile)
             print("Video:")
             print(f"  Encoder: {video_encoder}")
