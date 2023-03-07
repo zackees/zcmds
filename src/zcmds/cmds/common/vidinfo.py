@@ -116,15 +116,13 @@ def format_duration(duration: float) -> str:
     return out
 
 
-def get_frame_count(vidfile: str) -> int:
+def get_frame_count(vidfile: str) -> str:
     """Returns the number of frames of the given video file."""
     cmd = (
         "static_ffprobe -v error -select_streams v:0 -show_entries stream=nb_frames"
         f' -of default=nokey=1:noprint_wrappers=1 "{vidfile}"'
     )
-    return int(
-        subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
-    )
+    return subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
 
 
 def get_format_json(vidfile: str) -> str:
