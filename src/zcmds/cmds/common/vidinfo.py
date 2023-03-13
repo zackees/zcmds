@@ -148,10 +148,16 @@ def main():
 
     if args.full:
         json_str = get_format_json(infile)
-        print(json_str)
+        json_data = json.loads(json_str)
         if args.per_frame:
-            json_str = get_format_per_frame(infile)
-            print(json_str)
+            # Merge frame info
+            json_frane_str = get_format_per_frame(infile)
+            json_frame_data = json.loads(json_frane_str)
+            for key in json_frame_data:
+                if key not in json_data:
+                    json_data[key] = json_frame_data[key]
+        json_str = json.dumps(json_data, indent=4)
+        print(json_str)
 
 
 if __name__ == "__main__":
