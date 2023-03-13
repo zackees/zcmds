@@ -96,6 +96,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.3.15: Improve vidinfo for more data and be a lot faster with single pass probing.
   * 1.3.14: Improve vidinfo to handle non existant streams and bad files.
   * 1.3.13: Added `img2vid` command.
   * 1.3.12: Added `fixinternet` command.
