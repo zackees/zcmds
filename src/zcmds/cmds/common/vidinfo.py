@@ -44,6 +44,15 @@ def get_format_json(vidfile: str) -> str:
     return json_str
 
 
+def get_format_per_frame(vidfile: str) -> str:
+    """Returns the format per frame of the given video file."""
+    cmd = f'static_ffprobe -v quiet -print_format json -show_frames "{vidfile}"'
+    json_str = subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
+    json_data = json.loads(json_str)
+    json_str = json.dumps(json_data, indent=4)
+    return json_str
+
+
 def get_videostream_info(videstream: dict) -> str:
     """Returns a string representation of the given video stream."""
     lines = []
@@ -122,6 +131,7 @@ def main():
     )
     parser.add_argument("input", help="input", nargs="?")
     parser.add_argument("--full", help="full ffprobe output", action="store_true")
+    parser.add_argument("--per-frame", help="per frame info", action="store_true")
     args = parser.parse_args()
     infile = args.input or input("Input video: ")
     if not infile:
@@ -136,9 +146,12 @@ def main():
         except subprocess.CalledProcessError:
             print("No video stream found")
 
-    else:
+    if args.full:
         json_str = get_format_json(infile)
         print(json_str)
+        if args.per_frame:
+            json_str = get_format_per_frame(infile)
+            print(json_str)
 
 
 if __name__ == "__main__":
