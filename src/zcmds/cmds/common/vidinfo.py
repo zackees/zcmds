@@ -56,7 +56,7 @@ def get_format_per_frame(vidfile: str) -> str:
 def get_videostream_info(videstream: dict) -> str:
     """Returns a string representation of the given video stream."""
     lines = []
-    lines.append(f"  Video:")
+    lines.append("  Video:")
     lines.append(f"    Encoder: {videstream['codec_long_name']}, {videstream['codec_tag_string']}")
     # pix format
     pix_fmt = videstream["pix_fmt"]
@@ -83,7 +83,7 @@ def get_videostream_info(videstream: dict) -> str:
 def get_audiostream_info(audiostream: dict) -> str:
     """Returns a string representation of the given audio stream."""
     lines = []
-    lines.append(f"  Audio:")
+    lines.append("  Audio:")
     lines.append(
         f"    Encoder: {audiostream['codec_long_name']}, {audiostream['codec_tag_string']}"
     )
