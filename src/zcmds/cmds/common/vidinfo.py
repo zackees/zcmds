@@ -57,7 +57,9 @@ def get_videostream_info(videstream: dict) -> str:
     """Returns a string representation of the given video stream."""
     lines = []
     lines.append("  Video:")
-    lines.append(f"    Encoder: {videstream['codec_long_name']}, {videstream['codec_tag_string']}")
+    lines.append(
+        f"    Encoder: {videstream['codec_long_name']}, {videstream['codec_tag_string']}"
+    )
     # pix format
     pix_fmt = videstream["pix_fmt"]
     lines.append(f"    Pixel format: {pix_fmt}")

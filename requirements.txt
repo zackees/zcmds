@@ -6,6 +6,7 @@ PyQt6==6.3.1
 jsoncomment
 pyserial
 openai>=0.27.2
+consolemd
 inputimeout
 pyserial
 playaudio

@@ -5,8 +5,12 @@
 # mypy: ignore-errors
 
 import argparse
+import atexit
+import os
+import subprocess
 import sys
 import time
+from tempfile import NamedTemporaryFile
 from typing import Optional, Tuple
 
 import openai
@@ -19,7 +23,9 @@ from .inputimeout import TimeoutOccurred, inputimeout
 DEFAULT_MODEL = "gpt-3.5-turbo"
 
 
-def read_console(prompt: Optional[str] = None, timeout: float = 1.0) -> Tuple[bool, str, float]:
+def read_console(
+    prompt: Optional[str] = None, timeout: float = 1.0
+) -> Tuple[bool, str, float]:
     start_time = time.time()
     end_time = 0.0
     try:
@@ -38,7 +44,9 @@ def prompt_input() -> str:
         if streaming_mode:
             ok, line, elapsed = read_console(timeout=0.1)
             if not ok:
-                ok, line, elapsed = read_console(prompt=None, timeout=99999)  # wait for input
+                ok, line, elapsed = read_console(
+                    prompt=None, timeout=99999
+                )  # wait for input
                 lines.append(line)
                 times.append(elapsed)
                 break  # timed out
@@ -72,7 +80,9 @@ def cli() -> int:
     argparser.add_argument("--model", default=DEFAULT_MODEL)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
+    argparser.add_argument(
+        "--max-tokens", help="Max tokens to return", type=int, default=600
+    )
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -102,7 +112,11 @@ def cli() -> int:
             with open(args.output, "a") as f:
                 f.write(text)
         else:
-            print(text)
+            with NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as f:
+                f.write(text)
+                f.flush()
+            atexit.register(lambda: os.remove(f.name))
+            subprocess.call(["consolemd", f.name], universal_newlines=True)
 
     if not as_json:
         print("############ OPEN-AI QUERY")
@@ -113,7 +127,10 @@ def cli() -> int:
         response = openai.ChatCompletion.create(
             model=args.model,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant to a programmer."},
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant to a programmer.",
+                },
                 {"role": "user", "content": args.prompt},
             ],
             temperature=0.7,
@@ -126,7 +143,9 @@ def cli() -> int:
         print(sua)
         return 1
     except AuthenticationError as e:
-        print("Error authenticating with OpenAI, deleting password from config and exiting.")
+        print(
+            "Error authenticating with OpenAI, deleting password from config and exiting."
+        )
         print(e)
         save_config({})
         return 1
