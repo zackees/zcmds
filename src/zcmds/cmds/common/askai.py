@@ -16,10 +16,10 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 
 from .inputimeout import TimeoutOccurred, inputimeout
 
+DEFAULT_MODEL = "gpt-3.5-turbo"
 
-def read_console(
-    prompt: Optional[str] = None, timeout: float = 1.0
-) -> Tuple[bool, str, float]:
+
+def read_console(prompt: Optional[str] = None, timeout: float = 1.0) -> Tuple[bool, str, float]:
     start_time = time.time()
     end_time = 0.0
     try:
@@ -38,9 +38,7 @@ def prompt_input() -> str:
         if streaming_mode:
             ok, line, elapsed = read_console(timeout=0.1)
             if not ok:
-                ok, line, elapsed = read_console(
-                    prompt=None, timeout=99999
-                )  # wait for input
+                ok, line, elapsed = read_console(prompt=None, timeout=99999)  # wait for input
                 lines.append(line)
                 times.append(elapsed)
                 break  # timed out
@@ -65,9 +63,6 @@ def prompt_input() -> str:
     return "\n".join(lines)
 
 
-DEFAULT_MODEL = "text-davinci-003"
-
-
 def cli() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
@@ -77,9 +72,7 @@ def cli() -> int:
     argparser.add_argument("--model", default=DEFAULT_MODEL)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument(
-        "--max-tokens", help="Max tokens to return", type=int, default=600
-    )
+    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -93,9 +86,6 @@ def cli() -> int:
     prompt = args.prompt or prompt_input()
     as_json = args.json
 
-    # wow this makes all the difference with this ai
-    stop = '"""'
-    prompt += f"\n{stop}\nHere's my response:\n"
     openai.api_key = key
 
     def log(*pargs, **kwargs):
@@ -120,23 +110,23 @@ def cli() -> int:
         import warnings  # type: ignore  # pylint: disable=import-outside-toplevel
 
         warnings.simplefilter("ignore")
-        response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
             model=args.model,
-            prompt=prompt,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant to a programmer."},
+                {"role": "user", "content": args.prompt},
+            ],
             temperature=0.7,
             max_tokens=args.max_tokens,
             top_p=0.3,
             frequency_penalty=0.5,
             presence_penalty=0,
-            stop=[stop],
         )
     except ServiceUnavailableError as sua:
         print(sua)
         return 1
     except AuthenticationError as e:
-        print(
-            "Error authenticating with OpenAI, deleting password from config and exiting."
-        )
+        print("Error authenticating with OpenAI, deleting password from config and exiting.")
         print(e)
         save_config({})
         return 1
@@ -152,7 +142,7 @@ def cli() -> int:
     for choice in response.choices:
         if not args.output:
             print("############ OPEN-AI RESPONSE")
-        output(choice.text)
+        output(choice["message"]["content"])
         if choice.finish_reason != "stop":
             print(
                 "Warning: Weird response from OpenAI - choice.finish_reason: "
