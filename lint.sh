@@ -3,7 +3,7 @@ set -e
 # cd to self bash script directory
 cd $( dirname ${BASH_SOURCE[0]})
 echo Running isort
-isort src
+isort --profile black src
 echo Running black
 black src
 echo Running flake8 src
