@@ -157,12 +157,6 @@ def cli() -> int:
         if not args.output:
             print("############ OPEN-AI RESPONSE")
         output(choice["message"]["content"])
-        if choice.finish_reason != "stop":
-            print(
-                "Warning: Weird response from OpenAI - choice.finish_reason: "
-                + choice.finish_reason
-            )
-            break
     return 0
 
 
