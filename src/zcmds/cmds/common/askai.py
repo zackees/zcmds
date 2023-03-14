@@ -39,35 +39,56 @@ def read_console(prompt: Optional[str] = None, timeout: float = 1.0) -> Tuple[bo
 
 def prompt_input() -> str:
     lines: list[str] = []
-    times: list[float] = []
-    streaming_mode = False
+    empty_count = 0
     while True:
-        if streaming_mode:
-            ok, line, elapsed = read_console(timeout=0.1)
-            if not ok:
-                ok, line, elapsed = read_console(prompt=None, timeout=99999)  # wait for input
-                lines.append(line)
-                times.append(elapsed)
-                break  # timed out
-            lines.append(line)
-            times.append(elapsed)
-        else:
-            if len(lines) == 0:
-                print("input: ", end="")
-            start = time.time()
-            line = input("")
-            times.append(time.time() - start)
-            lines.append(line)
-        # if the two lines lines were all fast, switch to streaming mode
-        if not streaming_mode and len(times) > 2 and all(t < 0.1 for t in times[-2:]):
-            streaming_mode = True
-        # print(lines)
-        if not streaming_mode:
-            if lines[-2:] == ["", ""]:
-                # chop of the last two lines
-                lines = lines[:-2]
+        line = input(">>> ")
+        if not line:
+            empty_count += 1
+            if empty_count == 2:
                 break
+        else:
+            empty_count = 0
+        lines.append(line)
     return "\n".join(lines)
+
+
+def output(text: str, outfile: Optional[str]):
+    if outfile:
+        with open(outfile, "a") as f:
+            f.write(text)
+    else:
+        with NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as f:
+            f.write(text)
+            f.flush()
+        atexit.register(lambda: os.remove(f.name))
+        subprocess.call(["consolemd", f.name], universal_newlines=True)
+
+
+def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatCompletion:
+    # assert prompts is odd
+    assert len(prompts) % 2 == 1  # Prompts alternate between user message and last response
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant to a programmer.",
+        },
+    ]
+    for i, prompt in enumerate(prompts):
+        if i % 2 == 0:
+            messages.append({"role": "assistant", "content": prompt})
+        else:
+            messages.append({"role": "user", "content": prompt})
+
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0.7,
+        max_tokens=max_tokens,
+        top_p=0.3,
+        frequency_penalty=0.5,
+        presence_penalty=0,
+    )
+    return response
 
 
 def cli() -> int:
@@ -90,7 +111,10 @@ def cli() -> int:
         config["openai_key"] = key
         save_config(config)
     key = config["openai_key"]
+    interactive = not args.prompt
     prompt = args.prompt or prompt_input()
+    if interactive:
+        print("\nInteractive mode - press return three times to submit your code to OpenAI")
     as_json = args.json
 
     openai.api_key = key
@@ -100,63 +124,45 @@ def cli() -> int:
             return
         print(*pargs, **kwargs)
 
-    log("\n############ BEGIN PROMPT OpenAI")
     log(prompt)
-    log("############ END PROMPT")
+    prompts = [prompt]
 
-    def output(text: str):
-        if args.output:
-            with open(args.output, "a") as f:
-                f.write(text)
+    while True:
+        if not as_json:
+            print("############ OPEN-AI QUERY")
+        try:
+            response = ai_query(prompts=prompts, max_tokens=args.max_tokens, model=args.model)
+        except ServiceUnavailableError as sua:
+            print(sua)
+            return 1
+        except AuthenticationError as e:
+            print("Error authenticating with OpenAI, deleting password from config and exiting.")
+            print(e)
+            save_config({})
+            return 1
+        if as_json:
+            print(response)
+            return 0
+        # print(response)
+        if response is None or not response.choices:
+            print("No error response recieved from from OpenAI, response was:")
+            output(response, args.output)
+            return 1
+        # print(response)
+        for choice in response.choices:
+            if not args.output:
+                print("############ OPEN-AI RESPONSE\n")
+            last_response = choice["message"]["content"]
+            output(last_response, args.output)
+            prompts.append(last_response)
+            break
         else:
-            with NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as f:
-                f.write(text)
-                f.flush()
-            atexit.register(lambda: os.remove(f.name))
-            subprocess.call(["consolemd", f.name], universal_newlines=True)
-
-    if not as_json:
-        print("############ OPEN-AI QUERY")
-    try:
-        import warnings  # type: ignore  # pylint: disable=import-outside-toplevel
-
-        warnings.simplefilter("ignore")
-        response = openai.ChatCompletion.create(
-            model=args.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant to a programmer.",
-                },
-                {"role": "user", "content": args.prompt},
-            ],
-            temperature=0.7,
-            max_tokens=args.max_tokens,
-            top_p=0.3,
-            frequency_penalty=0.5,
-            presence_penalty=0,
-        )
-    except ServiceUnavailableError as sua:
-        print(sua)
-        return 1
-    except AuthenticationError as e:
-        print("Error authenticating with OpenAI, deleting password from config and exiting.")
-        print(e)
-        save_config({})
-        return 1
-    if as_json:
-        print(response)
-        return 0
-    # print(response)
-    if response is None or not response.choices:
-        print("No error response recieved from from OpenAI, response was:")
-        output(response)
-        return 1
-    # print(response)
-    for choice in response.choices:
-        if not args.output:
-            print("############ OPEN-AI RESPONSE")
-        output(choice["message"]["content"])
+            print("No response from OpenAI, response was:")
+            output(response, args.output)
+            return 1
+        if not interactive:
+            break
+        prompts.append(prompt_input())
     return 0
 
 
