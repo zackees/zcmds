@@ -14,8 +14,13 @@ from tempfile import NamedTemporaryFile
 from typing import Optional, Tuple
 
 import colorama
-import openai
-from openai.error import AuthenticationError, ServiceUnavailableError
+
+try:
+    import openai
+    from openai.error import AuthenticationError, ServiceUnavailableError
+except KeyboardInterrupt
+    print("KeyboardInterrupt")
+    sys.exit(1)
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 
