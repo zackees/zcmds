@@ -6,9 +6,20 @@ import argparse
 import fnmatch
 import os
 import sys
+from dataclasses import dataclass
+from typing import Any
 
 
-def get_search_args(require_replace_args=False):
+@dataclass
+class SearchArgs:
+    cur_dir: str
+    file_patterns: list[str]
+    search_string: str
+    replace_string: str
+    ignore_errors: bool
+
+
+def get_search_args(require_replace_args=False) -> SearchArgs:
     """Generates an ArgumentParser and returns the args."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--cur_dir", default=os.curdir)
@@ -23,18 +34,33 @@ def get_search_args(require_replace_args=False):
         args.replace_string = input("replace string: ")
     if args.file_pattern is None:
         args.file_pattern = input("file search pattern: ")
-    return args
+    search_args = SearchArgs(
+        cur_dir=args.cur_dir,
+        file_patterns=args.file_pattern.split(","),
+        search_string=args.search_string,
+        replace_string=args.replace_string,
+        ignore_errors=args.ignore_errors,
+    )
+    return search_args
+
+
+def match(file: str, file_patterns: list[str]) -> bool:
+    """Returns true if the file matches any of the file patterns."""
+    for file_pattern in file_patterns:
+        if fnmatch.fnmatch(file, file_pattern):
+            return True
+    return False
 
 
 def iter_matching_files(
-    cur_dir, file_pattern, text_search_string=None, ignore_errors=False
-):
+    cur_dir, file_patterns, text_search_string=None, ignore_errors=False
+) -> Any:
     """Generates an iterator for matching files."""
     for path, dirs, files in os.walk(cur_dir):  # pylint: disable=unused-variable
         if ".git" in path.split(os.sep):
             continue
         for f in files:  # pylint: disable=invalid-name
-            if fnmatch.fnmatch(f, file_pattern):
+            if match(f, file_patterns):
                 full_path = os.path.join(path, f)
                 if text_search_string is None:
                     yield full_path
@@ -61,7 +87,7 @@ def iter_matching_files(
                         yield full_path
 
 
-def replace_in_file(file_path, search_text, replace_text):
+def replace_in_file(file_path, search_text, replace_text) -> None:
     """Replaces all occurences with replace_text."""
     with open(file_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
         file_data = fd.read()

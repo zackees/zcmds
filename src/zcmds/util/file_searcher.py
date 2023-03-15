@@ -7,12 +7,12 @@ import os
 from . import fileutils
 
 
-def main():
+def main() -> None:
     """Main program"""
-    args = fileutils.get_search_args()
+    args: fileutils.SearchArgs = fileutils.get_search_args()
     for file in fileutils.iter_matching_files(
         cur_dir=args.cur_dir,
-        file_pattern=args.file_pattern,
+        file_patterns=args.file_patterns,
         text_search_string=args.search_string,
         ignore_errors=args.ignore_errors,
     ):
