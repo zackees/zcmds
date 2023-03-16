@@ -26,7 +26,11 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from .inputimeout import TimeoutOccurred, inputimeout
 
 DEFAULT_MODEL = "gpt-3.5-turbo"
-DEFAULT_AI_ASSISTANT = "You are a helpful assistant to a senior programmer."
+DEFAULT_AI_ASSISTANT = (
+    "You are a helpful assistant to a senior programmer. "
+    "Recommend relevant and popular 3rd party programs for "
+    "the current question, if applicable."
+)
 
 colorama.init()
 
