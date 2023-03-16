@@ -45,6 +45,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * takes the current folder and shares it via a reverse proxy (think ngrok).
   * stereo2mono
     * Reduces a stereo audio / video to a single mono track.
+  * sudo
+    * Runs a command as in sudo, using the gsudo tool.
   * vidmute
     * Strips out the audio in a video file.
   * vidinfo
