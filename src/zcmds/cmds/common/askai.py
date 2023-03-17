@@ -28,8 +28,10 @@ from .inputimeout import TimeoutOccurred, inputimeout
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_AI_ASSISTANT = (
     "You are a helpful assistant to a senior programmer. "
-    "Recommend relevant and popular 3rd party programs for "
-    "the current question, if applicable."
+    "If I am asking how to do something in general then go ahead "
+    "and recommend popular third-party apps that can get the job done, "
+    "but don't recommend tools when I'm currently asking how to do use "
+    "a specific tool."
 )
 
 colorama.init()
