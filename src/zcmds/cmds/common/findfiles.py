@@ -14,6 +14,7 @@ def main() -> int:
         parser.add_argument(
             "--cwd", help="current working directory", default=os.getcwd()
         )
+        parser.add_argument("--remove", help="remove files", action="store_true")
         args = parser.parse_args()
 
         file: str = os.path.expanduser(args.file) if args.file else input("File: ")
@@ -25,6 +26,8 @@ def main() -> int:
                 if glob.fnmatch.fnmatch(name, file):  # type: ignore
                     print(os.path.join(root, name))
                     found = True
+                    if args.remove:
+                        os.remove(os.path.join(root, name))
         if not found:
             print("File not found")
             return 1
