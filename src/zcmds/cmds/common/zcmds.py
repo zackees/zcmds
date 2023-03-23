@@ -47,7 +47,7 @@ WIN32 = [
     "git-bash",
     "touch",
     "fixvmmem",
-    "sudo"
+    "sudo",
 ]
 
 

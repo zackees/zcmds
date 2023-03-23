@@ -29,7 +29,6 @@ def _print_file_exists(path):
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         description="Print video durations\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,

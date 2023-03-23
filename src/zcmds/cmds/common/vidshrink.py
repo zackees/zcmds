@@ -6,7 +6,6 @@ import sys
 
 
 def main():
-
     # Expects a single argument: the path to the video file to shrink
     parser = argparse.ArgumentParser(description="Shrink a video file")
     parser.add_argument("video_path", help="Path to the video file to shrink")

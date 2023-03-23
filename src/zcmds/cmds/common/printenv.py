@@ -11,10 +11,16 @@ def main():
     # Copy the environment variables to a new dictionary
     env = os.environ.copy()
     # Remove the path variable
-    env.pop("PATH", None)
+    paths = None
     for key, val in env.items():
-        print(f"  {key} = {val}")
-    print("Path:")
-    for path in sys.path:
+        if key.lower() == "path":
+            paths = val
+            continue
+    print("PATH:")
+    for path in paths.split(os.pathsep):
         print(f"  {path}")
     sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
