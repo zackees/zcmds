@@ -183,6 +183,9 @@ def main() -> int:
         return cli()
     except KeyboardInterrupt:
         return 1
+    except openai.error.RateLimitError:
+        print("Rate limit exceeded, set a new key with --set-key")
+        return 1
 
 
 if __name__ == "__main__":
