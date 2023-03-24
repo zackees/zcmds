@@ -71,6 +71,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Changes the volume of a video.
   * ytclip
     * Download and clip a video from a url from youtube, rumble, bitchute, twitter... The timestamps are prompted by this program.
+  * whichall
+    * Finds all the executables in the path.
   * unzip
     * unzip the provided file
   * fixinternet
@@ -98,6 +100,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.1: Adds 'whichall' command
   * 1.4.0: Askai now supports question-answer-question-... interactive mode
   * 1.3.17: Adds syntax highlighting to open askai tool
   * 1.3.16: Improves openai by using gpt 3.5

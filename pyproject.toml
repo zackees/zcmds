@@ -13,7 +13,7 @@ classifiers = ["Programming Language :: Python :: 3"]
 dynamic = ["dependencies"]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
-version = "1.4.0"
+version = "1.4.1"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
@@ -52,4 +52,4 @@ vidhero = "zcmds.cmds.common.vidhero:main"
 vidlist = "zcmds.cmds.common.vidlist:main"
 test_net_connection = "zcmds.cmds.darwin.test_net_connection:main"
 fixinternet = "zcmds.cmds.common.fixinternet:main"
-
+whichall = "zcmds.cmds.common.whichall:main"
