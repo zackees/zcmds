@@ -57,7 +57,7 @@ def _which_all_win32(progname: str) -> list:
     paths = os.environ.get("PATH", "").split(os.pathsep)
     found_executables = []
     pname, ext = os.path.splitext(progname)
-    extra_paths = [".bat", ".exe", ".cmd", ".com"]
+    extra_paths = [".exe", ".bat", ".cmd"]
     if ext:
         # We are doing an exact match, so don't add any extensions
         for path in paths:
