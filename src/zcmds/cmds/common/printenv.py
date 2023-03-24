@@ -16,6 +16,8 @@ def main():
         if key.lower() == "path":
             paths = val
             continue
+        else:
+            print(f"{key}={val}")
     print("PATH:")
     for path in paths.split(os.pathsep):
         print(f"  {path}")
