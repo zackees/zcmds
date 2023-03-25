@@ -11,4 +11,4 @@ inputimeout
 pyserial
 playaudio
 static-ffmpeg>=2.5
-zcmds_win32>=1.0.7; platform_system=='Windows'
+zcmds_win32>=1.0.17; platform_system=='Windows'
