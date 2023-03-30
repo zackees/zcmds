@@ -28,7 +28,9 @@ def check_date(date: str) -> bool:
 
 class OutputAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if values is None:
+        if values is None and option_string is None:
+            setattr(namespace, self.dest, None)
+        elif values is None:
             setattr(namespace, self.dest, "DEFAULT_GIT_SUMMARY_OUTPUT")
         else:
             setattr(namespace, self.dest, values)
@@ -75,12 +77,11 @@ def main() -> None:
     parser.add_argument(
         "--output",
         nargs="?",
-        default="DEFAULT_GIT_SUMMARY_OUTPUT",
+        # default="DEFAULT_GIT_SUMMARY_OUTPUT",
         action=OutputAction,
         help="Output file, if not specified, will print to stdout",
     )
     args = parser.parse_args()
-
     start_date = args.start_date or input("start_date [YYYY-MM-DD]: ")
     if not check_date(start_date):
         sys.stderr.write("Error: Incorrect date format, should be YYYY-MM-DD\n")
@@ -98,14 +99,12 @@ def main() -> None:
     )
     stdout = cp.stdout.strip()
     stdout = constrain(stdout, start_date_dt, end_date_dt)
-
     repo_url = get_repo_url()
-
     if not args.no_header:
-        header = f"Git summary for {repo_url} from {start_date} to {end_date}\n------------------\n"
+        nlines = len(stdout.splitlines())
+        header = f"Git summary for {repo_url} from {start_date} to {end_date}, {nlines} commits\n------------------\n"
         stdout = header + stdout
-
-    if not args.output:
+    if args.output is None:
         print(stdout)
     else:
         output = args.output
@@ -115,10 +114,14 @@ def main() -> None:
         with open(output, encoding="utf-8", mode="w") as f:
             f.write(stdout)
         print(f"Output written to {output}")
-
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    sys.argv.append("--output")
+    args = [
+        "--start_date", "2023-01-01",
+        "--end_date", "2023-01-30",
+        "--output", "out.txt"
+    ]
+    sys.argv.extend(args)
     main()
