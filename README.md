@@ -27,6 +27,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * walks the directory from the current directory and shows which folders / files take up the most disk.
   * git-bash
     * launches git-bash terminal (windows only).
+  * gitsummary
+    * Generates a summary of the git repository commits
   * findfile
     * finds a file with the given glob.
   * img2vid
@@ -37,6 +39,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * prints the current environment variables, including path.
   * pdf2png
     * Converts a pdf to a series of images
+  * pdf2txt
+    * Converts a pdf to a text file.
   * search_and_replace
     * Search all the files from the current directory and apply search and replace changes.
   * search_in_files
