@@ -10,6 +10,16 @@ from argparse import Action, ArgumentParser
 from datetime import datetime, timedelta
 
 
+class OutputAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values is None and option_string is None:
+            setattr(namespace, self.dest, None)
+        elif values is None:
+            setattr(namespace, self.dest, "DEFAULT_GIT_SUMMARY_OUTPUT")
+        else:
+            setattr(namespace, self.dest, values)
+
+
 def create_cmd(start_date: datetime, end_date: datetime) -> str:
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
@@ -24,16 +34,6 @@ def check_date(date: str) -> bool:
         return True
     except ValueError:
         return False
-
-
-class OutputAction(Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values is None and option_string is None:
-            setattr(namespace, self.dest, None)
-        elif values is None:
-            setattr(namespace, self.dest, "DEFAULT_GIT_SUMMARY_OUTPUT")
-        else:
-            setattr(namespace, self.dest, values)
 
 
 def get_repo_url() -> str:
@@ -119,9 +119,12 @@ def main() -> None:
 
 if __name__ == "__main__":
     args = [
-        "--start_date", "2023-01-01",
-        "--end_date", "2023-01-30",
-        "--output", "out.txt"
+        "--start_date",
+        "2023-01-01",
+        "--end_date",
+        "2023-01-30",
+        "--output",
+        "out.txt",
     ]
     sys.argv.extend(args)
     main()
