@@ -23,10 +23,11 @@ def main() -> None:
             if args.search_string in line:
                 matches.append((i, line))
         if len(matches):
-            print(f"Found {len(matches)} matches in {os.path.abspath(file)}:")
+            # print(f"Found {len(matches)} matches in {os.path.abspath(file)}:")
             for match in matches:
                 haystack = match[1].strip()
-                print(f"  {match[0]}: {haystack}")
+                absfile = os.path.abspath(file)
+                print(f"{absfile}:{match[0]}:\n  {haystack}")
             print()
 
 
