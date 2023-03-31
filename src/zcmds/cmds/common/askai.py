@@ -148,6 +148,10 @@ def cli() -> int:
     prompts = [prompt]
 
     while True:
+        # allow exit() and exit to exit the app
+        if prompts[-1].strip().replace("()", "") == "exit":
+            print("Exited due to 'exit' command")
+            break
         if not as_json:
             print("############ OPEN-AI QUERY")
         try:
