@@ -4,10 +4,13 @@
 
 import argparse
 import fnmatch
+import json
 import os
 import sys
 from dataclasses import dataclass
 from typing import Any
+
+cache_dir = os.path.dirname(os.path.abspath(__file__)) + "/.cache"
 
 
 @dataclass
@@ -19,9 +22,40 @@ class SearchArgs:
     ignore_errors: bool
 
 
+def _get_config() -> dict[str, str]:
+    """Gets the config."""
+    try:
+        config_file = os.path.join(cache_dir, "config.json")
+        if os.path.exists(config_file):
+            with open(config_file, "r") as fd:
+                config = json.load(fd)
+        else:
+            config = {}
+        return config
+    except Exception as ex:
+        sys.stderr.write(f"Error loading config: {ex}\n")
+        return {}
+
+
+def _save_config(config: dict[str, str]) -> None:
+    """Saves the config."""
+    try:
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+        config_file = os.path.join(cache_dir, "config.json")
+        with open(config_file, "w") as fd:
+            json.dump(config, fd, indent=4)
+    except Exception as ex:
+        sys.stderr.write(f"Error saving config: {ex}\n")
+
+
 def get_search_args(require_replace_args=False) -> SearchArgs:
     """Generates an ArgumentParser and returns the args."""
     parser = argparse.ArgumentParser()
+    config = _get_config()
+    saved_file_pattern = config.get("file_pattern", None)
+    saved_search_string = config.get("search_string", None)
+    saved_replace_string = config.get("replace_string", None)
     parser.add_argument("--cur_dir", default=os.curdir)
     parser.add_argument("--file_pattern", default=None)
     parser.add_argument("--search_string", default=None)
@@ -29,11 +63,18 @@ def get_search_args(require_replace_args=False) -> SearchArgs:
     parser.add_argument("--ignore_errors", action="store_true")
     args = parser.parse_args()
     if args.search_string is None:
-        args.search_string = input("search string: ")
+        args.search_string = input(f"Search string [{saved_search_string}]:")
+        args.search_string = args.search_string.strip() or saved_search_string
     if require_replace_args and args.replace_string is None:
-        args.replace_string = input("replace string: ")
+        args.replace_string = input(f"Replace string [{saved_replace_string}]:")
+        args.replace_string = args.replace_string.strip() or saved_replace_string
     if args.file_pattern is None:
-        args.file_pattern = input("file search pattern: ")
+        args.file_pattern = input(f"File search pattern [{saved_file_pattern}]:")
+        args.file_pattern = args.file_pattern.strip() or saved_file_pattern
+    config["file_pattern"] = args.file_pattern
+    config["search_string"] = args.search_string
+    config["replace_string"] = args.replace_string
+    _save_config(config)
     search_args = SearchArgs(
         cur_dir=args.cur_dir,
         file_patterns=args.file_pattern.split(","),

@@ -35,7 +35,9 @@ def main() -> None:
             # pos = haystack.find(match)
             # if len(haystack) > 60:
             #  haystack = haystack[0:60] + '...'
-            print(f"  {match[0]}: {haystack}")
+            absfile = os.path.abspath(file)
+            # print(f"  {match[0]}: {haystack}")
+            print(f"{absfile}:{match[0]}:\n  {haystack}")
 
     if "y" == input("Apply replace? (y/n): ").lower():
         print(f"Replacing now... {len(files)}")
