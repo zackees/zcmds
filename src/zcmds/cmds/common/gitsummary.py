@@ -143,27 +143,22 @@ def main() -> int:
     if not check_date(end_date):
         sys.stderr.write("Error: Incorrect date format, should be YYYY-MM-DD\n")
         return 1
-    if not args.repo or not args.repo[0]:
+    repo = ""
+    if not args.repo:
         repo = os.getcwd()
         if not os.path.isdir(repo):
             sys.stderr.write(f"Error: {repo} is not a directory\n")
             sys.exit(1)
-        os.chdir(repo)
     else:
-        repo = args.repo[0]
+        repo = args.repo
         if not os.path.isdir(repo):
             sys.stderr.write(f"Error: {repo} is not a directory\n")
             sys.exit(1)
-        os.chdir(repo)
+    os.chdir(repo)
     save_config(CONFIG_NAME, config)
     start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
     end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
     repo = ""
-    if not args.repo:
-        repo = os.getcwd()
-    else:
-        repo = args.repo[0]
-    os.chdir(repo)
     cmd = create_cmd(start_date_dt - timedelta(days=1), end_date_dt + timedelta(days=1))
     sys.stderr.write(f"Running: {cmd}\n")
     cp: subprocess.CompletedProcess = subprocess.run(
@@ -207,6 +202,7 @@ def main() -> int:
 
 def unit_test() -> None:
     args = [
+        r"C:\Users\niteris\dev\androidmonitor-backend",
         "--output",
         "out.json",
         "--start_date",
