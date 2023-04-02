@@ -122,6 +122,8 @@ def main() -> int:
             return 1
         if ext == ".json" and not args.json:
             args.json = True
+    if args.output != "stdout" and args.output is not None:
+        args.output = os.path.abspath(args.output)
     config = get_config(CONFIG_NAME)
     start_date = args.start_date
     if not start_date:
