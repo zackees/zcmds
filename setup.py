@@ -22,12 +22,23 @@ def get_readme() -> str:
     return "".join(readme_lines)
 
 
+def get_console_scripts() -> list[str]:
+    cmds_txt = os.path.join(HERE, "src", "zcmds", "cmds.txt")
+    with open(cmds_txt, encoding="utf-8", mode="r") as cmds_file:
+        cmds = cmds_file.readlines()
+    cmds = [cmd.replace('"', "").strip() for cmd in cmds]
+    return cmds
+
+
 if __name__ == "__main__":
     setuptools.setup(
-        maintainer= "Zachary Vorhies",
+        maintainer="Zachary Vorhies",
         long_description=get_readme(),
         long_description_content_type="text/markdown",
         url=URL,
         package_data={"": ["assets/bell.mp3"]},
         include_package_data=True,
+        entry_points={
+            "console_scripts": [get_console_scripts()],
+        },
     )
