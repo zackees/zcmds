@@ -9,6 +9,10 @@ import sys
 from argparse import Action, ArgumentParser
 from datetime import datetime, timedelta
 
+from zcmds.util.config import get_config, save_config
+
+CONFIG_NAME = "gitsummary.json"
+
 
 class OutputAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -23,7 +27,12 @@ class OutputAction(Action):
 def create_cmd(start_date: datetime, end_date: datetime) -> str:
     start_date_str = start_date.strftime("%Y-%m-%d")
     end_date_str = end_date.strftime("%Y-%m-%d")
-    cmd = f'git log --since="{start_date_str}" --until="{end_date_str}" --pretty="format:%h %ad %s" --date=local --reverse'
+    cmd = (
+        f'git log --since="{start_date_str}"'
+        f' --until="{end_date_str}"'
+        ' --pretty="format:%h %ad %s"'
+        " --date=local --reverse"
+    )
     return cmd
 
 
@@ -52,12 +61,8 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
     lines = output.strip().splitlines()
     out = []
     for line in lines:
-        # print(line)
         (month, day, _time, year) = line.split(" ", 6)[2:6]
-        dtime: datetime = datetime.strptime(
-            f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
-        )
-
+        dtime: datetime = datetime.strptime(f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S")
         if dtime >= start_date and dtime < end_date:  # type: ignore
             out.append(line)
     return "\n".join(out)
@@ -66,9 +71,7 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
 def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("--start_date", help="First page to include in the output.")
-    parser.add_argument(
-        "--end_date", help="Last page (inclusive) to include in the output."
-    )
+    parser.add_argument("--end_date", help="Last page (inclusive) to include in the output.")
     # add header
     parser.add_argument(
         "--no-header",
@@ -82,14 +85,28 @@ def main() -> None:
         help="Output file, if not specified, will print to stdout",
     )
     args = parser.parse_args()
-    start_date = args.start_date or input("start_date [YYYY-MM-DD]: ")
+    config = get_config(CONFIG_NAME)
+    start_date = args.start_date
+    if not start_date:
+        saved_start_date = config.get("start_date") or "YYYY-MM-DD"
+        start_date = input(f"start_date [{saved_start_date}]: ").strip()
+        if not start_date:
+            start_date = saved_start_date
+        config["start_date"] = start_date
     if not check_date(start_date):
         sys.stderr.write("Error: Incorrect date format, should be YYYY-MM-DD\n")
         sys.exit(1)
-    end_date = args.end_date or input("end_date [YYYY-MM-DD]: ")
+    end_date = args.end_date
+    if not end_date:
+        saved_end_date = config.get("end_date") or "YYYY-MM-DD"
+        end_date = input(f"end_date [{saved_end_date}]: ").strip()
+        if not end_date:
+            end_date = saved_end_date
+        config["end_date"] = end_date
     if not check_date(end_date):
         sys.stderr.write("Error: Incorrect date format, should be YYYY-MM-DD\n")
         sys.exit(1)
+    save_config(CONFIG_NAME, config)
     start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
     end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
     cmd = create_cmd(start_date_dt - timedelta(days=1), end_date_dt + timedelta(days=1))
@@ -119,10 +136,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     args = [
-        "--start_date",
-        "2023-01-01",
-        "--end_date",
-        "2023-01-30",
         "--output",
         "out.txt",
     ]
