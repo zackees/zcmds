@@ -21,7 +21,7 @@ dependencies = {file = ["requirements.txt"]}
 [project.scripts]
 askai = "zcmds.cmds.common.askai:main"
 imgai= "zcmds.cmds.common.imgai:main"
-zcmds = "zcmds.cmds.common.zcmds:main"
+zcmds = "zcmds.cmds.common.zcmds_main:main"
 audnorm = "zcmds.cmds.common.audnorm:main"
 comports = "zcmds.cmds.common.comports:main"
 diskaudit = "zcmds.cmds.common.diskaudit:main"
