@@ -72,9 +72,19 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
     return "\n".join(out)
 
 
-def parse_to_json_data(header: str, lines: list[str]) -> OrderedDict:
+def parse_to_json_data(
+    repo_url: str, start_date: datetime, end_date: datetime, lines: list[str]
+) -> OrderedDict:
     out = OrderedDict()
     data: list[OrderedDict] = []
+    # subtract one second
+    end_date = end_date - timedelta(seconds=1)
+    header = {
+        "repo_url": repo_url,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "num_commits": len(lines),
+    }
     out["header"] = header
     for line in lines:
         (hash, _, month, day, _time, year, *rest) = line.split(" ")
@@ -85,7 +95,7 @@ def parse_to_json_data(header: str, lines: list[str]) -> OrderedDict:
         )
         dtime_str = dtime.isoformat()
         item = OrderedDict()
-        item["hash"] = hash
+        item["commit"] = hash
         item["date_time"] = dtime_str
         item["message"] = rest  # type: ignore
         data.append(item)
@@ -106,6 +116,11 @@ def main() -> int:
     )
     parser.add_argument("--json", help="Output in JSON format", action="store_true")
     args = parser.parse_args()
+    if args.output:
+        ext = os.path.splitext(args.output)[1]
+        if args.json and ext != ".json" and args.output != "stdout":
+            sys.stderr.write("Error: Output file must be a .json file\n")
+            return 1
     config = get_config(CONFIG_NAME)
     start_date = args.start_date
     if not start_date:
@@ -157,7 +172,7 @@ def main() -> int:
     stdout = constrain(stdout, start_date_dt, end_date_dt)
     repo_url = get_repo_url()
     nlines = len(stdout.splitlines())
-    header = f"Git summary for {repo_url} from {start_date} to {end_date}, {nlines} commits\n------------------"
+
     curr_dir = os.path.basename(os.path.abspath(os.getcwd()))
     ext = ".txt" if not args.json else ".json"
 
@@ -180,9 +195,10 @@ def main() -> int:
             print(f"Output written to {output}")
 
     if not args.json:
+        header = f"Git summary for {repo_url} from {start_date} to {end_date}, {nlines} commits\n------------------"
         write_output(header + "\n" + stdout)
         return 0
-    data = parse_to_json_data(header, stdout.splitlines())
+    data = parse_to_json_data(repo_url, start_date_dt, end_date_dt, stdout.splitlines())
     json_str = json.dumps(data, indent=4)
     write_output(json_str)
     return 0
@@ -196,6 +212,7 @@ def unit_test() -> None:
         "2023-01-01",
         "--end_date",
         "2023-01-31",
+        "--json",
     ]
     sys.argv.extend(args)
     rtn = main()
