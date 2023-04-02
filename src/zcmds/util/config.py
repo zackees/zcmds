@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Optional, Any
+from typing import Any, Optional
 
 cache_dir = os.path.dirname(os.path.abspath(__file__)) + "/.cache"
 
