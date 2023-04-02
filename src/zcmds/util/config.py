@@ -1,12 +1,12 @@
 import json
 import os
 import sys
-from typing import Optional
+from typing import Optional, Any
 
 cache_dir = os.path.dirname(os.path.abspath(__file__)) + "/.cache"
 
 
-def get_config(name: str, default: Optional[dict] = None) -> dict[str, str]:
+def get_config(name: str, default: Optional[dict] = None) -> dict[str, Any]:
     """Gets the config."""
     assert name.endswith(".json")
     default = default or {}
@@ -23,7 +23,7 @@ def get_config(name: str, default: Optional[dict] = None) -> dict[str, str]:
         return default
 
 
-def save_config(name: str, config: dict[str, str]) -> None:
+def save_config(name: str, config: dict[str, Any]) -> None:
     """Saves the config."""
     assert name.endswith(".json")
     try:

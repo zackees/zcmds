@@ -104,6 +104,8 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+
+  * 1.4.5: Adds saved settings for gitsummary
   * 1.4.4: Adds `pdf2txt` command
   * 1.4.3: Adds `gitsummary` command
   * 1.4.2: Bump up zcmds_win32 to 1.0.17
