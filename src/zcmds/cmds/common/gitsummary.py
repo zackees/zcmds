@@ -64,7 +64,9 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
     out = []
     for line in lines:
         (month, day, _time, year) = line.split(" ", 6)[2:6]
-        dtime: datetime = datetime.strptime(f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S")
+        dtime: datetime = datetime.strptime(
+            f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
+        )
         if dtime >= start_date and dtime < end_date:  # type: ignore
             out.append(line)
     return "\n".join(out)
@@ -88,7 +90,9 @@ def parse_to_json_data(
         (hash, _, month, day, _time, year, *rest) = line.split(" ")
         rest = " ".join(rest)  # type: ignore
         # print(rest)
-        dtime: datetime = datetime.strptime(f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S")
+        dtime: datetime = datetime.strptime(
+            f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
+        )
         item = OrderedDict()
         item["commit"] = hash
         item["date_time"] = dtime.isoformat()
@@ -102,7 +106,9 @@ def main() -> int:
     parser = ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
     parser.add_argument("--start_date", help="First page to include in the output.")
-    parser.add_argument("--end_date", help="Last page (inclusive) to include in the output.")
+    parser.add_argument(
+        "--end_date", help="Last page (inclusive) to include in the output."
+    )
     parser.add_argument(
         "--output",
         help="Output file.",
@@ -114,6 +120,8 @@ def main() -> int:
         if args.json and ext != ".json" and args.output != "stdout":
             sys.stderr.write("Error: Output file must be a .json file\n")
             return 1
+        if ext == ".json" and not args.json:
+            args.json = True
     config = get_config(CONFIG_NAME)
     start_date = args.start_date
     if not start_date:
@@ -200,12 +208,11 @@ def main() -> int:
 def unit_test() -> None:
     args = [
         "--output",
-        "stdout",
+        "out.json",
         "--start_date",
         "2023-01-01",
         "--end_date",
         "2023-01-31",
-        "--json",
     ]
     sys.argv.extend(args)
     rtn = main()
