@@ -64,9 +64,7 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
     out = []
     for line in lines:
         (month, day, _time, year) = line.split(" ", 6)[2:6]
-        dtime: datetime = datetime.strptime(
-            f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
-        )
+        dtime: datetime = datetime.strptime(f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S")
         if dtime >= start_date and dtime < end_date:  # type: ignore
             out.append(line)
     return "\n".join(out)
@@ -90,13 +88,10 @@ def parse_to_json_data(
         (hash, _, month, day, _time, year, *rest) = line.split(" ")
         rest = " ".join(rest)  # type: ignore
         # print(rest)
-        dtime: datetime = datetime.strptime(
-            f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
-        )
-        dtime_str = dtime.isoformat()
+        dtime: datetime = datetime.strptime(f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S")
         item = OrderedDict()
         item["commit"] = hash
-        item["date_time"] = dtime_str
+        item["date_time"] = dtime.isoformat()
         item["message"] = rest  # type: ignore
         data.append(item)
     out["data"] = data  # type: ignore
@@ -107,9 +102,7 @@ def main() -> int:
     parser = ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
     parser.add_argument("--start_date", help="First page to include in the output.")
-    parser.add_argument(
-        "--end_date", help="Last page (inclusive) to include in the output."
-    )
+    parser.add_argument("--end_date", help="Last page (inclusive) to include in the output.")
     parser.add_argument(
         "--output",
         help="Output file.",
