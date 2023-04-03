@@ -17,7 +17,7 @@ DATES = [
 ]
 
 REPOS: list[str] = [
-    # Add your repos here
+    # Add your repos here as file paths.
 ]
 
 

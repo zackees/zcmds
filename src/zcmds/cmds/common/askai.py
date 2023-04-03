@@ -9,9 +9,8 @@ import atexit
 import os
 import subprocess
 import sys
-import time
 from tempfile import NamedTemporaryFile
-from typing import Optional, Tuple
+from typing import Optional
 
 import colorama
 
@@ -22,8 +21,7 @@ except KeyboardInterrupt:
     sys.exit(1)
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
-
-from .inputimeout import TimeoutOccurred, inputimeout
+from zcmds.util.prompt_input import prompt_input
 
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_AI_ASSISTANT = (
@@ -35,34 +33,6 @@ DEFAULT_AI_ASSISTANT = (
 )
 
 colorama.init()
-
-
-def read_console(
-    prompt: Optional[str] = None, timeout: float = 1.0
-) -> Tuple[bool, str, float]:
-    start_time = time.time()
-    end_time = 0.0
-    try:
-        out = inputimeout(prompt=prompt, timeout=timeout)
-        end_time = time.time()
-        return (True, out, end_time - start_time)
-    except TimeoutOccurred:
-        return (False, "", end_time - start_time)
-
-
-def prompt_input() -> str:
-    lines: list[str] = []
-    empty_count = 0
-    while True:
-        line = input(">>> ")
-        if not line:
-            empty_count += 1
-            if empty_count == 2:
-                break
-        else:
-            empty_count = 0
-        lines.append(line)
-    return "\n".join(lines)
 
 
 def output(text: str, outfile: Optional[str]):

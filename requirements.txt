@@ -10,6 +10,7 @@ openai>=0.27.2
 consolemd
 inputimeout
 pyserial
-playaudio
+playaudio>=1.0.5
+gTTS
 static-ffmpeg>=2.5
 zcmds_win32>=1.0.17; platform_system=='Windows'
