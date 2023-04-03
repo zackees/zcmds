@@ -12,6 +12,7 @@ from zcmds.util.prompt_input import prompt_input
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("text", nargs="*", help="Text to speak")
+    parser.add_argument("--output", "-o", help="Output file")
     args = parser.parse_args()
     text = " ".join(args.text).strip()
     tempmp3 = NamedTemporaryFile(suffix=".mp3", delete=False)
@@ -24,6 +25,9 @@ def run():
 
     try:
         tts = gTTS(text=text, lang="en")
+        if args.output:
+            tts.save(args.output)
+            return 0
         tts.save(tempmp3.name)
         playaudio(tempmp3.name)
     finally:
