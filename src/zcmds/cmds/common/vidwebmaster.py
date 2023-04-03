@@ -14,7 +14,7 @@ from threading import Thread
 from PyQt6 import QtCore  # type: ignore
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
 
-from zcmds.util.sound import beep
+from zcmds.util.say import say
 
 
 @dataclass
@@ -118,8 +118,7 @@ def run_gui(vidinfos: list[VidInfo]) -> None:
         # Open folder in the OS
         def _encode_then_beep():
             encode(videofile, vidinfos=vidinfos)
-            # do a beep when done
-            beep()
+            say("Attention: Video Encoding Complete")
 
         Thread(target=_encode_then_beep, daemon=True).start()
 
