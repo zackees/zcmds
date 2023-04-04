@@ -51,6 +51,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Reduces a stereo audio / video to a single mono track.
   * sudo
     * Runs a command as in sudo, using the gsudo tool.
+  * vidcat
+    * Concatenates two videos together, upscaling a lower resolution video.
   * vidmute
     * Strips out the audio in a video file.
   * vidinfo
