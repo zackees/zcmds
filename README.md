@@ -107,6 +107,7 @@ TODO: Add a cleanup function to undo this.
 
 # Release Notes
   
+  * 1.4.8: `audnorm` now encodes in mp3 format (improves compatibility). vid2mp3 now allows `--normalize`
   * 1.4.7: Fixes broken build.
   * 1.4.6: Adds `say` command to speak out the text you give the program
   * 1.4.5: Adds saved settings for gitsummary

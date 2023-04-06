@@ -80,7 +80,7 @@ def concatenate_videos(
             print(f"{__file__}: WARNING: '{cmd}' returned code {rtn}")
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
         description="Concatenates videos by encoding them to the same resolution.\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -97,6 +97,7 @@ def main():
     print(f"Highest resolution: {resolution.width}x{resolution.height}")
     concatenate_videos(infiles, args.outname, resolution, args.crf)
     print(f"Concatenated videos saved as {args.outname}")
+    return 0
 
 
 if __name__ == "__main__":
