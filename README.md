@@ -25,7 +25,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Shows all the ports that are in use at the current computer (useful for Arduino debugging).
   * diskaudit
     * walks the directory from the current directory and shows which folders / files take up the most disk.
-  * git-bash
+  * git-bash (win32)
     * launches git-bash terminal (windows only).
   * gitsummary
     * Generates a summary of the git repository commits
@@ -49,7 +49,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * takes the current folder and shares it via a reverse proxy (think ngrok).
   * stereo2mono
     * Reduces a stereo audio / video to a single mono track.
-  * sudo
+  * sudo (win32 only)
     * Runs a command as in sudo, using the gsudo tool.
   * vidcat
     * Concatenates two videos together, upscaling a lower resolution video.
