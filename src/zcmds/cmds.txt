@@ -1,5 +1,5 @@
 askai = "zcmds.cmds.common.askai:main"
-imgai= "zcmds.cmds.common.imgai:main"
+imgai = "zcmds.cmds.common.imgai:main"
 zcmds = "zcmds.cmds.common.zcmds_main:main"
 audnorm = "zcmds.cmds.common.audnorm:main"
 comports = "zcmds.cmds.common.comports:main"

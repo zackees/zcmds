@@ -3,35 +3,9 @@
 """
 import sys
 
-COMMON = [
-    "audnorm",
-    "diskaudit",
-    "img2vid",
-    "obs_organize",
-    "pdf2png",
-    "search_and_replace",
-    "search_in_files",
-    "sharedir",
-    "stereo2mono",
-    "vidmute",
-    "vidinfo",
-    "vid2gif",
-    "vid2jpg",
-    "vid2mp3",
-    "vid2mp4",
-    "vid2webm",
-    "vidclip",
-    "viddur",
-    "vidspeed",
-    "vidvol",
-    "vidshrink",
-    "vidmatrix",
-    "vidwebmaster",
-    "vidhero",
-    "vidlist",
-    "test_net_connection",
-    "ytclip",
-]
+from zcmds.get_cmds import get_cmds
+
+COMMON = get_cmds(just_names=True)
 
 WIN32 = [
     "cat",
@@ -53,12 +27,15 @@ WIN32 = [
 
 def main():
     cmds = COMMON
-    if sys.platform == "win32":
-        cmds.extend(WIN32)
     cmds = sorted(cmds)
     print("zcmds:")
-    for cmd in cmds:
-        print(f"  {cmd}")
+    print("  common:")
+    for cmd in COMMON:
+        print(f"    {cmd}")
+    if sys.platform == "win32":
+        print("  win32:")
+        for cmd in sorted(WIN32):
+            print(f"    {cmd}")
 
 
 if __name__ == "__main__":
