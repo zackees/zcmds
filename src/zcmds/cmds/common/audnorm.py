@@ -41,7 +41,8 @@ def main():
         os.makedirs(os.path.dirname(out), exist_ok=True)
     assert _is_media_file(path), f"{path} is not a media file"
     add_paths(weak=True)
-    cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a libmp3lame -b:a 192k'
+    # Note that aac is supported by twitter, lame is not.
+    cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a aac -b:a 192k'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
