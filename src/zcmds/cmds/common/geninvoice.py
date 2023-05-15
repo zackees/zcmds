@@ -54,6 +54,7 @@ def main() -> None:
             print(cmd)
             os.system(cmd)
         outname = os.path.join(folder_name, "total_commits.txt")
+        os.makedirs(os.path.dirname(outname), exist_ok=True)
         with open(outname, encoding="utf-8", mode="w") as f:
             f.write(str(commit_count))
     sys.exit(0)
