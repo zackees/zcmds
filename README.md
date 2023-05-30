@@ -107,6 +107,7 @@ TODO: Add a cleanup function to undo this.
 
 # Release Notes
   
+  * 1.4.11: `findfiles` now has --start --end --larger-than --smaller-then
   * 1.4.10: `zcmds` now uses `get_cmds.py` to get all of the commands from the exe list.
   * 1.4.8: `audnorm` now encodes in mp3 format (improves compatibility). vid2mp3 now allows `--normalize`
   * 1.4.7: Fixes broken build.

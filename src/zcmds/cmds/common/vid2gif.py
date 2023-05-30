@@ -13,6 +13,10 @@ def main():
     )
     parser.add_argument("input", help="input")
     parser.add_argument("--outname", help="output name of the file")
+    parser.add_argument(
+        "--height", help="height of the output image", default=320, type=int
+    )
+    parser.add_argument("--fps", help="frames per second", default=10, type=int)
     args = parser.parse_args()
     infile = args.input
     if args.outname:
@@ -25,9 +29,11 @@ def main():
 
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
+    height = args.height
+    fps = args.fps
     # ffmpeg -i foo.avi -r 1 -s WxH -f image2 foo-%03d.jpeg -ss -frames:v
     file_out = f'"{output_path}.gif"'
-    cmd = f'static_ffmpeg -hide_banner -y -i "{infile}" -vf "fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 {file_out}'
+    cmd = f'static_ffmpeg -hide_banner -y -i "{infile}" -vf "fps={fps},scale={height}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 {file_out}'
     print(f"Executing:\n  {cmd}\n")
     subprocess.call(cmd, shell=True, universal_newlines=True)
     if not os.path.exists(output_path):
