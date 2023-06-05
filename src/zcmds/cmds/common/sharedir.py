@@ -4,7 +4,7 @@ import subprocess
 import sys
 from typing import Optional
 
-import requests
+import requests  # type: ignore
 
 PORT = 6789
 
