@@ -18,12 +18,16 @@ def parse_size(size):
         return int(size)
 
 
-def main(sys_args: Optional[list] = None, _print: Optional[Callable[[str], None]] = None) -> int:
+def main(
+    sys_args: Optional[list] = None, _print: Optional[Callable[[str], None]] = None
+) -> int:
     _print = _print or print
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument("file", help="glob file name", nargs="?")
-        parser.add_argument("--cwd", help="current working directory", default=os.getcwd())
+        parser.add_argument(
+            "--cwd", help="current working directory", default=os.getcwd()
+        )
         parser.add_argument("--remove", help="remove files", action="store_true")
         parser.add_argument("--start", help="start date YYYY-MM-DD", default=None)
         parser.add_argument("--end", help="end date YYYY-MM-DD", default=None)
