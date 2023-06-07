@@ -47,18 +47,18 @@ def encode(videopath: str, vidinfos: list[VidInfo], fast_start: bool = True) -> 
             downmix_stmt = "-ac 1" if height <= 480 else ""
             # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
             null_stm: str = "/dev/null" if platform.system() != "Windows" else "NUL"
-            fast_start_stmt = "+faststart" if fast_start else ""
+            movflags_stmt = "-movflags +faststart" if fast_start else ""
             cmd_1stpass = (
                 f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
                 f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-                f" -movflags {fast_start_stmt} -preset veryslow -c:v {encoder}"
+                f" {movflags_stmt} -preset veryslow -c:v {encoder}"
                 f" -an -passlogfile {passlogfile} -pass 1 -f null {null_stm}"
                 f' -b:v {vidbitrate} "{out_path}"'
             )
             cmd_2ndpass = (
                 f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
                 f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
-                f" -movflags {fast_start_stmt} -preset veryslow -c:v {encoder}"
+                f" {movflags_stmt} -preset veryslow -c:v {encoder}"
                 f" -passlogfile {passlogfile}"
                 f' -pass 2 -b:v {vidbitrate} "{out_path}"'
             )
@@ -140,24 +140,16 @@ def parse_vidinfos(vidinfos_str: str) -> list[VidInfo]:
 
 def main():
     # Expects a single argument: the path to the video file to shrink
-    parser = argparse.ArgumentParser(
-        description="Make Web masters at 480, 720 and 1080p"
-    )
-    parser.add_argument(
-        "video_path", help="Path to the video file to shrink", nargs="?"
-    )
+    parser = argparse.ArgumentParser(description="Make Web masters at 480, 720 and 1080p")
+    parser.add_argument("video_path", help="Path to the video file to shrink", nargs="?")
     # Adds optional height argument
     parser.add_argument(
         "--encodings",
         help="Height and avg bitrate, seperated by commas. Example: 1080:3.0M,720:1.6M,480:0.9M",
         default="1080:3.0M,720:1.6M,480:0.9M",
     )
-    parser.add_argument(
-        "--no-fast-start", help="Add fast start flag", action="store_true"
-    )
-    parser.add_argument(
-        "--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"]
-    )
+    parser.add_argument("--no-fast-start", help="Add fast start flag", action="store_true")
+    parser.add_argument("--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"])
     args = parser.parse_args()
     vidinfos = parse_vidinfos(args.encodings)
     for vidinfo in vidinfos:
