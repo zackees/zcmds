@@ -107,6 +107,7 @@ TODO: Add a cleanup function to undo this.
 
 # Release Notes
   
+  * 1.4.13: Add `--no-fast-start` to vidwebmaster
   * 1.4.12: Fixes a bug in find files when an exception is thrown during file inspection.
   * 1.4.11: `findfiles` now has --start --end --larger-than --smaller-then
   * 1.4.10: `zcmds` now uses `get_cmds.py` to get all of the commands from the exe list.
