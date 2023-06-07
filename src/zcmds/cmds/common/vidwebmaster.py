@@ -108,7 +108,7 @@ def open_folder(path):
         subprocess.Popen(["xdg-open", path])
 
 
-def run_gui(vidinfos: list[VidInfo]) -> None:
+def run_gui(vidinfos: list[VidInfo], fast_start: bool) -> None:
     app = QApplication(sys.argv)
 
     def callback(videofile):
@@ -159,18 +159,19 @@ def main():
         "--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"]
     )
     args = parser.parse_args()
+    fast_start = not args.no_fast_start
     vidinfos = parse_vidinfos(args.encodings)
     for vidinfo in vidinfos:
         vidinfo.filetype = args.type
     # sort by smallest first
     if not args.video_path:
-        run_gui(vidinfos)
+        run_gui(vidinfos=vidinfos, fast_start=fast_start)
         return
     videopath = args.video_path
     if not os.path.exists(videopath):
         print(f"{videopath} does not exist")
         sys.exit(1)
-    fast_start = not args.no_fast_start
+
     encode(videopath=args.video_path, vidinfos=vidinfos, fast_start=fast_start)
 
 
