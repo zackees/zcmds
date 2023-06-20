@@ -140,16 +140,24 @@ def parse_vidinfos(vidinfos_str: str) -> list[VidInfo]:
 
 def main():
     # Expects a single argument: the path to the video file to shrink
-    parser = argparse.ArgumentParser(description="Make Web masters at 480, 720 and 1080p")
-    parser.add_argument("video_path", help="Path to the video file to shrink", nargs="?")
+    parser = argparse.ArgumentParser(
+        description="Make Web masters at 480, 720 and 1080p"
+    )
+    parser.add_argument(
+        "video_path", help="Path to the video file to shrink", nargs="?"
+    )
     # Adds optional height argument
     parser.add_argument(
         "--encodings",
         help="Height and avg bitrate, seperated by commas. Example: 1080:3.0M,720:1.6M,480:0.9M",
         default="1080:3.0M,720:1.6M,480:0.9M",
     )
-    parser.add_argument("--no-fast-start", help="Add fast start flag", action="store_true")
-    parser.add_argument("--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"])
+    parser.add_argument(
+        "--no-fast-start", help="Add fast start flag", action="store_true"
+    )
+    parser.add_argument(
+        "--type", help="mp4 or webm", default="mp4", choices=["mp4", "webm"]
+    )
     args = parser.parse_args()
     vidinfos = parse_vidinfos(args.encodings)
     for vidinfo in vidinfos:
