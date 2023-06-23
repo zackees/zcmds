@@ -27,7 +27,22 @@ def _is_media_file(filename: str) -> bool:
     return ext in [".mp4", ".mkv", ".avi", ".mov", ".mp3", ".wav"]
 
 
+def audnorm(path: str, out: str) -> None:
+    """
+    Normalizes the audio of a video file.
+    """
+    assert _is_media_file(path), f"{path} is not a media file"
+    if len(os.path.dirname(out)):
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+    add_paths(weak=True)
+    # Note that aac is supported by twitter, lame is not.
+    cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a aac -b:a 192k'
+    print(f"Executing:\n  {cmd}")
+    os.system(cmd)
+
+
 def main():
+    """Main entry point for audnorm."""
     parser = argparse.ArgumentParser(
         description="Print video durations\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -39,12 +54,7 @@ def main():
     out = args.out or input("out vid file: ")
     if len(os.path.dirname(out)):
         os.makedirs(os.path.dirname(out), exist_ok=True)
-    assert _is_media_file(path), f"{path} is not a media file"
-    add_paths(weak=True)
-    # Note that aac is supported by twitter, lame is not.
-    cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a aac -b:a 192k'
-    print(f"Executing:\n  {cmd}")
-    os.system(cmd)
+    audnorm(path, out)
 
 
 if __name__ == "__main__":
