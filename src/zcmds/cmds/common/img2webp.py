@@ -41,7 +41,7 @@ def write_utf8(file: str, content: str):
 
 def convert_png_to_webp(file: str, out_file: str, options: ImageOptions) -> bool:
     """Convert a png file to webp."""
-    assert file.lower().endswith(".png")
+    assert out_file.lower().endswith(".webp")
     im = Image.open(file)
     # Reduce the image size by half
     if options.scale != 1.0:
