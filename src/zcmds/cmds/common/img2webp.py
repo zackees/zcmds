@@ -10,8 +10,19 @@ import concurrent.futures
 import os
 import sys
 import threading
+from dataclasses import dataclass
+from typing import Optional
 
 from PIL import Image  # type: ignore
+
+
+@dataclass
+class ImageOptions:
+    """Image options."""
+
+    scale: float = 1.0
+    quality: Optional[int] = None
+
 
 LOCK = threading.Lock()
 
@@ -28,15 +39,17 @@ def write_utf8(file: str, content: str):
         f.write(content)
 
 
-def convert_png_to_webp(file: str, scale: float, out_file: str) -> bool:
+def convert_png_to_webp(file: str, out_file: str, options: ImageOptions) -> bool:
+    """Convert a png file to webp."""
+    assert file.lower().endswith(".png")
     im = Image.open(file)
     # Reduce the image size by half
-    if scale != 1.0:
-        new_size = (round(im.width * scale), round(im.height * scale))
+    if options.scale != 1.0:
+        new_size = (round(im.width * options.scale), round(im.height * options.scale))
         im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
     try:
         # Save as webp
-        im.save(fp=out_file, format="webp", optimize=True)
+        im.save(fp=out_file, format="webp", optimize=True, quality=options.quality)
     except Exception as e:
         with LOCK:
             print(f"Failed to convert {file} to webp: {e}")
@@ -66,10 +79,14 @@ def main() -> int:
     parser.add_argument(
         "--scale", help="Scale of the output image", default=1.0, type=float
     )
+    parser.add_argument(
+        "--quality", help="Quality of the output image", default=None, type=int
+    )
     parser.add_argument("--output_dir", help="Output directory", default=None)
     args = parser.parse_args()
     input_files = args.input
     outdir = args.output_dir
+    image_options = ImageOptions(scale=args.scale, quality=args.quality)
     if outdir is not None and not os.path.exists(outdir):
         os.makedirs(outdir)
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -79,7 +96,9 @@ def main() -> int:
             base_dir = outdir or os.path.dirname(file)
             filename, _ = os.path.splitext(os.path.basename(file))
             out_webp = os.path.join(base_dir, filename + ".webp")
-            task = executor.submit(convert_png_to_webp, file, args.scale, out_webp)
+            task = executor.submit(
+                convert_png_to_webp, file=file, out_file=out_webp, options=image_options
+            )
             png_conversion_tasks.append(task)
         # Wait for all png conversions to complete
         success = True
