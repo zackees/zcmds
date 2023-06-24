@@ -13,7 +13,7 @@ classifiers = ["Programming Language :: Python :: 3"]
 dynamic = ["dependencies"]
 # Change this with the version number bump.
 # Also make the change in zcmds/version.py
-version = "1.4.15"
+version = "1.4.16"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
