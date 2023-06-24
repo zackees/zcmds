@@ -106,7 +106,8 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
-  * 1.4.16: Adds `img2webp` utility.
+  * 1.4.16: Fixes `img2webp`.
+  * 1.4.15: Adds `img2webp` utility.
   * 1.4.13: Add `--no-fast-start` to vidwebmaster.
   * 1.4.12: Fixes a bug in find files when an exception is thrown during file inspection.
   * 1.4.11: `findfiles` now has --start --end --larger-than --smaller-then
