@@ -10,6 +10,7 @@ import concurrent.futures
 import os
 import sys
 import threading
+import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -20,8 +21,9 @@ from PIL import Image  # type: ignore
 class ImageOptions:
     """Image options."""
 
-    scale: float = 1.0
-    quality: Optional[int] = None
+    scale: float
+    quality: Optional[int]
+    subsampling: int
 
 
 LOCK = threading.Lock()
@@ -39,9 +41,14 @@ def write_utf8(file: str, content: str):
         f.write(content)
 
 
-def convert_png_to_webp(file: str, out_file: str, options: ImageOptions) -> bool:
+def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bool:
     """Convert a png file to webp."""
-    assert out_file.lower().endswith(".webp")
+    assert out_file.lower().endswith(".webp") or out_file.lower().endswith(".jpg")
+    assert file != out_file, "Input and output files must be different"
+    format = out_file.split(".")[-1]
+    assert format in ["webp", "jpg"]
+    if format == "jpg":
+        format = "jpeg"
     im = Image.open(file)
     # Reduce the image size by half
     if options.scale != 1.0:
@@ -49,10 +56,17 @@ def convert_png_to_webp(file: str, out_file: str, options: ImageOptions) -> bool
         im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
     try:
         # Save as webp
-        im.save(fp=out_file, format="webp", optimize=True, quality=options.quality)
+        im.save(
+            fp=out_file,
+            format=format,
+            optimize=True,
+            quality=options.quality,
+            method=6,
+            subsampling=options.subsampling,
+        )
     except Exception as e:
         with LOCK:
-            print(f"Failed to convert {file} to webp: {e}")
+            print(f"Failed to convert {file} to {format}: {e}")
         return False
     # get size of original file
     original_size = os.path.getsize(file)
@@ -82,11 +96,30 @@ def main() -> int:
     parser.add_argument(
         "--quality", help="Quality of the output image", default=None, type=int
     )
+    parser.add_argument(
+        "--subsampling",
+        help="Subsampling of the output image, 0 represents 4:4:4, 1 represents 4:2:2, 2 represents 4:2:0",
+        default=0,
+        type=int,
+        choices=[0, 1, 2],
+    )
+    parser.add_argument(
+        "--format",
+        help="Format of the output image",
+        default="webp",
+        choices=["webp", "jpg"],
+    )
     parser.add_argument("--output_dir", help="Output directory", default=None)
     args = parser.parse_args()
     input_files = args.input
     outdir = args.output_dir
-    image_options = ImageOptions(scale=args.scale, quality=args.quality)
+    subsampling = args.subsampling
+    format = args.format
+    if subsampling != 0 and args.format == "webp":
+        warnings.warn("Subsampling is not supported in webp as of June 2023")
+    image_options = ImageOptions(
+        scale=args.scale, quality=args.quality, subsampling=subsampling
+    )
     if outdir is not None and not os.path.exists(outdir):
         os.makedirs(outdir)
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -95,9 +128,14 @@ def main() -> int:
         for file in input_files:
             base_dir = outdir or os.path.dirname(file)
             filename, _ = os.path.splitext(os.path.basename(file))
-            out_webp = os.path.join(base_dir, filename + ".webp")
+            out_webp = os.path.join(base_dir, filename + f".{format}")
+            if os.path.abspath(file) == os.path.abspath(out_webp):
+                out_webp = os.path.join(base_dir, filename + f".1.{format}")
             task = executor.submit(
-                convert_png_to_webp, file=file, out_file=out_webp, options=image_options
+                convert_img_to_format,
+                file=file,
+                out_file=out_webp,
+                options=image_options,
             )
             png_conversion_tasks.append(task)
         # Wait for all png conversions to complete
