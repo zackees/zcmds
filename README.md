@@ -31,6 +31,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Generates a summary of the git repository commits
   * findfile
     * finds a file with the given glob.
+  * img2webp
+    * Conversion tool for converting images into webp format.
   * img2vid
     * Converts a series of images to a video.
   * obs_organize

@@ -4,13 +4,15 @@ The search is started from the cwd.
 """
 # pylint: skip-file
 
+import argparse
+import glob
 import os
 import signal
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 NUM_THREADS = 8
 
@@ -71,17 +73,33 @@ def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
             handle_ctrlc(None, None)
 
 
+def make_filter(globstr: str) -> Callable[[str], bool]:
+    """Returns a function that returns True if the path matches the globstr"""
+    if globstr == "":
+        return lambda _: True
+
+    def match(path: str) -> bool:
+        filename = os.path.basename(path)
+        return glob.fnmatch.fnmatch(filename, globstr)  # type: ignore
+
+    return match
+
+
 def main() -> None:
     signal.signal(signal.SIGINT, handle_ctrlc)
-
+    parser = argparse.ArgumentParser(description="Disk audit")
+    parser.add_argument("--filter", "-f", help="Filter by file extension", default="")
+    args = parser.parse_args()
     # threading queue
     inque: Queue = Queue()
     scan_start_time = time.time()
     print("Scanning for files...")
+    matcher_fn = make_filter(args.filter)
     for root, _, files in os.walk(".", topdown=True):
         for name in files:
             fullpath = os.path.join(root, name)
-            inque.put(fullpath)
+            if matcher_fn(fullpath):
+                inque.put(fullpath)
     print(f"  Found {fmt_num(inque.qsize())} files.")
     scan_diff = time.time() - scan_start_time
     size_start_time = time.time()

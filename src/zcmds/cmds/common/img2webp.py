@@ -45,6 +45,7 @@ def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bo
     """Convert a png file to webp."""
     assert out_file.lower().endswith(".webp") or out_file.lower().endswith(".jpg")
     assert file != out_file, "Input and output files must be different"
+    assert os.path.exists(file), f"File {file} does not exist"
     format = out_file.split(".")[-1]
     assert format in ["webp", "jpg"]
     if format == "jpg":
@@ -140,7 +141,7 @@ def main() -> int:
             png_conversion_tasks.append(task)
         # Wait for all png conversions to complete
         success = True
-        for task in concurrent.futures.as_completed(png_conversion_tasks):
+        for task in png_conversion_tasks:
             if not task.result():
                 success = False
     return 0 if success else 1
