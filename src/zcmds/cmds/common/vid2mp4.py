@@ -7,12 +7,17 @@ from pathlib import Path
 
 VERSION = "0.2.0"
 
+X264_PRESETS = ["veryslow", "slow", "medium", "fast", "faster", "veryfast", "superfast", "ultrafast"]
+NVENC_PRESETS = ['default', 'slow', 'medium', 'fast', 'high-quality', 'high-performance', 'low-latency', 'low-latency-high-quality', 'low-latency-high-performance']
+ALL_PRESETS = X264_PRESETS + NVENC_PRESETS
+
 
 def main():
     parser = argparse.ArgumentParser(description="Convert video to mp4")
     parser.add_argument("filename", help="Path to video file", nargs="?")
     parser.add_argument("--rencode", help="Rencode the video", action="store_true")
     parser.add_argument("--nvenc", help="Use NVENC encoder", action="store_true")
+    parser.add_argument("--preset", help="Preset for the output video", default="veryslow", choices=ALL_PRESETS)
     parser.add_argument(
         "--crf",
         help="CRF value for the output video (0-51). Lower values mean better quality.",
@@ -36,7 +41,7 @@ def main():
         out_path = Path(filename).with_suffix("").with_name(f"{Path(filename).stem}_converted.mp4")
 
     codec = "h264_nvenc" if args.nvenc else "libx264"
-    preset = "hq" if args.nvenc else "veryslow"
+    preset = args.preset or "hq" if args.nvenc else "veryslow"
     scale_cmd = f'-vf scale="trunc(oh*a/2)*2:{args.height}"' if args.height else ""
 
     if args.rencode:

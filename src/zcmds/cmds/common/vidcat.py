@@ -44,7 +44,12 @@ def get_resolution(infile: str) -> Resolution:
     rtn, stdout, _ = exec(cmd)
     if rtn != 0:
         print(f"{__file__}: WARNING: '{cmd}' returned code {rtn}")
-    width, height = stdout.split(",")
+    try:
+        width, height = stdout.split(",")
+    except ValueError:
+        print(f"{__file__}: ERROR: could not parse resolution from '{stdout}'")
+        import sys
+        sys.exit(1)
     return Resolution(int(width), int(height))
 
 

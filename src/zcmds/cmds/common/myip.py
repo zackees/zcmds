@@ -1,6 +1,7 @@
-from typing import Optional
-import requests
 import sys
+from typing import Optional
+
+import requests
 
 
 def get_public_ip4() -> Optional[str]:
