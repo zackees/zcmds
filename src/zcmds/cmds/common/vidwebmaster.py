@@ -21,6 +21,7 @@ from zcmds.util.say import say
 class VidInfo:
     vidbitrate: str
     height: int
+    fast_start: bool
     filetype: str = "mp4"
 
 
@@ -32,7 +33,7 @@ def get_encoder(filetype: str) -> str:
     raise ValueError(f"Unknown filetype: {filetype}")
 
 
-def encode(videopath: str, vidinfos: list[VidInfo], fast_start: bool = True) -> None:
+def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
     path, _ = os.path.splitext(videopath)
     os.makedirs(path, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -47,7 +48,7 @@ def encode(videopath: str, vidinfos: list[VidInfo], fast_start: bool = True) -> 
             downmix_stmt = "-ac 1" if height <= 480 else ""
             # trunc(oh*...) fixes issue with libx264 encoder not liking an add number of width pixels.
             null_stm: str = "/dev/null" if platform.system() != "Windows" else "NUL"
-            movflags_stmt = "-movflags +faststart" if fast_start else ""
+            movflags_stmt = "-movflags +faststart" if vidinfo.fast_start else ""
             cmd_1stpass = (
                 f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{videopath}"'
                 f' -vf scale="trunc(oh*a/2)*2:{height}" {downmix_stmt}'
@@ -128,11 +129,13 @@ def run_gui(vidinfos: list[VidInfo], fast_start: bool) -> None:
     sys.exit(app.exec())
 
 
-def parse_vidinfos(vidinfos_str: str) -> list[VidInfo]:
+def parse_vidinfos(vidinfos_str: str, fast_start: bool) -> list[VidInfo]:
     vidinfos = []
     for vidinfo_str in vidinfos_str.split(","):
         height, bitrate = vidinfo_str.split(":")
-        vidinfos.append(VidInfo(vidbitrate=bitrate, height=int(height)))
+        vidinfos.append(
+            VidInfo(vidbitrate=bitrate, height=int(height), fast_start=fast_start)
+        )
     # sort so that smallest resolution is first
     vidinfos.sort(key=lambda x: x.height)
     return vidinfos
@@ -160,19 +163,19 @@ def main():
     )
     args = parser.parse_args()
     fast_start = not args.no_fast_start
-    vidinfos = parse_vidinfos(args.encodings)
+    vidinfos = parse_vidinfos(args.encodings, fast_start=fast_start)
     for vidinfo in vidinfos:
         vidinfo.filetype = args.type
     # sort by smallest first
     if not args.video_path:
-        run_gui(vidinfos=vidinfos, fast_start=fast_start)
+        run_gui(vidinfos=vidinfos)
         return
     videopath = args.video_path
     if not os.path.exists(videopath):
         print(f"{videopath} does not exist")
         sys.exit(1)
 
-    encode(videopath=args.video_path, vidinfos=vidinfos, fast_start=fast_start)
+    encode(videopath=args.video_path, vidinfos=vidinfos)
 
 
 if __name__ == "__main__":
