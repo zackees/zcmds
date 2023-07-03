@@ -49,6 +49,7 @@ def get_resolution(infile: str) -> Resolution:
     except ValueError:
         print(f"{__file__}: ERROR: could not parse resolution from '{stdout}'")
         import sys
+
         sys.exit(1)
     return Resolution(int(width), int(height))
 

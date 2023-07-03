@@ -1,7 +1,7 @@
 import sys
 from typing import Optional
 
-import requests
+import requests  # type: ignore
 
 
 def get_public_ip4() -> Optional[str]:
