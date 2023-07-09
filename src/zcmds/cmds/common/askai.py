@@ -23,7 +23,7 @@ except KeyboardInterrupt:
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
 
-DEFAULT_MODEL = "gpt-3.5-turbo"
+DEFAULT_MODEL = "gpt-4"
 DEFAULT_AI_ASSISTANT = (
     "You are a helpful assistant to a senior programmer. "
     "If I am asking how to do something in general then go ahead "
@@ -49,9 +49,7 @@ def output(text: str, outfile: Optional[str]):
 
 def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatCompletion:
     # assert prompts is odd
-    assert (
-        len(prompts) % 2 == 1
-    )  # Prompts alternate between user message and last response
+    assert len(prompts) % 2 == 1  # Prompts alternate between user message and last response
     messages = [
         {
             "role": "system",
@@ -85,9 +83,7 @@ def cli() -> int:
     argparser.add_argument("--model", default=DEFAULT_MODEL)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument(
-        "--max-tokens", help="Max tokens to return", type=int, default=600
-    )
+    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=600)
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -100,9 +96,7 @@ def cli() -> int:
     key = config["openai_key"]
     interactive = not args.prompt
     if interactive:
-        print(
-            "\nInteractive mode - press return three times to submit your code to OpenAI"
-        )
+        print("\nInteractive mode - press return three times to submit your code to OpenAI")
     prompt = args.prompt or prompt_input()
 
     as_json = args.json
@@ -125,16 +119,12 @@ def cli() -> int:
         if not as_json:
             print("############ OPEN-AI QUERY")
         try:
-            response = ai_query(
-                prompts=prompts, max_tokens=args.max_tokens, model=args.model
-            )
+            response = ai_query(prompts=prompts, max_tokens=args.max_tokens, model=args.model)
         except ServiceUnavailableError as sua:
             print(sua)
             return 1
         except AuthenticationError as e:
-            print(
-                "Error authenticating with OpenAI, deleting password from config and exiting."
-            )
+            print("Error authenticating with OpenAI, deleting password from config and exiting.")
             print(e)
             save_config({})
             return 1
