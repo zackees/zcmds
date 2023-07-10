@@ -14,7 +14,9 @@ if sys.platform == "win32":
     URL = f"{BASE_URL}/win.7z"
 else:
     URL = f"{BASE_URL}/unknown system"
-    raise NotImplementedError(f"Lossless cut download not implemented for {sys.platform}")
+    raise NotImplementedError(
+        f"Lossless cut download not implemented for {sys.platform}"
+    )
 
 
 def main() -> int:
@@ -48,7 +50,9 @@ def main() -> int:
     if sys.platform == "win32":
         return os.system(os.path.join(LOSSLESS_CUT_BINS, "win", "LosslessCut.exe"))
     else:
-        raise NotImplementedError(f"Lossless cut run not implemented for {sys.platform}")
+        raise NotImplementedError(
+            f"Lossless cut run not implemented for {sys.platform}"
+        )
 
 
 if __name__ == "__main__":
