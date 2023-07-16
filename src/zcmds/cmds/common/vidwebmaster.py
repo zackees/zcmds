@@ -109,7 +109,7 @@ def open_folder(path):
         subprocess.Popen(["xdg-open", path])
 
 
-def run_gui(vidinfos: list[VidInfo], fast_start: bool) -> None:
+def run_gui(vidinfos: list[VidInfo]) -> None:
     app = QApplication(sys.argv)
 
     def callback(videofile):

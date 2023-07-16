@@ -108,6 +108,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.23: Bump zcmds-win32
   * 1.4.21: `askai` handles pasting text that has double lines in it.
   * 1.4.20: `askai` is now at gpt-4
   * 1.4.19: Adds `losslesscut` for win32.
