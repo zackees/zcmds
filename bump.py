@@ -45,4 +45,4 @@ for i, line in enumerate(lines):
     if line.startswith("VERSION = "):
         lines[i] = 'VERSION = "{}"  # pylint: disable=R0801'.format(new_version)
         break
-write_utf8(VERSION_PY, "\n".join(lines))
+write_utf8(VERSION_PY, "\n".join(lines) + "\n")
