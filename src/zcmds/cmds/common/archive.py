@@ -1,14 +1,13 @@
+import argparse
 import os
 import sys
-from typing import Optional
-
-import argparse
-
 import zipfile
 from typing import Optional
 
 
-def make_archive(folder_or_file: str, archive_name: str, root_dir: Optional[str] = None) -> None:
+def make_archive(
+    folder_or_file: str, archive_name: str, root_dir: Optional[str] = None
+) -> None:
     if archive_name is None:
         archive_name = folder_or_file + ".zip"
     root_dir = root_dir or os.path.dirname(folder_or_file)
