@@ -38,7 +38,7 @@ for i, line in enumerate(lines):
     if "version = " in line:
         lines[i] = 'version = "{}"'.format(new_version)
         break
-write_utf8(PYPROJET_TOML, "\n".join(lines))
+write_utf8(PYPROJET_TOML, "\n".join(lines) + "\n")
 
 lines = read_utf8(VERSION_PY).splitlines()
 for i, line in enumerate(lines):
