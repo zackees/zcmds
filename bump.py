@@ -42,7 +42,7 @@ write_utf8(PYPROJET_TOML, "\n".join(lines))
 
 lines = read_utf8(VERSION_PY).splitlines()
 for i, line in enumerate(lines):
-    if "VERSION = " in line:
+    if line.startswith("VERSION = "):
         lines[i] = 'VERSION = "{}"  # pylint: disable=R0801'.format(new_version)
         break
 write_utf8(VERSION_PY, "\n".join(lines))
