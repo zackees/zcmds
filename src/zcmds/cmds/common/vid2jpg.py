@@ -19,10 +19,12 @@ def main():
     parser.add_argument("--timestamp", help="start of the clip")
     parser.add_argument("--length", help="length of the clip")
     parser.add_argument("--outname", help="output name of the file")
+    parser.add_argument("--no-open-folder", action="store_true", help="debug")
     args = parser.parse_args()
     infile = args.input
     timestamp = args.timestamp or input("timestamp: ")
     length = args.length or input("length (secs): ")
+    do_open_folder = not args.no_open_folder
     if args.outname:
         output_path = os.path.splitext(args.outname)[0]
     else:
@@ -45,8 +47,9 @@ def main():
         print(f"Error from cmd:\n  {cmd}\n")
     else:
         print(f"Generated images are in directory: {output_path}")
-        if sys.platform == "win32":
-            os.system(f"start explorer {output_path}")
+        if do_open_folder:
+            if sys.platform == "win32":
+                os.system(f"start explorer {output_path}")
 
 
 if __name__ == "__main__":
