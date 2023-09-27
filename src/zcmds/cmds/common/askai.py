@@ -24,6 +24,7 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
 
 DEFAULT_MODEL = "gpt-4"
+FAST_MODEL = "gpt-3.5-turbo"
 DEFAULT_AI_ASSISTANT = (
     "You are a helpful assistant to a senior programmer. "
     "If I am asking how to do something in general then go ahead "
@@ -83,6 +84,7 @@ def cli() -> int:
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--output", help="Output file")
     argparser.add_argument("--model", default=DEFAULT_MODEL)
+    argparser.add_argument("--fast", action="store_true", default=False)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
     argparser.add_argument(
@@ -116,7 +118,7 @@ def cli() -> int:
 
     log(prompt)
     prompts = [prompt]
-
+    model = args.model if not args.fast else FAST_MODEL
     while True:
         # allow exit() and exit to exit the app
         if prompts[-1].strip().replace("()", "") == "exit":
@@ -126,7 +128,7 @@ def cli() -> int:
             print("############ OPEN-AI QUERY")
         try:
             response = ai_query(
-                prompts=prompts, max_tokens=args.max_tokens, model=args.model
+                prompts=prompts, max_tokens=args.max_tokens, model=model
             )
         except ServiceUnavailableError as sua:
             print(sua)
