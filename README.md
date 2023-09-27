@@ -110,6 +110,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.27: askai now has `--fast`
   * 1.4.26: vid2jpg now has `--no-open-folder`
   * 1.4.24: Adds `archive`
   * 1.4.23: Bump zcmds-win32
