@@ -12,7 +12,7 @@ def main():
     env = os.environ.copy()
     # Remove the path variable
     paths = None
-    env_items = env.items().copy()
+    env_items = list(env.items())
     # sort
     env_items = sorted(env_items, key=lambda x: x[0].lower())
     for key, val in env_items:
