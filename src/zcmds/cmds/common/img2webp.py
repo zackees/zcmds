@@ -56,12 +56,13 @@ def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bo
         new_size = (round(im.width * options.scale), round(im.height * options.scale))
         im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
     try:
+        quality = options.quality if options.quality is not None else 80
         # Save as webp
         im.save(
             fp=out_file,
             format=format,
             optimize=True,
-            quality=options.quality,
+            quality=quality,
             method=6,
             subsampling=options.subsampling,
         )
@@ -78,9 +79,7 @@ def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bo
     # print savings
     savings_perc = savings / original_size * 100
     with LOCK:
-        print(
-            f"Converting {file} to {out_file}, Saved {savings} bytes ({savings_perc:.2f}%)"
-        )
+        print(f"Converting {file} to {out_file}, Saved {savings} bytes ({savings_perc:.2f}%)")
     return True
 
 
@@ -91,12 +90,8 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("input", help="input", nargs="+")
-    parser.add_argument(
-        "--scale", help="Scale of the output image", default=1.0, type=float
-    )
-    parser.add_argument(
-        "--quality", help="Quality of the output image", default=None, type=int
-    )
+    parser.add_argument("--scale", help="Scale of the output image", default=1.0, type=float)
+    parser.add_argument("--quality", help="Quality of the output image", default=None, type=int)
     parser.add_argument(
         "--subsampling",
         help="Subsampling of the output image, 0 represents 4:4:4, 1 represents 4:2:2, 2 represents 4:2:0",
@@ -118,9 +113,7 @@ def main() -> int:
     format = args.format
     if subsampling != 0 and args.format == "webp":
         warnings.warn("Subsampling is not supported in webp as of June 2023")
-    image_options = ImageOptions(
-        scale=args.scale, quality=args.quality, subsampling=subsampling
-    )
+    image_options = ImageOptions(scale=args.scale, quality=args.quality, subsampling=subsampling)
     if outdir is not None and not os.path.exists(outdir):
         os.makedirs(outdir)
     with concurrent.futures.ThreadPoolExecutor() as executor:
