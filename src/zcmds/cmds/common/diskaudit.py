@@ -122,7 +122,13 @@ def main() -> None:
         path_lst = split_paths(fullpath)
         add_path(tree, path_lst, size)
     size_diff = time.time() - size_start_time
-    top: dict = tree["children"]["."]
+    top: dict = {}
+    if "." in tree["children"]:
+        top = tree["children"]["."]
+        # ... rest of the code that uses `top`
+    else:
+        print("No matching files found in the current directory.")
+        return
     top_sizes = []
     total_size = 0
     for _, node in top["children"].items():
