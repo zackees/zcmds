@@ -110,6 +110,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.30: Fix error in diskaudit when no files found in protected dir.
   * 1.4.29: Fix img2webp.
   * 1.4.28: Bug fix
   * 1.4.27: askai now has `--fast`
