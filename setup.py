@@ -7,17 +7,24 @@ URL = "https://github.com/zackees/zcmds"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+def get_version() -> str:
+    """Get the version from the version.py file."""
+    version_py = os.path.join(HERE, "src", "zcmds", "version.py")
+    # version looks like VERSION = "1.4.31"
+    with open(version_py, encoding="utf-8", mode="r") as version_file:
+        version = version_file.read()
+    version = version.split("VERSION = ")[1].split('"')[1]
+    # remove comment block that's after
+    version = version.split("#")[0]
+    version = version.strip()
+    return version
+
+
 def get_readme() -> str:
     """Get the contents of the README file."""
     readme = os.path.join(HERE, "README.md")
     with open(readme, encoding="utf-8", mode="r") as readme_file:
         readme_lines = readme_file.readlines()
-    for i, line in enumerate(readme_lines):
-        if "../../" in line:
-            # Transform the relative links to absolute links
-            output_string = re.sub(r"(\.\./\.\.)", f"{URL}", line, count=1)
-            output_string = re.sub(r"(\.\./\.\.)", f"{URL}", output_string)
-            readme_lines[i] = output_string
     return "".join(readme_lines)
 
 
@@ -33,7 +40,7 @@ def get_console_scripts() -> list[str]:
 if __name__ == "__main__":
     setuptools.setup(
         name="zcmds",
-        version="1.4.31",
+        version=get_version(),
         description="Cross platform(ish) productivity commands written in python.",
         long_description=get_readme(),
         long_description_content_type="text/markdown",
