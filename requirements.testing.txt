@@ -3,3 +3,4 @@ mypy
 pylint
 pytest
 black
+wheel
