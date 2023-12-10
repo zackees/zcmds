@@ -33,7 +33,7 @@ def get_console_scripts() -> list[str]:
 if __name__ == "__main__":
     setuptools.setup(
         name="zcmds",
-        version="1.4.30",
+        version="1.4.31",
         description="Cross platform(ish) productivity commands written in python.",
         long_description=get_readme(),
         long_description_content_type="text/markdown",
