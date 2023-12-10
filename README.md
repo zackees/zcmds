@@ -110,7 +110,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
-  * 1.4.31: Improve `audnorm` so that it uses sox instead of `ffmpeg-normalize`. Fix bug where not all commands were installed.
+  * 1.4.31: Improve `audnorm` so that it uses sox instead of `ffmpeg-normalize`. Fix bug where not all commands were installed. Fixes openai api changes.
   * 1.4.30: Fix error in diskaudit when no files found in protected dir.
   * 1.4.29: Fix img2webp.
   * 1.4.28: Bug fix
