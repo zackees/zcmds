@@ -16,7 +16,7 @@ import colorama
 
 try:
     import openai
-    from openai import APIConnectionError, AuthenticationError
+    from openai import APIConnectionError, AuthenticationError, OpenAI
 
 except KeyboardInterrupt:
     sys.exit(1)
@@ -36,6 +36,8 @@ DEFAULT_AI_ASSISTANT = (
 
 colorama.init()
 
+client = None
+
 
 def output(text: str, outfile: Optional[str]):
     if outfile:
@@ -50,6 +52,7 @@ def output(text: str, outfile: Optional[str]):
 
 
 def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatCompletion:
+    global client
     # assert prompts is odd
     assert (
         len(prompts) % 2 == 1
@@ -66,7 +69,12 @@ def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatComp
         else:
             messages.append({"role": "user", "content": prompt})
 
-    response = openai.ChatCompletion.create(
+    if client is None:
+        config = create_or_load_config()
+        key = config["openai_key"]
+        client = OpenAI(api_key=key)
+
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
         temperature=0.7,
@@ -110,8 +118,6 @@ def cli() -> int:
 
     as_json = args.json
 
-    openai.api_key = key
-
     def log(*pargs, **kwargs):
         if not args.verbose:
             return
@@ -131,8 +137,8 @@ def cli() -> int:
             response = ai_query(
                 prompts=prompts, max_tokens=args.max_tokens, model=model
             )
-        except APIConnectionError as connect_err:
-            print(connect_err)
+        except APIConnectionError as err:
+            print(err)
             return 1
         except AuthenticationError as e:
             print(
@@ -153,7 +159,7 @@ def cli() -> int:
         for choice in response.choices:
             if not args.output:
                 print("############ OPEN-AI RESPONSE\n")
-            last_response = choice["message"]["content"]
+            last_response = choice.message.content
             output(last_response, args.output)
             prompts.append(last_response)
             break
@@ -172,7 +178,7 @@ def main() -> int:
         return cli()
     except KeyboardInterrupt:
         return 1
-    except openai.error.RateLimitError:
+    except openai.RateLimitError:
         print("Rate limit exceeded, set a new key with --set-key")
         return 1
 
