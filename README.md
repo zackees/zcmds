@@ -3,7 +3,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 
 [![MacOS_Tests](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
 [![Win_Tests](https://github.com/zackees/zcmds/actions/workflows/push_win.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_win.yml)
-[![Actions Status](https://github.com/zackees/zcmds/workflows/Ubuntu_Tests/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
+[![Ubuntu_Tests](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
 
 [![Linting](https://github.com/zackees/zcmds/actions/workflows/lint.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/lint.yml)
 
