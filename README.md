@@ -110,6 +110,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.34: Fixes geninvoice
   * 1.4.32: OpenAI now requires version 1.3.8 or higher (fixes breaking changes from OpenAI)
   * 1.4.31: Improve `audnorm` so that it uses sox instead of `ffmpeg-normalize`. Fix bug where not all commands were installed. Fixes openai api changes.
   * 1.4.30: Fix error in diskaudit when no files found in protected dir.
