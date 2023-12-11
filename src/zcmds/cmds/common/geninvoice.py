@@ -92,7 +92,13 @@ def last_month_dates(num_months: int, now: datetime) -> List[DateRange]:
         current_month = month_start.month
         first_day = datetime(month_start.year, current_month, 1)
         mid_day = datetime(month_start.year, current_month, 15)
-        last_day = datetime(month_start.year, current_month + 1, 1) - timedelta(days=1)
+        next_month = current_month + 1
+        year = month_start.year
+        if next_month > 12:
+            next_month = 1
+            year += 1
+
+        last_day = datetime(year, next_month, 1) - timedelta(days=1)
 
         # Only add date ranges that are not in the future
         if last_day <= now:
@@ -120,7 +126,7 @@ def main() -> None:
     config_file = "genvoice.json"
     if os.path.exists(config_file):
         os.remove(config_file)
-    if not os.path.exists(config_file):
+    else:
         print(f"Config file {config_file} does not exist.")
         dates = last_month_dates(2, now=datetime.now())
         repos = find_folders_with_git_repos(".")
