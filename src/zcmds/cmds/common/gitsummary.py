@@ -157,6 +157,14 @@ def main() -> int:
             sys.stderr.write(f"Error: {repo} is not a directory\n")
             sys.exit(1)
     os.chdir(repo)
+    if not os.path.exists(".git"):
+        sys.stderr.write(f"Error: {repo} is not a git repo\n")
+        sys.exit(1)
+    if 0 != os.system("git status"):
+        sys.stderr.write(
+            f"Error: {repo} has a .git dir but is not a valid git repo (corrupted?)\n"
+        )
+        sys.exit(1)
     save_config(CONFIG_NAME, config)
     start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
     end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -203,8 +211,9 @@ def main() -> int:
 
 
 def unit_test() -> None:
+    # "C:\Users\niteris\dev\Accessibility-Test-Framework-for-Android" --start_date 2023-11-15 --end_date 2023-11-30 --output "gitsummary\2023-11-15_2023-11-30\Accessibility-Test-Framework-for-Android.json"
     args = [
-        r"C:\Users\niteris\dev\androidmonitor-backend",
+        r"C:\Users\niteris\dev\Accessibility-Test-Framework-for-Android",
         "--output",
         "out.json",
         "--start_date",
