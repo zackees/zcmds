@@ -124,9 +124,7 @@ def edit_text_file(filename: str) -> None:
 
 def main() -> None:
     config_file = "genvoice.json"
-    if os.path.exists(config_file):
-        os.remove(config_file)
-    else:
+    if not os.path.exists(config_file):
         print(f"Config file {config_file} does not exist.")
         dates = last_month_dates(2, now=datetime.now())
         repos = find_folders_with_git_repos(".")
@@ -166,10 +164,14 @@ def main() -> None:
                 cmd = f'gitsummary "{repo}" --start_date {start_date} --end_date {end_date} --output "{outfile}"'
                 print(f"Running {cmd}")
                 os.system(cmd)
-            with open(json_file, encoding="utf-8", mode="r") as f:
-                json_data = json.loads(f.read())
-            commit_count += json_data["header"]["num_commits"]
-            content_text.append(read_utf8(txt_file))
+            try:
+                with open(json_file, encoding="utf-8", mode="r") as f:
+                    json_data = json.loads(f.read())
+                commit_count += json_data["header"]["num_commits"]
+                content_text.append(read_utf8(txt_file))
+            except Exception as err:
+                print(f"Error: {err}")
+                continue
 
         context_text_str = "\n\n".join(content_text)
         all_content_text.append(context_text_str)
