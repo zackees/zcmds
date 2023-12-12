@@ -16,3 +16,4 @@ py7zr
 static-ffmpeg>=2.5
 zcmds_win32>=1.2.2; platform_system=='Windows'
 static-sox
+json5

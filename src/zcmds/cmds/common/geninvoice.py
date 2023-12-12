@@ -1,12 +1,14 @@
 # pylint: disable=broad-exception-raised
 
-import json
+
 import os
 import shutil
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Generator, List, Tuple
+
+import json5 as json
 
 
 @dataclass
