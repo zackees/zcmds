@@ -9,6 +9,7 @@ import atexit
 import os
 import subprocess
 import sys
+import warnings
 from tempfile import NamedTemporaryFile
 from typing import Optional
 
@@ -25,6 +26,7 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
 
 DEFAULT_MODEL = "gpt-4"
+SLOW_MODEL = "gpt-4"
 FAST_MODEL = "gpt-3.5-turbo"
 DEFAULT_AI_ASSISTANT = (
     "You are a helpful assistant to a senior programmer. "
@@ -92,8 +94,9 @@ def cli() -> int:
     argparser.add_argument("--json", help="Print response as json", action="store_true")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--output", help="Output file")
-    argparser.add_argument("--model", default=DEFAULT_MODEL)
+    argparser.add_argument("--model", default=None)
     argparser.add_argument("--fast", action="store_true", default=False)
+    argparser.add_argument("--slow", action="store_true", default=False)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
     argparser.add_argument(
@@ -125,7 +128,16 @@ def cli() -> int:
 
     log(prompt)
     prompts = [prompt]
-    model = args.model if not args.fast else FAST_MODEL
+    if args.fast:
+        warnings.warn("--fast is deprecated, fast assumed by default unless --slow")
+    if args.model is None:
+        if args.slow:
+            model = SLOW_MODEL
+        else:
+            model = FAST_MODEL
+    else:
+        model = args.model
+
     while True:
         # allow exit() and exit to exit the app
         if prompts[-1].strip().replace("()", "") == "exit":

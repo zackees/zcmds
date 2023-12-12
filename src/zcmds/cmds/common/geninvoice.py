@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, Generator, List, Tuple
 
-import json5 as json
+import json5 as json  # type: ignore
 
 
 @dataclass
