@@ -14,7 +14,9 @@ if sys.platform == "win32":
     URL = f"{BASE_URL}/win.7z"
     BIN_FOLDER = "win"
 else:
-    raise NotImplementedError(f"Lossless cut download not implemented for {sys.platform}")
+    raise NotImplementedError(
+        f"Lossless cut download not implemented for {sys.platform}"
+    )
 
 
 def unc_path_to_windows_path(path: Path) -> str:
@@ -60,7 +62,9 @@ def main() -> int:
 
     if sys.platform == "win32":
         lossless_cut_exe = LOSSLESS_CUT_BINS / BIN_FOLDER / "LosslessCut.exe"
-        assert lossless_cut_exe.exists(), f"LosslessCut.exe not found at {lossless_cut_exe}"
+        assert (
+            lossless_cut_exe.exists()
+        ), f"LosslessCut.exe not found at {lossless_cut_exe}"
         lossless_cut_exe_str = unc_path_to_windows_path(lossless_cut_exe)
         cmd = [lossless_cut_exe_str]
         # Add any args that were passed in
