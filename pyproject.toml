@@ -17,3 +17,6 @@ dynamic = ["dependencies", "scripts", "entry-points", "version"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
+
+[tool.mypy]
+ignore_missing_imports = true
