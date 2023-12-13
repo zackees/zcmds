@@ -5,6 +5,19 @@ from pathlib import Path
 
 from download import download  # type: ignore
 
+HERE = Path(__file__).resolve().parent
+LOSSLESS_CUT_BINS = HERE / "losslesscut_bins"
+BASE_URL = "https://github.com/zackees/losslesscut-bins/raw/main/v3.54.0"
+FINISHED = LOSSLESS_CUT_BINS / "finished"
+
+if sys.platform == "win32":
+    URL = f"{BASE_URL}/win.7z"
+    BIN_FOLDER = "win"
+else:
+    raise NotImplementedError(
+        f"Lossless cut download not implemented for {sys.platform}"
+    )
+
 
 def unc_path_to_windows_path(path: Path) -> str:
     r"""
@@ -18,17 +31,6 @@ def unc_path_to_windows_path(path: Path) -> str:
 
 
 def main() -> int:
-    HERE = Path(__file__).resolve().parent
-    LOSSLESS_CUT_BINS = HERE / "losslesscut_bins"
-    BASE_URL = "https://github.com/zackees/losslesscut-bins/raw/main/v3.54.0"
-    FINISHED = LOSSLESS_CUT_BINS / "finished"
-
-    if sys.platform == "win32":
-        URL = f"{BASE_URL}/win.7z"
-        BIN_FOLDER = "win"
-    else:
-        raise NotImplementedError(f"Lossless cut download not implemented for {sys.platform}")
-
     os.makedirs(LOSSLESS_CUT_BINS, exist_ok=True)
     filename = Path(URL).name
     target_file = LOSSLESS_CUT_BINS / filename
@@ -61,14 +63,16 @@ def main() -> int:
     # Running LosslessCut if on Windows
     if sys.platform == "win32":
         lossless_cut_exe = LOSSLESS_CUT_BINS / BIN_FOLDER / "LosslessCut.exe"
-        assert lossless_cut_exe.exists(), f"LosslessCut.exe not found at {lossless_cut_exe}"
-        lossless_cut_exe = lossless_cut_exe.resolve()
-        base_dir = lossless_cut_exe.parent
-        base_dir = unc_path_to_windows_path(base_dir)
-        os.chdir(base_dir)
-        exe_name = lossless_cut_exe.name
-        print(f"Running {exe_name}...")
-        return os.system(str(exe_name))
+        assert (
+            lossless_cut_exe.exists()
+        ), f"LosslessCut.exe not found at {lossless_cut_exe}"
+        lossless_cut_exe_str = unc_path_to_windows_path(lossless_cut_exe)
+        print(f"Running {lossless_cut_exe_str}...")
+        cmd = [f'"{lossless_cut_exe_str}"']
+        # add any args that were passed in
+        cmd.extend(sys.argv[1:])
+        cmd_str = " ".join(cmd)
+        return os.system(cmd_str)
 
     return 0
 
