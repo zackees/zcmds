@@ -110,6 +110,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes'
+  * 1.4.36: `losslesscut` (on windows) can now be executed on other drivers and doesn't block the current terminal.
   * 1.4.35: `askai` now assumed `--fast`. You can use gpt4 vs `--slow`
   * 1.4.34: Fixes geninvoice
   * 1.4.32: OpenAI now requires version 1.3.8 or higher (fixes breaking changes from OpenAI)
