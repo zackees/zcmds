@@ -98,6 +98,7 @@ def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatComp
         top_p=0.3,
         frequency_penalty=0.5,
         presence_penalty=0,
+        stream=True,
     )
     return response
 
@@ -188,22 +189,23 @@ def cli() -> int:
             print(response)
             return 0
         # print(response)
-        if response is None or not response.choices:
+        if response is None or not response.response.is_success:
             print("No error response recieved from from OpenAI, response was:")
             output(response, args.output)
             return 1
-        # print(response)
-        for choice in response.choices:
-            if not args.output:
-                print("############ OPEN-AI RESPONSE\n")
-            last_response = choice.message.content
-            output(last_response, args.output)
-            prompts.append(last_response)
-            break
-        else:
-            print("No response from OpenAI, response was:")
-            output(response, args.output)
-            return 1
+        if not args.output:
+            print("############ OPEN-AI RESPONSE\n")
+        response_text = ""
+        for event in response:
+            choice = event.choices[0]
+            delta = choice.delta
+            event_text = delta.content
+            if event_text is None:
+                break
+            response_text += event_text
+        output(response_text, args.output)
+        # output(response_text, args.output)
+        prompts.append(response_text)
         if not interactive:
             break
         prompts.append(prompt_input())
@@ -221,5 +223,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    # sys.argv.append("write binary search in python")
+    sys.argv.append("write binary search in python")
     sys.exit(main())
