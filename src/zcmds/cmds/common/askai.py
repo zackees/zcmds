@@ -14,6 +14,8 @@ from tempfile import NamedTemporaryFile
 from typing import Optional
 
 import colorama
+import json5 as json
+import tiktoken
 
 try:
     import openai
@@ -25,6 +27,9 @@ except KeyboardInterrupt:
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
 
+MAX_TOKENS = 4096
+HIDDEN_PROMPT_TOKEN_COUNT = 100  # this hack corrects for the unnaccounted for tokens in the prompt
+ADVANCED_MODEL = "gpt-4-1106-preview"
 DEFAULT_MODEL = "gpt-4"
 SLOW_MODEL = "gpt-4"
 FAST_MODEL = "gpt-3.5-turbo"
@@ -39,6 +44,12 @@ DEFAULT_AI_ASSISTANT = (
 colorama.init()
 
 client = None
+
+
+def count_tokens(model: str, text: str):
+    # Ensure you have the right model, for example, "gpt-3.5-turbo"
+    enc = tiktoken.encoding_for_model(model)
+    return len(enc.encode(text))
 
 
 def output(text: str, outfile: Optional[str]):
@@ -56,9 +67,7 @@ def output(text: str, outfile: Optional[str]):
 def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatCompletion:
     global client
     # assert prompts is odd
-    assert (
-        len(prompts) % 2 == 1
-    )  # Prompts alternate between user message and last response
+    assert len(prompts) % 2 == 1  # Prompts alternate between user message and last response
     messages = [
         {
             "role": "system",
@@ -76,6 +85,11 @@ def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatComp
         key = config["openai_key"]
         client = OpenAI(api_key=key)
 
+    # compute the max_tokens by counting the tokens in the prompt
+    # and subtracting that from the max_tokens
+    messages_json_str = json.dumps(messages)
+    prompt_tokens = count_tokens(model, messages_json_str)
+    max_tokens = max_tokens - prompt_tokens - HIDDEN_PROMPT_TOKEN_COUNT
     response = client.chat.completions.create(
         model=model,
         messages=messages,
@@ -94,14 +108,24 @@ def cli() -> int:
     argparser.add_argument("--json", help="Print response as json", action="store_true")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--output", help="Output file")
-    argparser.add_argument("--model", default=None)
-    argparser.add_argument("--fast", action="store_true", default=False)
-    argparser.add_argument("--slow", action="store_true", default=False)
+
+    model_group = argparser.add_mutually_exclusive_group()
+    model_group.add_argument(
+        "--fast", action="store_true", default=False, help=f"chat gpt 3 turbo: {FAST_MODEL}"
+    )
+    model_group.add_argument(
+        "--slow", action="store_true", default=False, help=f"chat gpt 4: {SLOW_MODEL}"
+    )
+    model_group.add_argument(
+        "--advanced",
+        action="store_true",
+        default=False,
+        help=f"bleeding edge model: {ADVANCED_MODEL}",
+    )
+    model_group.add_argument("--model", default=None)
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
-    argparser.add_argument(
-        "--max-tokens", help="Max tokens to return", type=int, default=600
-    )
+    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=None)
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -114,10 +138,9 @@ def cli() -> int:
     key = config["openai_key"]
     interactive = not args.prompt
     if interactive:
-        print(
-            "\nInteractive mode - press return three times to submit your code to OpenAI"
-        )
+        print("\nInteractive mode - press return three times to submit your code to OpenAI")
     prompt = args.prompt or prompt_input()
+    max_tokens = args.max_tokens
 
     as_json = args.json
 
@@ -133,8 +156,14 @@ def cli() -> int:
     if args.model is None:
         if args.slow:
             model = SLOW_MODEL
+            if max_tokens is None:
+                max_tokens = 4096
+        elif args.advanced:
+            model = ADVANCED_MODEL
+            max_tokens = 128000
         else:
             model = FAST_MODEL
+            max_tokens = 4096
     else:
         model = args.model
 
@@ -146,16 +175,12 @@ def cli() -> int:
         if not as_json:
             print("############ OPEN-AI QUERY")
         try:
-            response = ai_query(
-                prompts=prompts, max_tokens=args.max_tokens, model=model
-            )
+            response = ai_query(prompts=prompts, max_tokens=max_tokens, model=model)
         except APIConnectionError as err:
             print(err)
             return 1
         except AuthenticationError as e:
-            print(
-                "Error authenticating with OpenAI, deleting password from config and exiting."
-            )
+            print("Error authenticating with OpenAI, deleting password from config and exiting.")
             print(e)
             save_config({})
             return 1
@@ -196,4 +221,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # sys.argv.append("write binary search in python")
     sys.exit(main())
