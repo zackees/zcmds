@@ -8,7 +8,6 @@ import argparse
 import atexit
 import os
 import sys
-import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -162,6 +161,7 @@ def cli() -> int:
     FORCE_COLOR = args.color
     config = create_or_load_config()
 
+    max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
     if args.model is None:
@@ -202,7 +202,6 @@ def cli() -> int:
             "\nInteractive mode - press return three times to submit your code to OpenAI"
         )
     prompt = args.prompt or prompt_input()
-    max_tokens = args.max_tokens
 
     as_json = args.json
 
@@ -213,7 +212,6 @@ def cli() -> int:
 
     log(prompt)
     prompts = [prompt]
-
 
     output_stream = OutStream(args.output)
     atexit.register(output_stream.close)
