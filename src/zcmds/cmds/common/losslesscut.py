@@ -10,13 +10,8 @@ LOSSLESS_CUT_BINS = HERE / "losslesscut_bins"
 BASE_URL = "https://github.com/zackees/losslesscut-bins/raw/main/v3.54.0"
 FINISHED = LOSSLESS_CUT_BINS / "finished"
 
-if sys.platform == "win32":
-    URL = f"{BASE_URL}/win.7z"
-    BIN_FOLDER = "win"
-else:
-    raise NotImplementedError(
-        f"Lossless cut download not implemented for {sys.platform}"
-    )
+URL = f"{BASE_URL}/win.7z"
+BIN_FOLDER = "win"
 
 
 def unc_path_to_windows_path(path: Path) -> str:
@@ -31,6 +26,10 @@ def unc_path_to_windows_path(path: Path) -> str:
 
 
 def main() -> int:
+    if sys.platform != "win32":
+        raise NotImplementedError(
+            f"Lossless cut download not implemented for {sys.platform}"
+        )
     os.makedirs(LOSSLESS_CUT_BINS, exist_ok=True)
     filename = Path(URL).name
     target_file = LOSSLESS_CUT_BINS / filename
