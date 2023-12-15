@@ -150,20 +150,41 @@ def cli() -> int:
     argparser.add_argument(
         "--max-tokens", help="Max tokens to return", type=int, default=None
     )
-    argparser.add_argument("--code", action="store_true", default=False, help="Code mode: enables aider mode")
+    argparser.add_argument(
+        "--code",
+        action="store_true",
+        default=False,
+        help="Code mode: enables aider mode",
+    )
     args = argparser.parse_args()
-
-
 
     global FORCE_COLOR
     FORCE_COLOR = args.color
     config = create_or_load_config()
+
+    if args.fast:
+        args.model = FAST_MODEL
+    if args.model is None:
+        if args.slow:
+            model = SLOW_MODEL
+            if max_tokens is None:
+                max_tokens = 4096
+        elif args.advanced:
+            model = ADVANCED_MODEL
+            max_tokens = 128000
+        else:
+            model = FAST_MODEL
+            max_tokens = 4096
+    else:
+        model = args.model
 
     if args.code:
         openai_key = config.get("openai_key")
         if openai_key is None:
             print("OpenAI key not found, please set one with --set-key")
             return 1
+        print(f"Starting aider with model {model}")
+        os.environ["AIDER_MODEL"] = model
         os.environ["OPENAI_API_KEY"] = openai_key
         return os.system("aider")
 
@@ -192,21 +213,7 @@ def cli() -> int:
 
     log(prompt)
     prompts = [prompt]
-    if args.fast:
-        warnings.warn("--fast is deprecated, fast assumed by default unless --slow")
-    if args.model is None:
-        if args.slow:
-            model = SLOW_MODEL
-            if max_tokens is None:
-                max_tokens = 4096
-        elif args.advanced:
-            model = ADVANCED_MODEL
-            max_tokens = 128000
-        else:
-            model = FAST_MODEL
-            max_tokens = 4096
-    else:
-        model = args.model
+
 
     output_stream = OutStream(args.output)
     atexit.register(output_stream.close)
