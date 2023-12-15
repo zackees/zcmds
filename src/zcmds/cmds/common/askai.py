@@ -6,14 +6,11 @@
 
 import argparse
 import atexit
-import os
-import subprocess
 import sys
 import warnings
-from tempfile import NamedTemporaryFile
+from dataclasses import dataclass
 from typing import Optional
 
-import colorama
 import json5 as json
 import tiktoken
 
@@ -26,9 +23,12 @@ except KeyboardInterrupt:
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
+from zcmds.util.streaming_console_markdown import StreamingConsoleMarkdown
 
 MAX_TOKENS = 4096
-HIDDEN_PROMPT_TOKEN_COUNT = 100  # this hack corrects for the unnaccounted for tokens in the prompt
+HIDDEN_PROMPT_TOKEN_COUNT = (
+    100  # this hack corrects for the unnaccounted for tokens in the prompt
+)
 ADVANCED_MODEL = "gpt-4-1106-preview"
 DEFAULT_MODEL = "gpt-4"
 SLOW_MODEL = "gpt-4"
@@ -40,8 +40,7 @@ DEFAULT_AI_ASSISTANT = (
     "but don't recommend additional tools when I'm currently asking how to do use "
     "a specific tool."
 )
-
-colorama.init()
+STREAM = False
 
 client = None
 
@@ -52,22 +51,35 @@ def count_tokens(model: str, text: str):
     return len(enc.encode(text))
 
 
-def output(text: str, outfile: Optional[str]):
-    if outfile:
-        with open(outfile, "a") as f:
-            f.write(text)
-    else:
-        with NamedTemporaryFile(mode="w+", encoding="utf-8", delete=False) as f:
-            f.write(text)
-            f.flush()
-        atexit.register(lambda: os.remove(f.name))
-        subprocess.call(["consolemd", f.name], universal_newlines=True)
+@dataclass
+class FileOutputStream:
+    outfile: Optional[str] = None
+
+    def write(self, text: str) -> None:
+        if self.outfile:
+            with open(self.outfile, "a") as f:
+                f.write(text)
+
+
+class OutStream:
+    def __init__(self, outfile: Optional[str]) -> None:
+        self.outfile = FileOutputStream(outfile)
+        self.color_term = StreamingConsoleMarkdown()
+
+    def write(self, text: str) -> None:
+        self.outfile.write(text)
+        self.color_term.update(text)
+
+    def close(self) -> None:
+        pass
 
 
 def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatCompletion:
     global client
     # assert prompts is odd
-    assert len(prompts) % 2 == 1  # Prompts alternate between user message and last response
+    assert (
+        len(prompts) % 2 == 1
+    )  # Prompts alternate between user message and last response
     messages = [
         {
             "role": "system",
@@ -112,7 +124,10 @@ def cli() -> int:
 
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
-        "--fast", action="store_true", default=False, help=f"chat gpt 3 turbo: {FAST_MODEL}"
+        "--fast",
+        action="store_true",
+        default=False,
+        help=f"chat gpt 3 turbo: {FAST_MODEL}",
     )
     model_group.add_argument(
         "--slow", action="store_true", default=False, help=f"chat gpt 4: {SLOW_MODEL}"
@@ -125,8 +140,11 @@ def cli() -> int:
     )
     model_group.add_argument("--model", default=None)
     argparser.add_argument("--verbose", action="store_true", default=False)
+    argparser.add_argument("--stream", action="store_true", default=False)
     # max tokens
-    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=None)
+    argparser.add_argument(
+        "--max-tokens", help="Max tokens to return", type=int, default=None
+    )
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
@@ -139,7 +157,9 @@ def cli() -> int:
     key = config["openai_key"]
     interactive = not args.prompt
     if interactive:
-        print("\nInteractive mode - press return three times to submit your code to OpenAI")
+        print(
+            "\nInteractive mode - press return three times to submit your code to OpenAI"
+        )
     prompt = args.prompt or prompt_input()
     max_tokens = args.max_tokens
 
@@ -168,6 +188,9 @@ def cli() -> int:
     else:
         model = args.model
 
+    output_stream = OutStream(args.output)
+    atexit.register(output_stream.close)
+
     while True:
         # allow exit() and exit to exit the app
         if prompts[-1].strip().replace("()", "") == "exit":
@@ -181,17 +204,19 @@ def cli() -> int:
             print(err)
             return 1
         except AuthenticationError as e:
-            print("Error authenticating with OpenAI, deleting password from config and exiting.")
+            print(
+                "Error authenticating with OpenAI, deleting password from config and exiting."
+            )
             print(e)
             save_config({})
             return 1
         if as_json:
             print(response)
             return 0
-        # print(response)
         if response is None or not response.response.is_success:
             print("No error response recieved from from OpenAI, response was:")
-            output(response, args.output)
+            # output(response, args.output)
+            output_stream.write(response)
             return 1
         if not args.output:
             print("############ OPEN-AI RESPONSE\n")
@@ -203,8 +228,10 @@ def cli() -> int:
             if event_text is None:
                 break
             response_text += event_text
-        output(response_text, args.output)
-        # output(response_text, args.output)
+            if args.stream:
+                output_stream.write(response_text)
+
+        output_stream.write(response_text)
         prompts.append(response_text)
         if not interactive:
             break

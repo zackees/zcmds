@@ -5,7 +5,7 @@ import os
 import sys
 import warnings
 
-import requests
+import requests  # type: ignore
 
 BASE_URL = "https://www-senate-gov-media-srs.akamaized.net/hls/live/2036788/judiciary/judiciary121323p/master/"
 START_NUM = 1

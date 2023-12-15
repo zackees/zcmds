@@ -18,3 +18,4 @@ zcmds_win32>=1.2.2; platform_system=='Windows'
 static-sox
 json5
 tiktoken
+mdformat
