@@ -23,7 +23,7 @@ except KeyboardInterrupt:
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
-from zcmds.util.streaming_console_markdown import StreamingConsoleMarkdown
+from zcmds.util.streaming_console_markdown import StreamingConsole
 
 MAX_TOKENS = 4096
 HIDDEN_PROMPT_TOKEN_COUNT = (
@@ -64,7 +64,7 @@ class FileOutputStream:
 class OutStream:
     def __init__(self, outfile: Optional[str]) -> None:
         self.outfile = FileOutputStream(outfile)
-        self.color_term = StreamingConsoleMarkdown()
+        self.color_term = StreamingConsole()
 
     def write(self, text: str) -> None:
         self.outfile.write(text)
@@ -140,7 +140,7 @@ def cli() -> int:
     )
     model_group.add_argument("--model", default=None)
     argparser.add_argument("--verbose", action="store_true", default=False)
-    argparser.add_argument("--stream", action="store_true", default=False)
+    argparser.add_argument("--no-stream", action="store_true", default=False)
     # max tokens
     argparser.add_argument(
         "--max-tokens", help="Max tokens to return", type=int, default=None
@@ -228,7 +228,7 @@ def cli() -> int:
             if event_text is None:
                 break
             response_text += event_text
-            if args.stream:
+            if not args.no_stream:
                 output_stream.write(response_text)
 
         output_stream.write(response_text)
