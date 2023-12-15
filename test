@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+. ./activate.sh
+python -m unittest discover tests
