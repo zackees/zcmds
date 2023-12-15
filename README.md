@@ -109,7 +109,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 Running tox will install hooks into the .tox directory. Keep this in my if you are developing.
 TODO: Add a cleanup function to undo this.
 
-# Release Notes'
+# Release Notes
+  * 1.4.37: `askai` now streams output to the console.
   * 1.4.36: `losslesscut` (on windows) can now be executed on other drivers and doesn't block the current terminal.
   * 1.4.35: `askai` now assumed `--fast`. You can use gpt4 vs `--slow`
   * 1.4.34: Fixes geninvoice
