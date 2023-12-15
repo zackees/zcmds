@@ -40,7 +40,8 @@ DEFAULT_AI_ASSISTANT = (
     "but don't recommend additional tools when I'm currently asking how to do use "
     "a specific tool."
 )
-STREAM = False
+
+FORCE_COLOR = False
 
 client = None
 
@@ -65,6 +66,8 @@ class OutStream:
     def __init__(self, outfile: Optional[str]) -> None:
         self.outfile = FileOutputStream(outfile)
         self.color_term = StreamingConsole()
+        if FORCE_COLOR:
+            self.color_term.force_color()
 
     def write(self, text: str) -> None:
         self.outfile.write(text)
@@ -121,6 +124,7 @@ def cli() -> int:
     argparser.add_argument("--json", help="Print response as json", action="store_true")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--output", help="Output file")
+    argparser.add_argument("--color", help="Output color", action="store_true")
 
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
@@ -146,6 +150,8 @@ def cli() -> int:
         "--max-tokens", help="Max tokens to return", type=int, default=None
     )
     args = argparser.parse_args()
+    global FORCE_COLOR
+    FORCE_COLOR = args.color
     config = create_or_load_config()
     if args.set_key:
         config["openai_key"] = args.set_key

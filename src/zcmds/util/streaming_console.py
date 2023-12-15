@@ -168,5 +168,8 @@ class StreamingConsole:
         StreamingConsoleMarkdown, StreamingConsolePlain
     ] = get_streaming_console()
 
+    def force_color(self) -> None:
+        self.impl = StreamingConsoleMarkdown()
+
     def update(self, text: str) -> None:
         self.impl.update(text)
