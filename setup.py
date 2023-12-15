@@ -40,7 +40,7 @@ if __name__ == "__main__":
     setuptools.setup(
         maintainer="Zachary Vorhies",
         long_description=get_readme(),
-        long_description_content_type="text/markdown",
+        long_description_content_type="text/plain",
         url=URL,
         package_data={"": ["assets/bell.mp3"]},
         include_package_data=True,
