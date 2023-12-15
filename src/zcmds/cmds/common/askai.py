@@ -259,7 +259,7 @@ def cli() -> int:
             if not args.no_stream:
                 output_stream.write(response_text)
 
-        output_stream.write(response_text)
+        output_stream.write(response_text + "\n")
         prompts.append(response_text)
         if not interactive:
             break
