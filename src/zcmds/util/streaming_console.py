@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 import sys
-from dataclasses import dataclass
 from typing import Optional, Union
 
 import colorama
@@ -62,9 +61,9 @@ def _count_overflow_lines(text: str, width: int) -> int:
     return num_lines
 
 
-@dataclass
 class MyStream:
-    buffer = ""
+    def __init__(self):
+        self.buffer = ""
 
     def write(self, text: str) -> None:
         self.buffer += text
@@ -102,11 +101,11 @@ def _color_print(text: str, delete_lines: Optional[int] = 0) -> str:
     return stdout
 
 
-@dataclass
 class StreamingConsoleMarkdown:
-    last_written_lines = 0
-    cols: Optional[int] = None
-    last_written_md = ""
+    def __init__(self):
+        self.last_written_lines = 0
+        self.cols = None
+        self.last_written_md = ""
 
     def update(self, text: str) -> str:
         text = "\n" + text
@@ -135,9 +134,9 @@ class StreamingConsoleMarkdown:
         sys.stdout.flush()
 
 
-@dataclass
 class StreamingConsolePlain:
-    last_written_text = ""
+    def __init__(self):
+        self.last_written_text = ""
 
     def update(self, text: str) -> str:
         n = len(self.last_written_text)
@@ -161,11 +160,11 @@ def get_streaming_console() -> Union[StreamingConsoleMarkdown, StreamingConsoleP
     return StreamingConsolePlain()
 
 
-@dataclass
 class StreamingConsole:
-    impl: Union[
-        StreamingConsoleMarkdown, StreamingConsolePlain
-    ] = get_streaming_console()
+    def __init__(self) -> None:
+        self.impl: Union[
+            StreamingConsoleMarkdown, StreamingConsolePlain
+        ] = get_streaming_console()
 
     def force_color(self) -> None:
         self.impl = StreamingConsoleMarkdown()
