@@ -1,7 +1,7 @@
 import unittest
 
 from zcmds.util.sound import beep
-from zcmds.util.streaming_console_markdown import (
+from zcmds.util.streaming_console import (
     StreamingConsoleMarkdown,
     _get_clear_line_sequence,
 )
@@ -25,15 +25,7 @@ class TestStreamingConsoleMarkdown(unittest.TestCase):
         data = "To write a binary search algorithm in Python, you don't need any additional third-party libraries. Here's an example implementation:\n\n```python\ndef binary_search(arr, target):\n    low = 0\n    high = len(arr) - 1\n\n    while low <= high:\n        mid = (low + high) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n\n    return -1\n\n# Example usage"
         scm = StreamingConsoleMarkdown()
         md = scm.update(data)
-        #scm.last_written_lines = 20
         scm.pop_last()
-        #self.assertEqual(18, scm.last_written_lines)
-
-        #for i in range(18):
-        #    scm._clear_last_line()
-
-        #scm.update(data)
-        #self.assertEqual(1, scm.last_written_lines)
         print()
 
     @unittest.skip("skip")

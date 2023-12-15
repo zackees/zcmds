@@ -23,7 +23,7 @@ except KeyboardInterrupt:
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 from zcmds.util.prompt_input import prompt_input
-from zcmds.util.streaming_console_markdown import StreamingConsole
+from zcmds.util.streaming_console import StreamingConsole
 
 MAX_TOKENS = 4096
 HIDDEN_PROMPT_TOKEN_COUNT = (

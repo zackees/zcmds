@@ -153,10 +153,12 @@ def get_streaming_console() -> Union[StreamingConsoleMarkdown, StreamingConsoleP
     is_windows = os.name == "nt"
     if is_windows:
         is_gitbash = "MSYSTEM" in os.environ
+        print(f"is_gitbash: {is_gitbash}")
         if is_gitbash:
             return StreamingConsolePlain()
-        else:
-            return StreamingConsoleMarkdown()
+        is_cmd_exe = "ComSpec" in os.environ
+        if is_cmd_exe:
+            return StreamingConsolePlain()
     return StreamingConsolePlain()
 
 
