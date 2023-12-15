@@ -184,7 +184,10 @@ def cli() -> int:
             print("OpenAI key not found, please set one with --set-key")
             return 1
         print(f"Starting aider with model {model}")
-        os.environ["AIDER_MODEL"] = model
+        if args.fast or args.slow or args.advanced or args.model:
+            os.environ["AIDER_MODEL"] = model
+        else:
+            os.environ["AIDER_MODEL"] = ADVANCED_MODEL
         os.environ["OPENAI_API_KEY"] = openai_key
         return os.system("aider --no-auto-commits")
 
