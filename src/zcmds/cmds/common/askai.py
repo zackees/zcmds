@@ -6,6 +6,7 @@
 
 import argparse
 import atexit
+import os
 import sys
 import warnings
 from dataclasses import dataclass
@@ -149,10 +150,23 @@ def cli() -> int:
     argparser.add_argument(
         "--max-tokens", help="Max tokens to return", type=int, default=None
     )
+    argparser.add_argument("--code", action="store_true", default=False, help="Code mode: enables aider mode")
     args = argparser.parse_args()
+
+
+
     global FORCE_COLOR
     FORCE_COLOR = args.color
     config = create_or_load_config()
+
+    if args.code:
+        openai_key = config.get("openai_key")
+        if openai_key is None:
+            print("OpenAI key not found, please set one with --set-key")
+            return 1
+        os.environ["OPENAI_API_KEY"] = openai_key
+        return os.system("aider")
+
     if args.set_key:
         config["openai_key"] = args.set_key
         save_config(config)

@@ -136,3 +136,4 @@ dmypy.json
 .activate.sh
 .DS_Store
 src/zcmds/cmds/common/losslesscut_bins/**
+.aider*
