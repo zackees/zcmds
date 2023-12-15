@@ -186,7 +186,7 @@ def cli() -> int:
         print(f"Starting aider with model {model}")
         os.environ["AIDER_MODEL"] = model
         os.environ["OPENAI_API_KEY"] = openai_key
-        return os.system("aider")
+        return os.system("aider --no-auto-commits")
 
     if args.set_key:
         config["openai_key"] = args.set_key
