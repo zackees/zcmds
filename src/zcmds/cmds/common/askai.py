@@ -172,7 +172,9 @@ def cli() -> int:
     global FORCE_COLOR
     FORCE_COLOR = args.color
     config = create_or_load_config()
-
+    model_unspecified = (
+        not args.fast and not args.slow and not args.advanced and not args.model
+    )
     max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
@@ -196,11 +198,11 @@ def cli() -> int:
         if openai_key is None:
             print("OpenAI key not found, please set one with --set-key")
             return 1
-        print(f"Starting aider with model {model}")
-        if args.fast or args.slow or args.advanced or args.model:
+        if not model_unspecified:
             os.environ["AIDER_MODEL"] = model
         else:
             os.environ["AIDER_MODEL"] = ADVANCED_MODEL
+        print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
         os.environ["OPENAI_API_KEY"] = openai_key
         return os.system("aider --no-auto-commits")
 
@@ -292,4 +294,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.argv.append("write binary search in python")
+    sys.argv.append("--code")
     sys.exit(main())
