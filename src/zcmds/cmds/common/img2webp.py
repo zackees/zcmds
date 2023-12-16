@@ -41,7 +41,13 @@ def write_utf8(file: str, content: str):
         f.write(content)
 
 
-def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bool:
+@dataclass
+class ImageResult:
+    success: bool
+    original_size: int
+    webp_size: int
+
+def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> ImageResult:
     """Convert a png file to webp."""
     assert out_file.lower().endswith(".webp") or out_file.lower().endswith(".jpg")
     assert file != out_file, "Input and output files must be different"
@@ -82,7 +88,7 @@ def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> bo
         print(
             f"Converting {file} to {out_file}, Saved {savings} bytes ({savings_perc:.2f}%)"
         )
-    return True
+    return ImageResult(success=True, original_size=original_size, webp_size=webp_size)
 
 
 def main() -> int:
@@ -143,8 +149,15 @@ def main() -> int:
         # Wait for all png conversions to complete
         success = True
         for task in png_conversion_tasks:
-            if not task.result():
+            result = task.result()
+            if not result.success:
                 success = False
+            else:
+                original_size, webp_size = result.original_size, result.webp_size
+                shrinkage_percentage = 100 * (original_size - webp_size) / original_size
+                print(f"Shrinkage: {shrinkage_percentage:.2f}%")
+                print(f"    Input image size: {original_size:,} bytes")
+                print(f"    Output image size: {webp_size:,} bytes")
     return 0 if success else 1
 
 
