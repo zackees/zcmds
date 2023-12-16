@@ -111,6 +111,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.41: `aider` now installed with `pipx` to avoid package conflicts because of it's pinned deps.
   * 1.4.40: Fix `askai` in python 3.11 with linux.
   * 1.4.39: `aider` is now part of this command set. An awesome ai pair programmer. Enable it with `askai --code`
   * 1.4.37: `askai` now streams output to the console.
