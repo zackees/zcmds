@@ -121,13 +121,13 @@ def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatComp
 
 def install_aider_if_missing() -> None:
     """Installs aider to it's own virtual environment using pipx"""
+    bin_path = os.path.expanduser("~/.local/bin")
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
     if shutil.which("aider") is not None:
         return
     print("Installing aider...")
     os.system("pipx install aider-chat")
-    bin_path = os.path.expanduser("~/.local/bin")
-    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
-    assert shutil.which("aider") is not None
+    assert shutil.which("aider") is not None, "aider not found after install"
 
 
 def cli() -> int:
