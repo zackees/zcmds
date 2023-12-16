@@ -7,6 +7,7 @@
 import argparse
 import atexit
 import os
+import shutil
 import sys
 from dataclasses import dataclass
 from typing import Optional
@@ -118,6 +119,17 @@ def ai_query(prompts: list[str], max_tokens: int, model: str) -> openai.ChatComp
     return response
 
 
+def install_aider_if_missing() -> None:
+    """Installs aider to it's own virtual environment using pipx"""
+    if shutil.which("aider") is not None:
+        return
+    print("Installing aider...")
+    os.system("pipx install aider-chat")
+    bin_path = os.path.expanduser("~/.local/bin")
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
+    assert shutil.which("aider") is not None
+
+
 def cli() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
@@ -179,6 +191,7 @@ def cli() -> int:
         model = args.model
 
     if args.code:
+        install_aider_if_missing()
         openai_key = config.get("openai_key")
         if openai_key is None:
             print("OpenAI key not found, please set one with --set-key")
