@@ -1,0 +1,33 @@
+#!/bin/bash
+
+kernelName="$(uname -s)"
+
+if [ "$kernelName" == "Darwin" ]; then
+    # Check if Homebrew is installed
+    if command -v brew >/dev/null 2>&1; then
+        echo "Homebrew is installed. Continuing with installation."
+        brew install python@3.11
+        python3.11 -m venv venv
+        source venv/bin/activate
+        python install.py
+    else
+        echo "Error: Homebrew is not installed. Please install Homebrew and rerun this script."
+        exit 1
+    fi
+elif [ "$kernelName" == "Linux" ]; then
+    sudo apt-get install python3.11
+    python3.11 -m venv venv
+    source venv/bin/activate
+    python install.py
+elif [[ "$kernelName" == CYGWIN* ]] || [[ "$kernelName" == MINGW32* ]] || [[ "$kernelName" == MSYS* ]] || [[ "$kernelName" == MINGW* ]]; then
+    echo "Windows OS detected"
+    python -m venv venv
+    source venv/Scripts/activate
+    python install.py
+    echo "finished windows install"
+    exit 0
+else
+    # Error
+    echo "Unknown operating system: $kernelName"
+    exit 1
+fi
