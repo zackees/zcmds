@@ -26,7 +26,9 @@ def install_aider_if_missing() -> None:
 
 def parse_args() -> argparse.Namespace:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
-    argparser.add_argument("prompt", nargs='*', help="Args to pass onto aider")  # Changed nargs to '*'
+    argparser.add_argument(
+        "prompt", nargs="*", help="Args to pass onto aider"
+    )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument(
         "--upgrade", action="store_true", help="Upgrade aider using pipx"
@@ -94,7 +96,9 @@ def cli() -> int:
         os.environ["AIDER_MODEL"] = ADVANCED_MODEL
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
-    return subprocess.call(["aider", "--no-auto-commits"] + args.prompt + unknown_args)  # args.prompt and unknown_args are now lists
+    return subprocess.call(
+        ["aider", "--no-auto-commits"] + args.prompt + unknown_args
+    )  # args.prompt and unknown_args are now lists
 
 
 def main() -> int:
