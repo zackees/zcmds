@@ -24,7 +24,7 @@ HIDDEN_PROMPT_TOKEN_COUNT = (
 ADVANCED_MODEL = "gpt-4-1106-preview"
 SLOW_MODEL = "gpt-4"
 FAST_MODEL = "gpt-3.5-turbo"
-DEFAULT_AI_ASSISTANT = (
+AI_ASSISTANT_AS_PROGRAMMER = (
     "You are a helpful assistant to a senior programmer. "
     "If I am asking how to do something in general then go ahead "
     "and recommend popular third-party apps that can get the job done, "
@@ -105,3 +105,23 @@ def ai_query(
         raise ChatGPTConnectionError(e)
     except AuthenticationError as e:
         raise ChatGPTAuthenticationError(e)
+
+
+class ChatBot:
+    def __init__(
+        self, openai_key: str, model: str, max_tokens: int, ai_assistant_prompt: str
+    ):
+        self.openai_key = openai_key
+        self.model = model
+        self.prompts = []
+        self.max_tokens = max_tokens
+        self.ai_assistant_prompt = ai_assistant_prompt
+
+    def query(self, prompts: list[str]) -> ChatCompletion:
+        return ai_query(
+            openai_key=self.openai_key,
+            prompts=prompts,
+            max_tokens=self.max_tokens,
+            model=self.model,
+            ai_assistant_prompt=self.ai_assistant_prompt,
+        )

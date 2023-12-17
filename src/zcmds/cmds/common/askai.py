@@ -19,7 +19,7 @@ from zcmds.util.streaming_console import StreamingConsole
 try:
     from zcmds.util.chatgpt import (
         ADVANCED_MODEL,
-        DEFAULT_AI_ASSISTANT,
+        AI_ASSISTANT_AS_PROGRAMMER,
         FAST_MODEL,
         SLOW_MODEL,
         ChatCompletion,
@@ -194,7 +194,7 @@ def cli() -> int:
                 prompts=prompts,
                 max_tokens=max_tokens,
                 model=model,
-                ai_assistant_prompt=DEFAULT_AI_ASSISTANT,
+                ai_assistant_prompt=AI_ASSISTANT_AS_PROGRAMMER,
             )
         except ChatGPTConnectionError as err:
             print(err)
