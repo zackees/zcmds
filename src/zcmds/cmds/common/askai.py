@@ -1,11 +1,6 @@
 """askai - ask openai for help"""
 
-
-# pylint: disable=all
-# mypy: ignore-errors
-
 import argparse
-import atexit
 import os
 import shutil
 import sys
@@ -22,11 +17,11 @@ try:
         AI_ASSISTANT_AS_PROGRAMMER,
         FAST_MODEL,
         SLOW_MODEL,
-        ChatCompletion,
+        ChatBot,
         ChatGPTAuthenticationError,
         ChatGPTConnectionError,
         ChatGPTRateLimitError,
-        ai_query,
+        ChatStream,
     )
 except KeyboardInterrupt:
     # Importing openai stuff can take a while and so if a keyboard interrupt
@@ -178,24 +173,22 @@ def cli() -> int:
     log(prompt)
     prompts = [prompt]
 
-    output_stream = OutStream(args.output)
-    atexit.register(output_stream.close)
+    chatbot = ChatBot(
+        openai_key=key,
+        max_tokens=max_tokens,
+        model=model,
+        ai_assistant_prompt=AI_ASSISTANT_AS_PROGRAMMER,
+    )
 
-    while True:
+    def run_chat_query(output_stream: OutStream) -> Optional[int]:
         # allow exit() and exit to exit the app
         if prompts[-1].strip().replace("()", "") == "exit":
             print("Exited due to 'exit' command")
-            break
+            return None
         if not as_json:
             print("############ OPEN-AI QUERY")
         try:
-            response: ChatCompletion = ai_query(
-                openai_key=key,
-                prompts=prompts,
-                max_tokens=max_tokens,
-                model=model,
-                ai_assistant_prompt=AI_ASSISTANT_AS_PROGRAMMER,
-            )
+            chat_stream: ChatStream = chatbot.query(prompts, no_stream=args.no_stream)
         except ChatGPTConnectionError as err:
             print(err)
             return 1
@@ -210,32 +203,35 @@ def cli() -> int:
             print("Rate limit exceeded, set a new key with --set-key")
             return 1
         if as_json:
-            print(response)
+            print(chat_stream)
             return 0
-        if response is None or not response.response.is_success:
+        if chat_stream is None or not chat_stream.success():
             print("No error response recieved from from OpenAI, response was:")
-            # output(response, args.output)
-            output_stream.write(response)
+            output_stream.write(str(chat_stream.response()))
             return 1
         if not args.output:
             print("############ OPEN-AI RESPONSE\n")
         response_text = ""
-        for event in response:
-            choice = event.choices[0]
-            delta = choice.delta
-            event_text = delta.content
-            if event_text is None:
+        for text in chat_stream:
+            if text is None:
                 break
-            response_text += event_text
-            if not args.no_stream:
-                output_stream.write(response_text)
-
+            response_text += text
+            output_stream.write(response_text)
         output_stream.write(response_text + "\n")
         prompts.append(response_text)
         if not interactive:
-            break
+            return None
         prompts.append(prompt_input())
-    return 0
+        return None
+
+    while True:
+        try:
+            output_stream = OutStream(args.output)
+            rtn = run_chat_query(output_stream)
+            if rtn is not None:
+                return rtn
+        finally:
+            output_stream.close()
 
 
 def main() -> int:
@@ -246,6 +242,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.argv.append("write binary search in python")
-    sys.argv.append("--code")
     sys.exit(main())
