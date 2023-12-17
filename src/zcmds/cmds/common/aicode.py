@@ -49,7 +49,8 @@ def parse_args() -> argparse.Namespace:
         help=f"bleeding edge model: {ADVANCED_MODEL}",
     )
     model_group.add_argument("--model", default=None)
-    return argparser.parse_args()
+    args, unknown_args = argparser.parse_known_args()
+    return args, unknown_args
 
 
 def upgrade_aider() -> None:
@@ -58,7 +59,7 @@ def upgrade_aider() -> None:
 
 
 def cli() -> int:
-    args = parse_args()
+    args, unknown_args = parse_args()
     if args.upgrade:
         upgrade_aider()
         return 0
@@ -93,7 +94,7 @@ def cli() -> int:
         os.environ["AIDER_MODEL"] = ADVANCED_MODEL
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
-    return subprocess.call(["aider", "--no-auto-commits"] + args.prompt)  # args.prompt is now a list
+    return subprocess.call(["aider", "--no-auto-commits"] + args.prompt + unknown_args)  # args.prompt and unknown_args are now lists
 
 
 def main() -> int:
