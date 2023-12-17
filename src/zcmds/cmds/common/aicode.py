@@ -31,6 +31,9 @@ def parse_args() -> argparse.Namespace:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
     argparser.add_argument("--set-key", help="Set OpenAI key")
+    argparser.add_argument(
+        "--upgrade", action="store_true", help="Upgrade aider using pipx"
+    )
 
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
@@ -55,8 +58,17 @@ def parse_args() -> argparse.Namespace:
     return argparser.parse_args()
 
 
+def upgrade_aider() -> None:
+    """Upgrades aider to the latest version using pipx"""
+    print("Upgrading aider...")
+    os.system("pipx upgrade aider-chat")
+
+
 def cli() -> int:
     args = parse_args()
+    if args.upgrade:
+        upgrade_aider()
+        return 0
     config = create_or_load_config()
     if args.set_key:
         config["openai_key"] = args.set_key
