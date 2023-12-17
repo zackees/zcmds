@@ -47,7 +47,10 @@ class ImageResult:
     original_size: int
     webp_size: int
 
-def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> ImageResult:
+
+def convert_img_to_format(
+    file: str, out_file: str, options: ImageOptions
+) -> ImageResult:
     """Convert a png file to webp."""
     assert out_file.lower().endswith(".webp") or out_file.lower().endswith(".jpg")
     assert file != out_file, "Input and output files must be different"
@@ -75,7 +78,7 @@ def convert_img_to_format(file: str, out_file: str, options: ImageOptions) -> Im
     except Exception as e:
         with LOCK:
             print(f"Failed to convert {file} to {format}: {e}")
-        return False
+        return ImageResult(success=False, original_size=0, webp_size=0)
     # get size of original file
     original_size = os.path.getsize(file)
     # get size of webp file

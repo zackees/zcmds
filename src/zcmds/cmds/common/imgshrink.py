@@ -1,5 +1,3 @@
-
-
 """
 Convert an image to webp format.
 """
@@ -34,9 +32,6 @@ def main() -> int:
         print(f"Failed to convert {infile}")
         return 1
     return 0
-
-
-
 
 
 if __name__ == "__main__":
