@@ -3,7 +3,6 @@
 """Interacts with open ai's chat bot."""
 
 
-
 import sys
 import threading
 from typing import Any, Optional
@@ -50,9 +49,7 @@ class ChatGPTRateLimitError(openai.RateLimitError):
         super().__init__(*args, **kwargs)
 
 
-# type: ignore[start]
 ChatCompletion = openai.ChatCompletion  # pylint: disable=no-member
-# type: ignore[end]
 
 
 # Create a thread-safe dictionary to store OpenAI client instances
