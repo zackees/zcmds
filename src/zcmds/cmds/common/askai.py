@@ -115,9 +115,6 @@ def cli() -> int:
     global FORCE_COLOR
     FORCE_COLOR = args.color
     config = create_or_load_config()
-    model_unspecified = (
-        not args.fast and not args.slow and not args.advanced and not args.model
-    )
     max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
@@ -136,22 +133,12 @@ def cli() -> int:
         model = args.model
 
     if args.code:
-        install_aider_if_missing()
-        openai_key = config.get("openai_key")
-        if openai_key is None:
-            print("OpenAI key not found, please set one with --set-key")
-            return 1
-        if not model_unspecified:
-            os.environ["AIDER_MODEL"] = model
-        else:
-            os.environ["AIDER_MODEL"] = ADVANCED_MODEL
-        print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
-        os.environ["OPENAI_API_KEY"] = openai_key
-        return os.system("aider --no-auto-commits")
+        return os.system("aicode")
 
     if args.set_key:
         config["openai_key"] = args.set_key
         save_config(config)
+        config = create_or_load_config()
     elif "openai_key" not in config:
         key = input("No OpenAi key found, please enter one now: ")
         config["openai_key"] = key

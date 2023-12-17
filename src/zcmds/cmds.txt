@@ -1,4 +1,5 @@
 askai = "zcmds.cmds.common.askai:main"
+aicode = "zcmds.cmds.common.aicode:main"
 imgai = "zcmds.cmds.common.imgai:main"
 img2webp = "zcmds.cmds.common.img2webp:main"
 zcmds = "zcmds.cmds.common.zcmds_main:main"
