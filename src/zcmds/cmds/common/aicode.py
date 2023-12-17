@@ -1,8 +1,9 @@
-"""askai - ask openai for help"""
+"""aicode - front end for aider"""
 
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
@@ -10,14 +11,10 @@ from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 try:
     from zcmds.util.chatgpt import ADVANCED_MODEL, FAST_MODEL, SLOW_MODEL
 except KeyboardInterrupt:
-    # Importing openai stuff can take a while and so if a keyboard interrupt
-    # happens during that time then we want to exit immediately rather
-    # than throw a cryptic error and stack trace.
     sys.exit(1)
 
 
 def install_aider_if_missing() -> None:
-    """Installs aider to it's own virtual environment using pipx"""
     bin_path = os.path.expanduser("~/.local/bin")
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
     if shutil.which("aider") is not None:
@@ -29,7 +26,7 @@ def install_aider_if_missing() -> None:
 
 def parse_args() -> argparse.Namespace:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
-    argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
+    argparser.add_argument("prompt", nargs='*', help="Args to pass onto aider")  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument(
         "--upgrade", action="store_true", help="Upgrade aider using pipx"
@@ -51,15 +48,11 @@ def parse_args() -> argparse.Namespace:
         default=False,
         help=f"bleeding edge model: {ADVANCED_MODEL}",
     )
-    argparser.add_argument(
-        "--max-tokens", help="Max tokens to return", type=int, default=None
-    )
     model_group.add_argument("--model", default=None)
     return argparser.parse_args()
 
 
 def upgrade_aider() -> None:
-    """Upgrades aider to the latest version using pipx"""
     print("Upgrading aider...")
     os.system("pipx upgrade aider-chat")
 
@@ -77,20 +70,15 @@ def cli() -> int:
     model_unspecified = (
         not args.fast and not args.slow and not args.advanced and not args.model
     )
-    max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
     if args.model is None:
         if args.slow:
             model = SLOW_MODEL
-            if max_tokens is None:
-                max_tokens = 4096
         elif args.advanced:
             model = ADVANCED_MODEL
-            max_tokens = 128000
         else:
             model = FAST_MODEL
-            max_tokens = 4096
     else:
         model = args.model
 
@@ -105,7 +93,7 @@ def cli() -> int:
         os.environ["AIDER_MODEL"] = ADVANCED_MODEL
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
-    return os.system("aider --no-auto-commits")
+    return subprocess.call(["aider", "--no-auto-commits"] + args.prompt)  # args.prompt is now a list
 
 
 def main() -> int:
