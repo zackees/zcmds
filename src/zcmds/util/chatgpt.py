@@ -5,6 +5,8 @@
 # mypy: ignore-errors
 
 import sys
+import threading
+from collections import defaultdict
 
 import json5 as json
 import tiktoken
@@ -48,7 +50,16 @@ class ChatGPTRateLimitError(openai.RateLimitError):
 ChatCompletion = openai.ChatCompletion
 
 
-client = None
+# Create a thread-safe dictionary to store OpenAI client instances
+client_instances_lock = threading.Lock()
+client_instances = defaultdict(lambda: None)
+
+
+def get_client_instance(openai_key: str) -> OpenAI:
+    with client_instances_lock:
+        if client_instances[openai_key] is None:
+            client_instances[openai_key] = OpenAI(api_key=openai_key)
+        return client_instances[openai_key]
 
 
 def count_tokens(model: str, text: str):
@@ -64,7 +75,6 @@ def ai_query(
     model: str,
     ai_assistant_prompt: str,
 ) -> ChatCompletion:
-    global client
     # assert prompts is odd
     assert (
         len(prompts) % 2 == 1
@@ -81,8 +91,8 @@ def ai_query(
         else:
             messages.append({"role": "user", "content": prompt})
 
-    if client is None:
-        client = OpenAI(api_key=openai_key)
+    # Use the get_client_instance function to ensure thread safety
+    client = get_client_instance(openai_key)
 
     # compute the max_tokens by counting the tokens in the prompt
     # and subtracting that from the max_tokens
