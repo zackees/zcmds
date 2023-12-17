@@ -14,7 +14,7 @@ playaudio>=1.0.5
 gTTS
 py7zr
 static-ffmpeg>=2.5
-zcmds_win32>=1.2.2; platform_system=='Windows'
+zcmds_win32>=1.2.4; platform_system=='Windows'
 static-sox
 json5
 tiktoken
