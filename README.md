@@ -111,6 +111,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.43: Adds `aicode` which is the same as `askai --code`
   * 1.4.42: Adds `imgshrink`
   * 1.4.41: `aider` now installed with `pipx` to avoid package conflicts because of it's pinned deps.
   * 1.4.40: Fix `askai` in python 3.11 with linux.
