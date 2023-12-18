@@ -2,7 +2,7 @@ ytclip
 pdf2image
 ffmpeg-normalize
 appdirs
-PyQt6==6.6.1
+PyQt6
 PyPDF2
 jsoncomment
 pyserial
