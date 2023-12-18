@@ -25,7 +25,7 @@ def _is_media_file(filename: str) -> bool:
     if not os.path.isfile(filename):
         return False
     ext = os.path.splitext(filename.lower())[1]
-    return ext in [".mp4", ".mkv", ".avi", ".mov", ".mp3", ".wav"]
+    return ext in [".mp4", ".mkv", ".avi", ".mov", ".mp3", ".wav", ".m4a"]
 
 
 def _convert_to_wav(path: str, out: str) -> None:
@@ -36,7 +36,7 @@ def _convert_to_wav(path: str, out: str) -> None:
     if len(os.path.dirname(out)):
         os.makedirs(os.path.dirname(out), exist_ok=True)
     add_paths(weak=True)
-    cmd = f'ffmpeg -i "{path}" -vn -acodec pcm_s16le -ar 44100 -ac 2 "{out}"'
+    cmd = f'ffmpeg -y -i "{path}" -vn -acodec pcm_s16le -ar 44100 -ac 2 "{out}"'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
@@ -50,7 +50,7 @@ def _convert_to_mp3(path: str, out: str) -> None:
         os.makedirs(os.path.dirname(out), exist_ok=True)
     add_paths(weak=True)
     # Updated FFmpeg command for AAC conversion
-    cmd = f'ffmpeg -i "{path}" -vn -acodec aac -b:a 192k "{out}"'
+    cmd = f'ffmpeg -y -i "{path}" -vn -acodec aac -b:a 192k "{out}"'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
@@ -68,6 +68,8 @@ def _replace_audio(in_vid_mp4: str, in_mp3: str, out_mp3) -> None:
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
+def strip_ext(path: str) -> str:
+    return os.path.splitext(path)[0]
 
 def audnorm(path: str, out: str) -> None:
     """
@@ -78,21 +80,23 @@ def audnorm(path: str, out: str) -> None:
         os.makedirs(os.path.dirname(out), exist_ok=True)
     add_paths(weak=True)
     add_paths_sox(weak=True)
-    out_wav = f"{out}.wav"
-    out_wav_norm = f"{out}.wav.norm"
-    out_mp3 = f"{out}.mp3"
+    # file without extensions
+    out_no_ext = strip_ext(out)
+    out_wav = f"{out_no_ext}.wav"
+    out_wav_norm = f"{out_no_ext}_norm.wav"
+    out_m4a = f"{out_no_ext}.m4a"
     _convert_to_wav(path, out_wav)
 
-    sox_cmd = f'sox "{out_wav}" "{out_wav_norm}" norm'
+    sox_cmd = f'static_sox "{out_wav}" "{out_wav_norm}" norm'
     print(f"Executing:\n  {sox_cmd}")
     os.system(sox_cmd)
     # Note that aac is supported by twitter, lame is not.
     # cmd = f'ffmpeg-normalize -f "{path}" -o "{out}" -c:a aac -b:a 192k'
     # print(f"Executing:\n  {cmd}")
-    _convert_to_mp3(out_wav_norm, out_mp3)
+    _convert_to_mp3(out_wav_norm, out_m4a)
 
     # now mix in new audio with old video
-    _replace_audio(path, out_mp3, out)
+    _replace_audio(path, out_m4a, out)
 
 
 def main():
@@ -112,4 +116,8 @@ def main():
 
 
 if __name__ == "__main__":
+    file = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small.mp4"
+    out = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small_norm.mp4"
+    import sys
+    sys.argv.extend([file, out])
     main()
