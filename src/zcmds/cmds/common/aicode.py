@@ -60,6 +60,18 @@ def upgrade_aider() -> None:
     os.system("pipx upgrade aider-chat")
 
 
+def get_model(args: argparse.Namespace) -> str:
+    if args.fast:
+        return FAST_MODEL
+    elif args.slow:
+        return SLOW_MODEL
+    elif args.advanced:
+        return ADVANCED_MODEL
+    elif args.model is not None:
+        return args.model
+    else:
+        return SLOW_MODEL
+
 def cli() -> int:
     args, unknown_args = parse_args()
     if args.upgrade:
@@ -73,27 +85,13 @@ def cli() -> int:
     model_unspecified = (
         not args.fast and not args.slow and not args.advanced and not args.model
     )
-    if args.fast:
-        args.model = FAST_MODEL
-    if args.model is None:
-        if args.slow:
-            model = SLOW_MODEL
-        elif args.advanced:
-            model = ADVANCED_MODEL
-        else:
-            model = FAST_MODEL
-    else:
-        model = args.model
-
+    model = get_model(args)
     install_aider_if_missing()
     openai_key = config.get("openai_key")
     if openai_key is None:
         print("OpenAI key not found, please set one with --set-key")
         return 1
-    if not model_unspecified:
-        os.environ["AIDER_MODEL"] = model
-    else:
-        os.environ["AIDER_MODEL"] = ADVANCED_MODEL
+    os.environ["AIDER_MODEL"] = model
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
     return subprocess.call(
