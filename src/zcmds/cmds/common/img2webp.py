@@ -24,6 +24,7 @@ class ImageOptions:
     scale: float
     quality: Optional[int]
     subsampling: int
+    height: Optional[int]
 
 
 LOCK = threading.Lock()
@@ -61,7 +62,13 @@ def convert_img_to_format(
         format = "jpeg"
     im = Image.open(file)
     # Reduce the image size by half
-    if options.scale != 1.0:
+    if options.height is not None:
+        height = options.height
+        # width = round(height * im.width / im.height)
+        # im = im.resize((width, height), resample=Image.Resampling.LANCZOS)
+        new_size = (round(height * im.width / im.height), height)
+        im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
+    elif options.scale != 1.0:
         new_size = (round(im.width * options.scale), round(im.height * options.scale))
         im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
     try:
@@ -108,6 +115,9 @@ def main() -> int:
         "--quality", help="Quality of the output image", default=None, type=int
     )
     parser.add_argument(
+        "--height", type=int, help="Height of the output image", default=None
+    )
+    parser.add_argument(
         "--subsampling",
         help="Subsampling of the output image, 0 represents 4:4:4, 1 represents 4:2:2, 2 represents 4:2:0",
         default=0,
@@ -129,7 +139,10 @@ def main() -> int:
     if subsampling != 0 and args.format == "webp":
         warnings.warn("Subsampling is not supported in webp as of June 2023")
     image_options = ImageOptions(
-        scale=args.scale, quality=args.quality, subsampling=subsampling
+        scale=args.scale,
+        quality=args.quality,
+        subsampling=subsampling,
+        height=args.height,
     )
     if outdir is not None and not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -165,4 +178,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    infile = r"C:\Users\niteris\dev\feedthewatchdogs.org\www\src\assets\video\robert_testimony_congress.jpg"
+    height = 480
+    sys.argv.append(infile)
+    sys.argv.append("--height")
+    sys.argv.append(str(height))
     sys.exit(main())

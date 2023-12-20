@@ -30,9 +30,7 @@ def parse_args() -> argparse.Namespace:
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument(
-        "--upgrade", action="store_true", help="Upgrade aider using pipx"
-    )
+    argparser.add_argument("--upgrade", action="store_true", help="Upgrade aider using pipx")
 
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
@@ -72,6 +70,7 @@ def get_model(args: argparse.Namespace) -> str:
     else:
         return SLOW_MODEL
 
+
 def cli() -> int:
     args, unknown_args = parse_args()
     if args.upgrade:
@@ -82,9 +81,6 @@ def cli() -> int:
         config["openai_key"] = args.set_key
         save_config(config)
         config = create_or_load_config()
-    model_unspecified = (
-        not args.fast and not args.slow and not args.advanced and not args.model
-    )
     model = get_model(args)
     install_aider_if_missing()
     openai_key = config.get("openai_key")

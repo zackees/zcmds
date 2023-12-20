@@ -68,8 +68,10 @@ def _replace_audio(in_vid_mp4: str, in_mp3: str, out_mp3) -> None:
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
+
 def strip_ext(path: str) -> str:
     return os.path.splitext(path)[0]
+
 
 def audnorm(path: str, out: str) -> None:
     """
@@ -119,5 +121,6 @@ if __name__ == "__main__":
     file = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small.mp4"
     out = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small_norm.mp4"
     import sys
+
     sys.argv.extend([file, out])
     main()
