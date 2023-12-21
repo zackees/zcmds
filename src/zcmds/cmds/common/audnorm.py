@@ -118,9 +118,4 @@ def main():
 
 
 if __name__ == "__main__":
-    file = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small.mp4"
-    out = r"E:\wetransfer_epstein-1-mov_2023-12-15_2009\THE NEED_RealESR_Gx4_60%_Interpolatation-Low_small_norm.mp4"
-    import sys
-
-    sys.argv.extend([file, out])
     main()

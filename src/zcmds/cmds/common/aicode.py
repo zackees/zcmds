@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Tuple
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
 
@@ -24,13 +25,15 @@ def install_aider_if_missing() -> None:
     assert shutil.which("aider") is not None, "aider not found after install"
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> Tuple[argparse.Namespace, list]:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument(
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument("--upgrade", action="store_true", help="Upgrade aider using pipx")
+    argparser.add_argument(
+        "--upgrade", action="store_true", help="Upgrade aider using pipx"
+    )
 
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
@@ -47,6 +50,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help=f"bleeding edge model: {ADVANCED_MODEL}",
+    )
+    model_group.add_argument(
+        "--auto-commit",
+        "-a",
+        action="store_true",
     )
     model_group.add_argument("--model", default=None)
     args, unknown_args = argparser.parse_known_args()
@@ -90,9 +98,13 @@ def cli() -> int:
     os.environ["AIDER_MODEL"] = model
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
-    return subprocess.call(
-        ["aider", "--no-auto-commits"] + args.prompt + unknown_args
-    )  # args.prompt and unknown_args are now lists
+    cmd_list = ["aider"]
+    if args.auto_commit:
+        cmd_list.append("--auto-commit")
+    else:
+        cmd_list.append("--no-auto-commit")
+    cmd_list += args.prompt + unknown_args
+    return subprocess.call(cmd_list)
 
 
 def main() -> int:
