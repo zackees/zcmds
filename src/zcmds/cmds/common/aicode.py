@@ -140,6 +140,7 @@ def cli() -> int:
     else:
         cmd_list.append("--no-auto-commit")
     cmd_list += args.prompt + unknown_args
+    print("\nLoading aider:\n  remember to use /help for a list of commands\n")
     rtn = subprocess.call(cmd_list)
     if args.keep:
         return rtn
