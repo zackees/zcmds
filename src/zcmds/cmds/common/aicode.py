@@ -1,10 +1,12 @@
 """aicode - front end for aider"""
 
 import argparse
+import atexit
 import os
 import shutil
 import subprocess
 import sys
+import warnings
 from typing import Tuple
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
@@ -25,8 +27,27 @@ def install_aider_if_missing() -> None:
     assert shutil.which("aider") is not None, "aider not found after install"
 
 
+class CustomHelpParser(argparse.ArgumentParser):
+    def print_help(self):
+        # Call the default help message
+        super().print_help()
+        # Add additional help from the tool you're wrapping
+        # print("\n Print aider --help:")
+        print("\n\n############ aider --help ############")
+        completed_proc = subprocess.run(
+            ["aider", "--help"], check=False, capture_output=True
+        )
+        stdout = completed_proc.stdout.decode("utf-8")
+        print(stdout)
+
+
 def parse_args() -> Tuple[argparse.Namespace, list]:
-    argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
+    argparser = CustomHelpParser(
+        usage=(
+            "Ask OpenAI for help with code, uses aider-chat on the backend."
+            " Any args not listed here are assumed to be for aider and will be passed on to it."
+        )
+    )
     argparser.add_argument(
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
@@ -34,7 +55,9 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
     argparser.add_argument(
         "--upgrade", action="store_true", help="Upgrade aider using pipx"
     )
-
+    argparser.add_argument(
+        "--keep", action="store_true", help="Keep chat/input history"
+    )
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
         "--fast",
@@ -59,6 +82,19 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
     model_group.add_argument("--model", default=None)
     args, unknown_args = argparser.parse_known_args()
     return args, unknown_args
+
+
+def cleanup() -> None:
+    files = [
+        ".aider.chat.history.md",
+        ".aider.input.history",
+    ]
+    for file in files:
+        if os.path.exists(file):
+            try:
+                os.remove(file)
+            except OSError:
+                warnings.warn(f"Failed to remove {file}")
 
 
 def upgrade_aider() -> None:
@@ -104,7 +140,11 @@ def cli() -> int:
     else:
         cmd_list.append("--no-auto-commit")
     cmd_list += args.prompt + unknown_args
-    return subprocess.call(cmd_list)
+    rtn = subprocess.call(cmd_list)
+    if args.keep:
+        return rtn
+    atexit.register(cleanup)
+    return rtn
 
 
 def main() -> int:
