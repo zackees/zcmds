@@ -42,6 +42,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Converts a series of images to a video.
   * obs_organize
     * organizes the files in your default obs directory.
+  * merge-to
+    * Merges a clean git repo (no untracked files) to the target branch, pushes that target branch, then switches back to the original branch.
   * printenv
     * prints the current environment variables, including path.
   * pdf2png
@@ -113,6 +115,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.45: Adds new tool `merge-to`, which streamlines merge a current branch into and other and then pushing.
   * 1.4.44: Fixes vidwebmaster (Qt6 pinned version just stopped working!!)
   * 1.4.43: Adds `aicode` which is the same as `askai --code`
   * 1.4.42: Adds `imgshrink`
