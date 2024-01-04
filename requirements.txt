@@ -19,3 +19,4 @@ static-sox
 json5
 tiktoken
 pipx
+GitPython
