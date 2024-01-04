@@ -11,8 +11,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 
 ```bash
 > pip install zmcds
-> zcmds
-> diskaudit
+> zcmds  # shows all commands
+> diskaudit  # audits the disk usage from the current directory.
 ```
 
 # Commands
