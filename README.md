@@ -21,7 +21,6 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Easily create archives
   * askai
     * Asks a question to OpenAI from the terminal command. Requires an openai token which will be requested and saved on first use.
-    * Use --code use the aider AI coding assistant. Auto uses openai key and uses defaults like no auto commit.
   * aicode
     * Same as `askai --code`
   * audnorm
