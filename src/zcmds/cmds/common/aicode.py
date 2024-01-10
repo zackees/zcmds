@@ -115,11 +115,19 @@ def get_model(args: argparse.Namespace) -> str:
         return SLOW_MODEL
 
 
+def aider_check_update() -> None:
+    rtn = os.system("aider --check-update")
+    if rtn != 0:
+        print("Update to aicode available, run `aicode --upgrade` to upgrade")
+        return
+
+
 def cli() -> int:
     args, unknown_args = parse_args()
     if args.upgrade:
         upgrade_aider()
         return 0
+    aider_check_update()
     config = create_or_load_config()
     if args.set_key:
         config["openai_key"] = args.set_key
