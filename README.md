@@ -93,6 +93,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Attempts to fix the internet connection by flushing the dns and resetting the network adapter.
   * fixvmmem (win32 only)
     * Fixes the vmmem consuming 100% cpu on windows 10 after hibernate.
+  * transcribe-anything
+    * Transcribe media content using state of the art insanely-fast-whisper
 
 # Install (dev):
 

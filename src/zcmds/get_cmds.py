@@ -2,6 +2,8 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+EXTRA_COMMANDS = ["transcribe-anything"]
+
 
 def get_cmds(just_names: bool = False) -> list[str]:
     cmds_txt = os.path.join(HERE, "cmds.txt")
@@ -10,6 +12,7 @@ def get_cmds(just_names: bool = False) -> list[str]:
     cmds = [cmd.replace('"', "").strip() for cmd in cmds]
     if just_names:
         cmds = [cmd.split(" ")[0] for cmd in cmds]
+    cmds = cmds + EXTRA_COMMANDS
     cmds = sorted(cmds)
     return cmds
 
