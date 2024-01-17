@@ -49,6 +49,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Converts a pdf to a series of images
   * pdf2txt
     * Converts a pdf to a text file.
+  * removbackground
+    * Launches a tool in the browser to remove the background. Uses `rembg` backend.
   * search_and_replace
     * Search all the files from the current directory and apply search and replace changes.
   * search_in_files
@@ -116,6 +118,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.48: Adds `removebackground` which uses AI to remove a background image. Uses `rembg` backend
   * 1.4.47: Adds `transcribe-anything` to the command stack.
   * 1.4.46: Fix `merge-to` with missing push step from target step.
   * 1.4.45: Adds new tool `merge-to`, which streamlines merge a current branch into the other and then pushing.
