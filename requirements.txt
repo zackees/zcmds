@@ -21,3 +21,4 @@ tiktoken
 pipx
 GitPython
 transcribe-anything>=2.7.18
+send2trash

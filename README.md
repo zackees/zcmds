@@ -87,6 +87,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
     * Changes the volume of a video.
   * ytclip
     * Download and clip a video from a url from youtube, rumble, bitchute, twitter... The timestamps are prompted by this program.
+  * trash
+    * Sends the folder or files to the trash. This sometimes works better than deleting files on Windows.
   * whichall
     * Finds all the executables in the path.
   * unzip
@@ -118,6 +120,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.49: Adds `trash` which sends files to the trash.
   * 1.4.48: Adds `removebackground` which uses AI to remove a background image. Uses `rembg` backend
   * 1.4.47: Adds `transcribe-anything` to the command stack.
   * 1.4.46: Fix `merge-to` with missing push step from target step.
