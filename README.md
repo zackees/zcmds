@@ -1,5 +1,5 @@
 # zcmds
-Cross platform(ish) productivity commands written in python. Tools for doing video manipulation, searching through files and other things. On Windows ls, rm and other common unix file commands are installed.
+Cross platform(ish) productivity commands written in python. Tools for doing media manipulation through ffmpeg and AI. On Windows ls, rm and other common unix file commands are installed. Whenever there is something that doesn't work on Windows but does on Mac/Linux, I will apply a tool to make it work here. This toolset is ever-evolving and it's going to get insane in 2024 with all the AI that I'm now integrating.
 
 [![MacOS_Tests](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
 [![Win_Tests](https://github.com/zackees/zcmds/actions/workflows/push_win.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_win.yml)
@@ -18,22 +18,22 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
 # Commands
 
   * archive
-    * Easily create archives
+    * Zips up the specified directory or file.
   * askai
     * Asks a question to OpenAI from the terminal command. Requires an openai token which will be requested and saved on first use.
   * aicode
-    * Same as `askai --code`
+    * A front end for `Aider`, an AI pair programming tool. This is the future the sci fi writers promised you.
   * audnorm
-    * Normalizes the audio.
+    * Normalizes audio in a media file to a standard volume.
   * comports
     * Shows all the ports that are in use at the current computer (useful for Arduino debugging).
   * diskaudit
-    * walks the directory from the current directory and shows which folders / files take up the most disk.
+    * walks the directory from the current directory and catalogs which of the child folders take up the most space.
   * git-bash (win32)
     * launches git-bash terminal (windows only).
   * gitsummary
-    * Generates a summary of the git repository commits
-  * findfile
+    * Generates a summary of the git repository commits, useful for invoicing
+  * findfiles
     * finds a file with the given glob.
   * img2webp
     * Conversion tool for converting images into webp format.
@@ -44,19 +44,19 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * merge-to
     * Merges a clean git repo (no untracked files) to the target branch, pushes that target branch, then switches back to the original branch.
   * printenv
-    * prints the current environment variables, including path.
+    * prints the current environment variables, including path. Everything is sorted
   * pdf2png
     * Converts a pdf to a series of images
   * pdf2txt
     * Converts a pdf to a text file.
   * removbackground
-    * Launches a tool in the browser to remove the background. Uses `rembg` backend.
+    * Launches an AI tool in the browser to remove the background from an Image. Front end for `rembg` backend.
   * search_and_replace
-    * Search all the files from the current directory and apply search and replace changes.
+    * Search all the files from the current directory and applies exact text search and replace.
   * search_in_files
-    * Search all files from current working directory for matches.
+    * Search all files from current working directory for exact string matches matches.
   * sharedir
-    * takes the current folder and shares it via a reverse proxy (think ngrok).
+    * takes the current folder and shares it via a reverse proxy using ngrok.
   * stereo2mono
     * Reduces a stereo audio / video to a single mono track.
   * sudo (win32 only)
@@ -64,7 +64,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * vidcat
     * Concatenates two videos together, upscaling a lower resolution video.
   * vidmute
-    * Strips out the audio in a video file.
+    * Strips out the audio in a video file and saves it as a new file.
   * vidinfo
     * Uses ffprobe to find the information from a video file.
   * vid2gif
@@ -78,7 +78,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing vid
   * vidclip
     * Clips a video using timestamps.
   * viddur
-    * Get's the. Use vidinfo instead.
+    * Get's the during, use vidinfo instead.
   * vidshrink
     * Shrinks a video. Useful for social media posts.
   * vidspeed
@@ -187,7 +187,7 @@ TODO: Add a cleanup function to undo this.
   * 1.2.0: stripaudio -> vidmute
   * 1.1.30: Improves vidinfo with less spam on the console and allows passing height list
   * 1.1.29: More improvements to vidinfo
-  * 1.1.28: vidinfo now has more encodingg information
+  * 1.1.28: vidinfo now has more encoding information
   * 1.1.27: Fix issues with spaces in vidinfo
   * 1.1.26: Adds vidinfo
   * 1.1.26: Vidclip now supports start_time end_time being omitted.
