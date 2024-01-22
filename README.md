@@ -120,6 +120,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.51: Updates `transcribe-anything` to 2.7.22
   * 1.4.50: Uses git-bash version of ssh for windows.
   * 1.4.49: Adds `trash` which sends files to the trash.
   * 1.4.48: Adds `removebackground` which uses AI to remove a background image. Uses `rembg` backend
