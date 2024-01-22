@@ -20,5 +20,5 @@ json5
 tiktoken
 pipx
 GitPython
-transcribe-anything>=2.7.22
+transcribe-anything>=2.7.25
 send2trash
