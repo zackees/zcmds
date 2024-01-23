@@ -35,7 +35,9 @@ class CustomHelpParser(argparse.ArgumentParser):
         # Add additional help from the tool you're wrapping
         # print("\n Print aider --help:")
         print("\n\n############ aider --help ############")
-        completed_proc = subprocess.run(["aider", "--help"], check=False, capture_output=True)
+        completed_proc = subprocess.run(
+            ["aider", "--help"], check=False, capture_output=True
+        )
         stdout = completed_proc.stdout.decode("utf-8")
         print(stdout)
 
@@ -51,8 +53,12 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument("--upgrade", action="store_true", help="Upgrade aider using pipx")
-    argparser.add_argument("--keep", action="store_true", help="Keep chat/input history")
+    argparser.add_argument(
+        "--upgrade", action="store_true", help="Upgrade aider using pipx"
+    )
+    argparser.add_argument(
+        "--keep", action="store_true", help="Keep chat/input history"
+    )
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
         "--fast",
@@ -158,9 +164,7 @@ def cli() -> int:
     if args.upgrade:
         upgrade_aider()
         return 0
-    try:
-        aider_check_update()
-    
+    aider_check_update()
     config = create_or_load_config()
     if args.set_key:
         config["openai_key"] = args.set_key
