@@ -122,13 +122,16 @@ def extract_version_string(version_string: str) -> str:
 
 def aider_check_update() -> None:
     # rtn = os.system("aider --check-update")
-    cp = subprocess.run(
-        ["aider", "--check-update"],
-        check=False,
-        capture_output=True,
-        universal_newlines=True,
-    )
-    if cp.returncode == 0:
+    try:
+        cp = subprocess.run(
+            ["aider", "--check-update"],
+            check=False,
+            capture_output=True,
+            universal_newlines=True,
+        )
+        if cp.returncode == 0:
+            return
+    except Exception:  # pylint: disable=broad-except
         return
     stdout = cp.stdout.strip()
     lines = stdout.split("\n")
@@ -155,7 +158,9 @@ def cli() -> int:
     if args.upgrade:
         upgrade_aider()
         return 0
-    aider_check_update()
+    try:
+        aider_check_update()
+    
     config = create_or_load_config()
     if args.set_key:
         config["openai_key"] = args.set_key
