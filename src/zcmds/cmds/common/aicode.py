@@ -3,6 +3,7 @@
 import argparse
 import atexit
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -115,11 +116,42 @@ def get_model(args: argparse.Namespace) -> str:
         return SLOW_MODEL
 
 
+def extract_version_string(version_string: str) -> str:
+    """
+    Extracts "v0.22.0" out of "Newer version v0.22.0 is available. To upgrade, run:"
+    """
+    match = re.search(r"v?\d+\.\d+\.\d+\S*", version_string)
+    if match:
+        return match.group()
+    raise ValueError(f"Failed to extract version string from {version_string}")
+
+
 def aider_check_update() -> None:
-    rtn = os.system("aider --check-update")
-    if rtn != 0:
-        print("Update to aicode available, run `aicode --upgrade` to upgrade")
+    # rtn = os.system("aider --check-update")
+    cp = subprocess.run(
+        ["aider", "--check-update"],
+        check=False,
+        capture_output=True,
+        universal_newlines=True,
+    )
+    if cp.returncode == 0:
         return
+    stdout = cp.stdout.strip()
+    lines = stdout.split("\n")
+    try:
+        current_version = extract_version_string(lines[0])
+        latest_version = extract_version_string(lines[1])
+        print(
+            "\n#######################################\n"
+            f"# UPDATE AVAILABLE: {current_version} -> {latest_version}.\n"
+            "# run `aicode --upgrade` to upgrade\n"
+            "#######################################\n"
+        )
+        return
+    except Exception as err:  # pylint: disable=broad-except
+        warnings.warn(f"Failed to parse update message: {err}")
+        pass
+    print(f"\nUPDATE AVAILABLE: {stdout}, run `aicode --upgrade` to upgrade\n\n")
 
 
 def cli() -> int:
@@ -160,6 +192,8 @@ def main() -> int:
     try:
         return cli()
     except KeyboardInterrupt:
+        return 1
+    except SystemExit:
         return 1
 
 
