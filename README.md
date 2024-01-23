@@ -120,6 +120,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.57: Bring in new `zcmds_win32` include `sshpass`
   * 1.4.56: Fixes `aicode` on first run crash.
   * 1.4.54: Bring in new `zcmds_win32` fixes and improvements.
   * 1.4.53: Fixes `transcribe-anything` with python 3.11 for `--device insane`
