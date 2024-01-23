@@ -120,6 +120,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.54: Bring in new `zcmds_win32` fixes and improvements.
   * 1.4.53: Fixes `transcribe-anything` with python 3.11 for `--device insane`
   * 1.4.52: Update `transcribe-anything` for bug fix 2.7.23
   * 1.4.51: Updates `transcribe-anything` to 2.7.22
