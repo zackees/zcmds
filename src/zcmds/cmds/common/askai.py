@@ -215,6 +215,8 @@ def cli() -> int:
         try:
             output_stream = OutStream(args.output)
             rtn = run_chat_query(output_stream)
+            if not interactive:
+                return rtn or 0
             if rtn is not None:
                 return rtn
         finally:
