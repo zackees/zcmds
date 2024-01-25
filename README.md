@@ -49,6 +49,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Converts a pdf to a series of images
   * pdf2txt
     * Converts a pdf to a text file.
+  * push
+    * A safer way to `git push`, checks if the rebase is dirty.
   * removbackground
     * Launches an AI tool in the browser to remove the background from an Image. Front end for `rembg` backend.
   * search_and_replace
@@ -120,6 +122,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.59: New tool `push`, a safe way to `git push`
   * 1.4.58: Fixes `askai` with positional args (asking a question and then immediatly exiting.)
   * 1.4.57: Bring in new `zcmds_win32` include `sshpass`
   * 1.4.56: Fixes `aicode` on first run crash.
