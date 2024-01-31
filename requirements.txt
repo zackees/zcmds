@@ -22,3 +22,4 @@ pipx
 GitPython
 transcribe-anything>=2.7.25
 send2trash
+magic-wormhole

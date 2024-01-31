@@ -101,6 +101,9 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Fixes the vmmem consuming 100% cpu on windows 10 after hibernate.
   * transcribe-anything
     * Transcribe media content using state of the art insanely-fast-whisper
+  * tx
+    * Easily send files over the internet. `tx README.md`
+      * Front end to `womrhole send file`, but gives you the code upfront so the client can auto connect.
 
 # Install (dev):
 
@@ -122,6 +125,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.60: New tool `tx`, a wrapper around `wormhole send` but easier to use.
   * 1.4.59: New tool `push`, a safe way to `git push`
   * 1.4.58: Fixes `askai` with positional args (asking a question and then immediatly exiting.)
   * 1.4.57: Bring in new `zcmds_win32` include `sshpass`

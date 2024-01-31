@@ -35,9 +35,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     is_dirty, has_untracked_files = git_has_uncommitted_changes_or_untracked_files()
     if is_dirty:
-        msg = (
-            "Push failed: there are uncommitted changes that need to be committed or stashed first."
-        )
+        msg = "Push failed: there are uncommitted changes that need to be committed or stashed first."
         warn(msg)
         return 1
     if has_untracked_files:
