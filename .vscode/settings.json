@@ -8,6 +8,9 @@
     "terminal.integrated.profiles.windows": {
         "Git Bash": {
             "path": "C:\\Program Files\\Git\\bin\\bash.exe"
+        },
+        "cmd.exe": {
+            "path": "C:\\Windows\\System32\\cmd.exe",
         }
     },
     // adds activate virtualenv to terminal
