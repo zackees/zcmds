@@ -125,6 +125,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.61: Fix bug in `tx`
   * 1.4.60: New tool `tx`, a wrapper around `wormhole send` but easier to use.
   * 1.4.59: New tool `push`, a safe way to `git push`
   * 1.4.58: Fixes `askai` with positional args (asking a question and then immediatly exiting.)

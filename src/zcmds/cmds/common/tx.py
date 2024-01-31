@@ -50,7 +50,7 @@ def main() -> int:
         if not os.path.exists(file_or_dir):
             print(f"File or directory {file_or_dir} does not exist.")
             return 1
-        code = args.key or gen_code(args.key_length)
+        code = args.code or gen_code(args.code_length)
         recieve_cmd = gen_wormhole_receive_command(code)
         cmd_list = ["wormhole", "send", file_or_dir, "--code", code]
         print(f'\nSending "{file_or_dir}"...')
