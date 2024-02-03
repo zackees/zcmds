@@ -5,7 +5,6 @@ https://docs.gpt4all.io/gpt4all_python.html#quickstart
 
 import argparse
 import os
-import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -16,7 +15,7 @@ from gpt4all import GPT4All
 
 @dataclass
 class Device:
-    deviceName: str
+    device_name: str
     index: int
 
 
@@ -45,7 +44,7 @@ def parse_devices(text: str) -> list[Device]:
     for key, device in devices.items():
         idx = int(device["idx"])
         device_name = device["deviceName"]
-        d = Device(deviceName=device_name, index=idx)
+        d = Device(device_name=device_name, index=idx)
         out.append(d)
     return out
 
@@ -71,6 +70,7 @@ def get_device() -> str:
         encoding="utf-8",
     )
     devices = parse_devices(cp.stdout)
+    print(devices)
     return "cpu"
 
 
