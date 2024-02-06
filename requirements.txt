@@ -20,7 +20,7 @@ json5
 tiktoken
 pipx
 GitPython
-transcribe-anything>=2.7.25
+transcribe-anything>=2.7.27
 send2trash
 magic-wormhole
 gpt4all
