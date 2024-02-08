@@ -10,6 +10,8 @@ def prompt_input() -> str:
     while True:
         start_time = time.time()
         line = input(">>> ")
+        if not lines and (line.startswith("!") or line == "exit"):
+            return "\n".join(lines + [line])
         diff_time = time.time() - start_time
         response_times.append(diff_time)
         if not line:
