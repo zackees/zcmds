@@ -10,7 +10,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
 # Install
 
 ```bash
-> pip install zmcds
+> pip install zcmds
 > zcmds  # shows all commands
 > diskaudit  # audits the disk usage from the current directory.
 ```
