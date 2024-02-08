@@ -9,6 +9,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from gpt4all import GPT4All
 
@@ -27,7 +28,7 @@ def parse_devices(text: str) -> list[Device]:
     start_index = lines.index("Devices:") + 2  # Skip '========' line
 
     # Extract device information
-    devices = {}
+    devices: dict[str, Any] = {}
     current_device = None
 
     for i, line in enumerate(lines[start_index:]):

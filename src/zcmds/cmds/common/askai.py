@@ -97,7 +97,9 @@ def parse_args() -> argparse.Namespace:
     argparser.add_argument("--verbose", action="store_true", default=False)
     argparser.add_argument("--no-stream", action="store_true", default=False)
     # max tokens
-    argparser.add_argument("--max-tokens", help="Max tokens to return", type=int, default=None)
+    argparser.add_argument(
+        "--max-tokens", help="Max tokens to return", type=int, default=None
+    )
     argparser.add_argument(
         "--code",
         action="store_true",
@@ -144,7 +146,9 @@ def cli() -> int:
     key = config["openai_key"]
     interactive = not args.prompt
     if interactive:
-        print("\nInteractive mode - press return three times to submit your code to OpenAI")
+        print(
+            "\nInteractive mode - press return three times to submit your code to OpenAI"
+        )
     prompt = args.prompt or prompt_input()
     as_json = args.json
 
@@ -185,7 +189,9 @@ def cli() -> int:
             print(err)
             return 1
         except ChatGPTAuthenticationError as e:
-            print("Error authenticating with OpenAI, deleting password from config and exiting.")
+            print(
+                "Error authenticating with OpenAI, deleting password from config and exiting."
+            )
             print(e)
             save_config({})
             return 1
@@ -232,7 +238,9 @@ def main() -> int:
     except KeyboardInterrupt:
         return 1
     except SystemExit as e:
-        return e.code
+        if isinstance(e.code, int):
+            return e.code
+        return 1
 
 
 if __name__ == "__main__":
