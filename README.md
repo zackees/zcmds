@@ -21,6 +21,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Zips up the specified directory or file.
   * askai
     * Asks a question to OpenAI from the terminal command. Requires an openai token which will be requested and saved on first use.
+    * Prefix your query with `!` to run command directly.
   * aicode
     * A front end for `Aider`, an AI pair programming tool. This is the future the sci fi writers promised you.
   * audnorm
@@ -125,6 +126,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.62: `askai` can now run commands by prefixing with `!`
   * 1.4.61: Fix bug in `tx`
   * 1.4.60: New tool `tx`, a wrapper around `wormhole send` but easier to use.
   * 1.4.59: New tool `push`, a safe way to `git push`
