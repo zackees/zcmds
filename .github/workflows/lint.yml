@@ -30,6 +30,4 @@ jobs:
         python -m pip install -r requirements.testing.txt
     - name: Run Linting
       run: |
-        flake8 src
-        pylint src
-        mypy src
+        ./lint
