@@ -35,9 +35,7 @@ class CustomHelpParser(argparse.ArgumentParser):
         # Add additional help from the tool you're wrapping
         # print("\n Print aider --help:")
         print("\n\n############ aider --help ############")
-        completed_proc = subprocess.run(
-            ["aider", "--help"], check=False, capture_output=True
-        )
+        completed_proc = subprocess.run(["aider", "--help"], check=False, capture_output=True)
         stdout = completed_proc.stdout.decode("utf-8")
         print(stdout)
 
@@ -53,12 +51,8 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
-    argparser.add_argument(
-        "--upgrade", action="store_true", help="Upgrade aider using pipx"
-    )
-    argparser.add_argument(
-        "--keep", action="store_true", help="Keep chat/input history"
-    )
+    argparser.add_argument("--upgrade", action="store_true", help="Upgrade aider using pipx")
+    argparser.add_argument("--keep", action="store_true", help="Keep chat/input history")
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
         "--fast",
@@ -179,7 +173,7 @@ def cli() -> int:
     os.environ["AIDER_MODEL"] = model
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key
-    cmd_list = ["aider"]
+    cmd_list = ["aider", "--skip-check-update"]
     if args.auto_commit:
         cmd_list.append("--auto-commit")
     else:
