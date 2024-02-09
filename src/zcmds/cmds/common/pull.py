@@ -26,14 +26,11 @@ def parse_args() -> argparse.Namespace:
     )
     # --all
     parser.add_argument("--all", action="store_true", help="Fetch all branches")
-    parser.add_argument(
-        "url", nargs="?", default=None, help="URL to set as the remote origin"
-    )
+    parser.add_argument("url", nargs="?", default=None, help="URL to set as the remote origin")
     return parser.parse_args()
 
 
 def fetch_branches(all: bool) -> None:
-    print("Fetching all branches...")
     cmds_list = ["git", "fetch"]
     if all:
         cmds_list.append("--all")
@@ -52,9 +49,7 @@ def get_local_branches() -> list[str]:
     return [branch.strip().replace("* ", "") for branch in branches]
 
 
-def create_missing_local_branches(
-    remote_branches: list[str], local_branches: list[str]
-) -> None:
+def create_missing_local_branches(remote_branches: list[str], local_branches: list[str]) -> None:
     for branch in remote_branches:
         branch_name = branch.replace("origin/", "")
         if branch_name not in local_branches:
