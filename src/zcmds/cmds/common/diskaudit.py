@@ -12,9 +12,19 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
+from threading import Lock
 from typing import Any, Callable, Dict, List
 
+TOTAL_COUNT = 0
+TOTAL_COUNT_LOCK = Lock()
+
 NUM_THREADS = 8
+
+
+def increment_total_count() -> None:
+    global TOTAL_COUNT
+    with TOTAL_COUNT_LOCK:
+        TOTAL_COUNT += 1
 
 
 # signal handler for ctrl-c
@@ -65,6 +75,7 @@ def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
             except OSError:
                 continue
             outqueue.put((fullpath, size))
+            increment_total_count()
             count += 1
             if count % 1000 == 0:
                 time.sleep(0.001)
@@ -141,7 +152,9 @@ def main() -> None:
     for _, name in top_sizes:
         if len(name) > max_nm_len:
             max_nm_len = len(name)
-    lines = [f"Total size: {fmt_num(total_size)}:"]
+
+    # lines.append(f"Number of files: {fmt_num(TOTAL_COUNT)}:")
+    lines = [f"Total size: {fmt_num(total_size)}, number of files: {fmt_num(TOTAL_COUNT)}:"]
     for size, name in top_sizes:
         nm = name + ": ".ljust(max_nm_len + 2 - len(name), " ")
         perc_num = "{:.1%}".format(size / total_size)
