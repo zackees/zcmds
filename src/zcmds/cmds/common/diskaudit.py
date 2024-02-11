@@ -154,7 +154,9 @@ def main() -> None:
             max_nm_len = len(name)
 
     # lines.append(f"Number of files: {fmt_num(TOTAL_COUNT)}:")
-    lines = [f"Total size: {fmt_num(total_size)}, number of files: {fmt_num(TOTAL_COUNT)}:"]
+    lines = [
+        f"Total size: {fmt_num(total_size)}, number of files: {fmt_num(TOTAL_COUNT)}:"
+    ]
     for size, name in top_sizes:
         nm = name + ": ".ljust(max_nm_len + 2 - len(name), " ")
         perc_num = "{:.1%}".format(size / total_size)
