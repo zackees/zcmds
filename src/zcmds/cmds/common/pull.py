@@ -26,7 +26,9 @@ def parse_args() -> argparse.Namespace:
     )
     # --all
     parser.add_argument("--all", action="store_true", help="Fetch all branches")
-    parser.add_argument("url", nargs="?", default=None, help="URL to set as the remote origin")
+    parser.add_argument(
+        "url", nargs="?", default=None, help="URL to set as the remote origin"
+    )
     return parser.parse_args()
 
 
@@ -49,7 +51,9 @@ def get_local_branches() -> list[str]:
     return [branch.strip().replace("* ", "") for branch in branches]
 
 
-def create_missing_local_branches(remote_branches: list[str], local_branches: list[str]) -> None:
+def create_missing_local_branches(
+    remote_branches: list[str], local_branches: list[str]
+) -> None:
     for branch in remote_branches:
         branch_name = branch.replace("origin/", "")
         if branch_name not in local_branches:
@@ -61,6 +65,10 @@ def pull_rebase_branch(branch: str) -> None:
     print(f"Updating {branch} with git pull --rebase...")
     run_git_command(["git", "checkout", branch])
     run_git_command(["git", "pull", "--rebase", "origin", branch])
+
+
+def get_current_branch() -> str:
+    return run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip()
 
 
 def pull_rebase_all_branches(local_branches: list[str]) -> None:
@@ -75,14 +83,13 @@ def set_remote_url(url: str) -> None:
 
 def main() -> int:
     args = parse_args()
+    original_branch = get_current_branch()
     if args.url:
         set_remote_url(args.url)
     fetch_branches(all=args.all)
 
     if args.all:
         print("Fetching all branches completed.")
-
-    if args.all:
         remote_branches = get_remote_branches()
         local_branches = get_local_branches()
         create_missing_local_branches(remote_branches, local_branches)
@@ -93,6 +100,7 @@ def main() -> int:
     else:
         pull_rebase_all_branches(["main"])
         print("main branch updated successfully.")
+    run_git_command(["git", "checkout", original_branch])
     return 0
 
 
