@@ -126,6 +126,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.63: Adds `gitconfigure` to give sane defaults to your git.
   * 1.4.62: `askai` can now run commands by prefixing with `!`
   * 1.4.61: Fix bug in `tx`
   * 1.4.60: New tool `tx`, a wrapper around `wormhole send` but easier to use.
