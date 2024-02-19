@@ -44,6 +44,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * organizes the files in your default obs directory.
   * merge-to
     * Merges a clean git repo (no untracked files) to the target branch, pushes that target branch, then switches back to the original branch.
+  * new
+    * Opens a new terminal command window from the current terminal command window.
   * printenv
     * prints the current environment variables, including path. Everything is sorted
   * pdf2png
@@ -126,6 +128,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.64: Adds `new` to open a new terminal command window from the current terminal command window.
   * 1.4.63: Adds `gitconfigure` to give sane defaults to your git.
   * 1.4.62: `askai` can now run commands by prefixing with `!`
   * 1.4.61: Fix bug in `tx`
