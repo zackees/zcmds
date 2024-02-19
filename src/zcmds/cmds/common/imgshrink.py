@@ -2,7 +2,6 @@
 Convert an image to webp format.
 """
 
-
 import argparse
 import os
 import sys

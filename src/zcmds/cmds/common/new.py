@@ -2,9 +2,8 @@
 Opens a new shell in a new terminal window.
 """
 
-import sys
 import os
-from typing import Optional
+import sys
 
 
 def main() -> int:

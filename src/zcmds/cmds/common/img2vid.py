@@ -2,7 +2,6 @@
 Stitches a bunch of files together to make a video.
 """
 
-
 # pylint: skip-file
 
 import argparse

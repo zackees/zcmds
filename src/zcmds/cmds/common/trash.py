@@ -1,6 +1,7 @@
 """
 Sends something to the trash.
 """
+
 import argparse
 import sys
 

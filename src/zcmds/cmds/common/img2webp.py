@@ -2,7 +2,6 @@
 Convert an image to webp format.
 """
 
-
 # pylint: skip-file
 
 import argparse

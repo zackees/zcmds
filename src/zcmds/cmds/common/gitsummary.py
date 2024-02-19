@@ -2,7 +2,6 @@
 Returns a git summary of the current directory.
 """
 
-
 import json
 import os
 import subprocess

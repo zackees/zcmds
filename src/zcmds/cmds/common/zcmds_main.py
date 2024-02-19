@@ -1,6 +1,7 @@
 """
     Normalizes the audio of a video file.
 """
+
 import sys
 
 from zcmds.get_cmds import get_cmds
