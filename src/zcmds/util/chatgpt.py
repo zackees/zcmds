@@ -68,6 +68,8 @@ def get_client_instance(openai_key: str) -> OpenAI:
 
 def count_tokens(model: str, text: str):
     # Ensure you have the right model, for example, "gpt-3.5-turbo"
+    if "gpt-4" in model:
+        model = "gpt-3.5-turbo"  # Hack to make this works
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
 
