@@ -32,6 +32,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * walks the directory from the current directory and catalogs which of the child folders take up the most space.
   * git-bash (win32)
     * launches git-bash terminal (windows only).
+  * gitconfig
+    * Configures git so that it's in "easy-to-use-mode".
   * gitsummary
     * Generates a summary of the git repository commits, useful for invoicing
   * findfiles
@@ -128,6 +130,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.65: Adds `gitconfig`
   * 1.4.64: Adds `new` to open a new terminal command window from the current terminal command window.
   * 1.4.63: Adds `gitconfigure` to give sane defaults to your git.
   * 1.4.62: `askai` can now run commands by prefixing with `!`
