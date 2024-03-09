@@ -96,6 +96,9 @@ def parse_args() -> argparse.Namespace:
     model_group.add_argument("--model", default=None)
     argparser.add_argument("--verbose", action="store_true", default=False)
     argparser.add_argument("--no-stream", action="store_true", default=False)
+    argparser.add_argument(
+        "--assistant-prompt", type=str, default=AI_ASSISTANT_AS_PROGRAMMER
+    )
     # max tokens
     argparser.add_argument(
         "--max-tokens", help="Max tokens to return", type=int, default=None
@@ -157,6 +160,8 @@ def cli() -> int:
             return
         print(*pargs, **kwargs)
 
+    ai_assistant_prompt = args.assistant_prompt
+
     log(prompt)
     prompts = [prompt]
 
@@ -164,7 +169,7 @@ def cli() -> int:
         openai_key=key,
         max_tokens=max_tokens,
         model=model,
-        ai_assistant_prompt=AI_ASSISTANT_AS_PROGRAMMER,
+        ai_assistant_prompt=ai_assistant_prompt,
     )
 
     def run_chat_query(output_stream: OutStream) -> Optional[int]:
