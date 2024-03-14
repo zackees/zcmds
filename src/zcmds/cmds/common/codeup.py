@@ -10,7 +10,6 @@ Runs:
 """
 
 import argparse
-
 import os
 import sys
 from shutil import which
@@ -49,8 +48,11 @@ def check_environment() -> None:
 
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
-    argparse.ArgumentParser()
-    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
+    parser.add_argument("--push", help="Push after commit", action="store_true")
+    args = parser.parse_args()
+
     check_environment()
     try:
         repo = Repo(".")
@@ -74,6 +76,8 @@ def main() -> int:
             # Manual commit
             msg = input("Commit message: ")
             _exec(f"git commit -m {msg}")
+        if args.push:
+            _exec("push")
     except KeyboardInterrupt:
         print("Aborting")
         return 1
