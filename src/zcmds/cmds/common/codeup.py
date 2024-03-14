@@ -49,10 +49,10 @@ def main() -> int:
     """Run git status, lint, test, add, and commit."""
     check_environment()
     repo = Repo(".")
+    git_status_str = repo.git.status()
+    print(git_status_str)
     has_untracked = len(repo.untracked_files) > 0
     if has_untracked:
-        git_status_str = repo.git.status()
-        print(git_status_str)
         print("There are untracked files.")
         answer = input("Continue? [y/N] ")
         if answer.lower() != "y":
