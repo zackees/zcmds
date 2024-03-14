@@ -9,6 +9,8 @@ Runs:
     * aicommits
 """
 
+import argparse
+
 import os
 import sys
 from shutil import which
@@ -47,28 +49,34 @@ def check_environment() -> None:
 
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
+    argparse.ArgumentParser()
+    
     check_environment()
-    repo = Repo(".")
-    git_status_str = repo.git.status()
-    print(git_status_str)
-    has_untracked = len(repo.untracked_files) > 0
-    if has_untracked:
-        print("There are untracked files.")
-        answer = input("Continue? [y/N] ")
-        if answer.lower() != "y":
-            print("Aborting.")
-            return 1
-    if os.path.exists("./lint"):
-        _exec("./lint")
-    if os.path.exists("./test"):
-        _exec("./test")
-    _exec("git add .")
-    if which("aicommits"):
-        _exec("aicommits")
-    else:
-        # Manual commit
-        msg = input("Commit message: ")
-        _exec(f"git commit -m {msg}")
+    try:
+        repo = Repo(".")
+        git_status_str = repo.git.status()
+        print(git_status_str)
+        has_untracked = len(repo.untracked_files) > 0
+        if has_untracked:
+            print("There are untracked files.")
+            answer = input("Continue? [y/N] ")
+            if answer.lower() != "y":
+                print("Aborting.")
+                return 1
+        if os.path.exists("./lint"):
+            _exec("./lint")
+        if os.path.exists("./test"):
+            _exec("./test")
+        _exec("git add .")
+        if which("aicommits"):
+            _exec("aicommits")
+        else:
+            # Manual commit
+            msg = input("Commit message: ")
+            _exec(f"git commit -m {msg}")
+    except KeyboardInterrupt:
+        print("Aborting")
+        return 1
     return 0
 
 
