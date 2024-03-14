@@ -26,6 +26,9 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * A front end for `Aider`, an AI pair programming tool. This is the future the sci fi writers promised you.
   * audnorm
     * Normalizes audio in a media file to a standard volume.
+  * codeup
+    * If your current git repo has `./lint`, `./test`, then this tool will run them in this order. If they both pass then
+      `git add .` followed by `git commit -m ` or `aicommits` will be invoked.
   * comports
     * Shows all the ports that are in use at the current computer (useful for Arduino debugging).
   * diskaudit
