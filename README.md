@@ -130,6 +130,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.67: Adds new tool `codeup` which will run ./lint (if it exists) then ./test (if it exists) then aicommits (if it exists)
   * 1.4.66: `askai` now allows optional `--assistant-prompt` to tell the AI what it is. This is super useful for data scientists, you can use this in your Jupyter Notebooks quite easily!
   * 1.4.65: Adds `gitconfig`
   * 1.4.64: Adds `new` to open a new terminal command window from the current terminal command window.

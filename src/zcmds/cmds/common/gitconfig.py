@@ -34,6 +34,10 @@ def main() -> int:
         # branch.sort -committerdate
         "git config branch.sort -committerdate",
     ]
+    # if darwin
+    if sys.platform == "darwin":
+        # cmds.append("git config credential.helper osxkeychain")
+        cmds.append("git config --global core.editor nano")
     print("Will install:")
     for cmd in cmds:
         print(f"  {cmd}")
