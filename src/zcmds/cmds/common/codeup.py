@@ -50,7 +50,9 @@ def main() -> int:
     """Run git status, lint, test, add, and commit."""
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
-    parser.add_argument("--push", help="Push after commit", action="store_true")
+    parser.add_argument(
+        "--no-push", help="Do not push after successful commit", action="store_true"
+    )
     args = parser.parse_args()
 
     check_environment()
@@ -76,7 +78,7 @@ def main() -> int:
             # Manual commit
             msg = input("Commit message: ")
             _exec(f"git commit -m {msg}")
-        if args.push:
+        if not args.no_push:
             _exec("push")
     except KeyboardInterrupt:
         print("Aborting")
