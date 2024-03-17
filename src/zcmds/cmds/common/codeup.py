@@ -35,12 +35,6 @@ def check_environment() -> None:
     if not os.path.exists(".git"):
         print("Error: .git directory does not exist.")
         sys.exit(1)
-    if not os.path.exists("lint"):
-        print("Error: lint script does not exist.")
-        sys.exit(1)
-    if not os.path.exists("test"):
-        print("Error: test script does not exist.")
-        sys.exit(1)
     if not which("aicommits"):
         print("Error: aicommits script does not exist.")
         sys.exit(1)
