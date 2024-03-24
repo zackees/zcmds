@@ -66,6 +66,7 @@ def main() -> int:
     parser.add_argument(
         "--no-push", help="Do not push after successful commit", action="store_true"
     )
+    parser.add_argument("--no-test", help="Do not run tests", action="store_true")
     args = parser.parse_args()
 
     git_path = check_environment()
@@ -83,7 +84,7 @@ def main() -> int:
                 return 1
         if os.path.exists("./lint"):
             _exec("./lint")
-        if os.path.exists("./test"):
+        if not args.no_test and os.path.exists("./test"):
             _exec("./test")
         _exec("git add .")
         if which("aicommits"):

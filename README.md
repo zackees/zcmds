@@ -17,6 +17,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
 
 # Commands
 
+  **Remember that typing in `zcmds` at the terminal will show you all the commands**
+
   * archive
     * Zips up the specified directory or file.
   * askai
@@ -133,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.71: `codeup` now finds `.git` directory a few parents up, also allows `--no-test`
   * 1.4.70: `askai` now has `--assistant-prompt-file`
   * 1.4.69: `codeup` now implies `--push`. If you don't want to push then use `--no-push``
   * 1.4.68: `codeup` now has `--push` to allow pushes to the repo if everything passes.
