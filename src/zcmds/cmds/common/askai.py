@@ -99,6 +99,9 @@ def parse_args() -> argparse.Namespace:
     argparser.add_argument(
         "--assistant-prompt", type=str, default=AI_ASSISTANT_AS_PROGRAMMER
     )
+    argparser.add_argument(
+        "--assistant-prompt-file", type=str, help="File containing assistant prompt"
+    )
     # max tokens
     argparser.add_argument(
         "--max-tokens", help="Max tokens to return", type=int, default=None
@@ -160,7 +163,11 @@ def cli() -> int:
             return
         print(*pargs, **kwargs)
 
-    ai_assistant_prompt = args.assistant_prompt
+    if args.assistant_prompt_file:
+        with open(args.assistant_prompt_file, "r") as f:
+            ai_assistant_prompt = f.read().strip()
+    else:
+        ai_assistant_prompt = args.assistant_prompt
 
     log(prompt)
     prompts = [prompt]
