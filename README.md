@@ -133,6 +133,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.70: `askai` now has `--assistant-prompt-file`
   * 1.4.69: `codeup` now implies `--push`. If you don't want to push then use `--no-push``
   * 1.4.68: `codeup` now has `--push` to allow pushes to the repo if everything passes.
   * 1.4.67: Adds new tool `codeup` which will run ./lint (if it exists) then ./test (if it exists) then aicommits (if it exists)
