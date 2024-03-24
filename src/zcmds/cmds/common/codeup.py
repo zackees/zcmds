@@ -12,6 +12,8 @@ Runs:
 import argparse
 import os
 import sys
+import warnings
+from pathlib import Path
 from shutil import which
 
 from git import Repo
@@ -28,16 +30,33 @@ def _exec(cmd: str) -> None:
         exit(1)
 
 
-def check_environment() -> None:
+def find_git_directory() -> str:
+    """Traverse up to 3 levels to find a directory with a .git folder."""
+    current_dir = os.getcwd()
+    for _ in range(3):
+        if os.path.exists(os.path.join(current_dir, ".git")):
+            return current_dir
+        parent_dir = os.path.dirname(current_dir)
+        if current_dir == parent_dir:
+            break
+        current_dir = parent_dir
+    return ""
+
+
+def check_environment() -> Path:
     if which("git") is None:
         print("Error: git is not installed.")
         sys.exit(1)
-    if not os.path.exists(".git"):
+    git_dir = find_git_directory()
+    if not git_dir:
         print("Error: .git directory does not exist.")
         sys.exit(1)
+
     if not which("aicommits"):
-        print("Error: aicommits script does not exist.")
-        sys.exit(1)
+        warnings.warn(
+            "aicommits is not installed. Skipping automatic commit message generation."
+        )
+    return Path(git_dir)
 
 
 def main() -> int:
@@ -49,7 +68,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    check_environment()
+    git_path = check_environment()
+    os.chdir(str(git_path))
     try:
         repo = Repo(".")
         git_status_str = repo.git.status()
