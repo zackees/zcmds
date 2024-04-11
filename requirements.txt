@@ -17,7 +17,9 @@ static-ffmpeg>=2.5
 zcmds_win32>=1.2.12; platform_system=='Windows'
 static-sox
 json5
-tiktoken
+tiktoken>=0.6.0
+# Needed by tiktoken
+regex>=2023.12.25
 pipx
 GitPython
 transcribe-anything>=2.7.27
