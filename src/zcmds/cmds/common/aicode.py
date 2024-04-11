@@ -10,6 +10,7 @@ import sys
 import time
 import warnings
 from dataclasses import dataclass
+from pathlib import Path
 from threading import Thread
 from typing import Optional, Tuple, Union
 
@@ -236,6 +237,32 @@ def background_update_task(config: dict) -> None:
         pass
 
 
+def fix_escape_chars(path: str) -> str:
+    if os.name != "nt":
+        return path  # not necessary on posix systems
+    if os.path.exists(path):
+        return Path(path).as_posix()
+    return path
+
+
+def fix_paths(unknown_args: list) -> list:
+    if os.name != "nt":
+        # No path conversion needed on posix systems
+        return unknown_args
+    is_git_bash_or_cygwin = "MSYSTEM" in os.environ
+    if not is_git_bash_or_cygwin:
+        # No path conversion needed on windows cmd
+        return unknown_args
+    out: list = []
+    for arg in unknown_args:
+        try:
+            arg_fixed = fix_escape_chars(arg)
+            out.append(arg_fixed)
+        except Exception:
+            out.append(arg)
+    return out
+
+
 def cli() -> int:
     check_gitignore()
     args, unknown_args = parse_args()
@@ -284,6 +311,7 @@ def cli() -> int:
         cmd_list.append("--auto-commit")
     else:
         cmd_list.append("--no-auto-commit")
+    args.prompt = fix_paths(args.prompt)
     cmd_list += args.prompt + unknown_args
     print("\nLoading aider:\n  remember to use /help for a list of commands\n")
     # Perform update in the background.
