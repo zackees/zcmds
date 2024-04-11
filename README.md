@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.73: `aicode` now accepts Windows paths and converts them to posix paths prior to sending them to Aider.
   * 1.4.72: `aicode` is now 2x faster to load because checking update version is now a delayed background task.
   * 1.4.71: `codeup` now finds `.git` directory a few parents up, also allows `--no-test`
   * 1.4.70: `askai` now has `--assistant-prompt-file`
