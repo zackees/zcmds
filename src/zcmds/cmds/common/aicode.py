@@ -274,9 +274,8 @@ def cli() -> int:
     if update_info is not None and update_info.has_update:
         print(update_info.get_update_msg())
 
-    # TODO: Remove AIDER_MODEL for default value. This used to be needed
-    # for the old version of aider which used Chat GPT 3.5 as the default. Now
-    # Aider uses one of the ChatGPT 4 model variants as the default.
+    # Note: Aider no longer uses ChatGPT 3.5 turbo by default. Therefore
+    # it may soon no longer be necessary to specify the model.
     os.environ["AIDER_MODEL"] = model
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
     os.environ["OPENAI_API_KEY"] = openai_key

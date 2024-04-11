@@ -2,8 +2,6 @@
     "python.autoComplete.extraPaths": [
         "."
     ],
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
     "terminal.integrated.defaultProfile.windows": "Git Bash",
     "terminal.integrated.profiles.windows": {
         "Git Bash": {
@@ -20,22 +18,7 @@
     "files.eol": "\n", // Unix
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
-    "editor.detectIndentation": false,
-    "editor.formatOnSave": true,
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": [
-        "--line-length=100"
-    ],
-    "python.sortImports.args": [
-        "--profile",
-        "black"
-    ],
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.fixAll": "explicit",
-            "source.organizeImports": "explicit"
-        }
-    },
+    "editor.detectIndentation": true,
     "python.analysis.extraPaths": [
         "."
     ]
