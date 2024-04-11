@@ -2,4 +2,4 @@
 
 set -e
 . ./activate.sh
-python -m unittest discover tests
+python -m unittest discover tests -v
