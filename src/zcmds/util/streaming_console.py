@@ -162,9 +162,9 @@ def get_streaming_console() -> Union[StreamingConsoleMarkdown, StreamingConsoleP
 
 class StreamingConsole:
     def __init__(self) -> None:
-        self.impl: Union[
-            StreamingConsoleMarkdown, StreamingConsolePlain
-        ] = get_streaming_console()
+        self.impl: Union[StreamingConsoleMarkdown, StreamingConsolePlain] = (
+            get_streaming_console()
+        )
 
     def force_color(self) -> None:
         self.impl = StreamingConsoleMarkdown()

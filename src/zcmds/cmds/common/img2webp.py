@@ -178,7 +178,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    infile = r"C:\Users\niteris\dev\zcmds\321862084-f6c169e1-69db-47ef-94a3-3b72f66a14b0.png"
+    infile = (
+        r"C:\Users\niteris\dev\zcmds\321862084-f6c169e1-69db-47ef-94a3-3b72f66a14b0.png"
+    )
     scale = 2
     sys.argv.append(infile)
     sys.argv.append("--scale")
