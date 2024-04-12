@@ -60,11 +60,12 @@ def convert_img_to_format(
     if format == "jpg":
         format = "jpeg"
     im = Image.open(file)
+    # Convert the image to RGB if it's RGBA and the output format is JPEG
+    if im.mode == "RGBA" and format == "jpeg":
+        im = im.convert("RGB")
     # Reduce the image size by half
     if options.height is not None:
         height = options.height
-        # width = round(height * im.width / im.height)
-        # im = im.resize((width, height), resample=Image.Resampling.LANCZOS)
         new_size = (round(height * im.width / im.height), height)
         im.thumbnail(new_size, resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
     elif options.scale != 1.0:
@@ -177,9 +178,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    infile = r"C:\Users\niteris\dev\feedthewatchdogs.org\www\src\assets\video\robert_testimony_congress.jpg"
-    height = 480
+    infile = r"C:\Users\niteris\dev\zcmds\321862084-f6c169e1-69db-47ef-94a3-3b72f66a14b0.png"
+    scale = 2
     sys.argv.append(infile)
-    sys.argv.append("--height")
-    sys.argv.append(str(height))
+    sys.argv.append("--scale")
+    sys.argv.append(str(scale))
     sys.exit(main())
