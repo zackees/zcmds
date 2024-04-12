@@ -14,17 +14,16 @@ def ffprobe_duration(filename: str) -> float:
     """
     Uses ffprobe to get the duration of a video file.
     """
-    add_paths(weak=True)
-    cmd = f"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {filename}"
+    cmd = f"static_ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {filename}"
     result = subprocess.check_output(cmd, shell=True, universal_newlines=True)
     result = result.replace("\n", "").replace(" ", "")
     return float(result)
 
 
 def _is_media_file(filename: str) -> bool:
-    if not os.path.isfile(filename):
-        return False
-    ext = os.path.splitext(filename.lower())[1]
+    print(f"Is media file: {filename}")
+    assert os.path.isfile(filename), f"{filename} is not a file"
+    body, ext = os.path.splitext(filename)
     return ext in [".mp4", ".mkv", ".avi", ".mov", ".mp3", ".wav", ".m4a"]
 
 
@@ -36,7 +35,7 @@ def _convert_to_wav(path: str, out: str) -> None:
     if len(os.path.dirname(out)):
         os.makedirs(os.path.dirname(out), exist_ok=True)
     add_paths(weak=True)
-    cmd = f'ffmpeg -y -i "{path}" -vn -acodec pcm_s16le -ar 44100 -ac 2 "{out}"'
+    cmd = f'static_ffmpeg -y -i "{path}" -vn -acodec pcm_s16le -ar 44100 -ac 2 "{out}"'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
@@ -48,9 +47,8 @@ def _convert_to_mp3(path: str, out: str) -> None:
     assert _is_media_file(path), f"{path} is not a media file"
     if len(os.path.dirname(out)):
         os.makedirs(os.path.dirname(out), exist_ok=True)
-    add_paths(weak=True)
     # Updated FFmpeg command for AAC conversion
-    cmd = f'ffmpeg -y -i "{path}" -vn -acodec aac -b:a 192k "{out}"'
+    cmd = f'static_ffmpeg -y -i "{path}" -vn -acodec aac -b:a 192k "{out}"'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
 
@@ -63,9 +61,22 @@ def _replace_audio(in_vid_mp4: str, in_mp3: str, out_mp3) -> None:
     assert _is_media_file(in_mp3), f"{in_mp3} is not a media file"
     if len(os.path.dirname(out_mp3)):
         os.makedirs(os.path.dirname(out_mp3), exist_ok=True)
-    add_paths(weak=True)
-    cmd = f'ffmpeg -i "{in_vid_mp4}" -i "{in_mp3}" -map 0:v -map 1:a -c copy -shortest "{out_mp3}"'
+    video_stmt = "-map 0:v"
+    if (
+        in_vid_mp4.endswith(".mp3")
+        or in_vid_mp4.endswith(".wav")
+        or in_vid_mp4.endswith(".m4a")
+    ):
+        video_stmt = ""
+    cmd = f'static_ffmpeg -y -i "{in_vid_mp4}" -i "{in_mp3}" {video_stmt} -map 1:a -c copy -shortest "{out_mp3}"'
     print(f"Executing:\n  {cmd}")
+    rtn = os.system(cmd)
+    if rtn == 0:
+        return  # success
+    print(
+        f"Failed to replace audio in {in_vid_mp4} with {in_mp3} to {out_mp3}, doing re-encode"
+    )
+    cmd = f'static_ffmpeg -y -i "{in_vid_mp4}" -i "{in_mp3}" {video_stmt} -map 1:a -c:v copy -c:a aac -b:a 320k "{out_mp3}"'
     os.system(cmd)
 
 
@@ -98,7 +109,7 @@ def audnorm(path: str, out: str) -> None:
     _convert_to_mp3(out_wav_norm, out_m4a)
 
     # now mix in new audio with old video
-    _replace_audio(path, out_m4a, out)
+    _replace_audio(in_vid_mp4=out_m4a, in_mp3=path, out_mp3=out)
 
 
 def main():
