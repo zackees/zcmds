@@ -263,8 +263,29 @@ def fix_paths(unknown_args: list) -> list:
     return out
 
 
+def check_aiderignore() -> None:
+    """Adds the .aiderignore file if it doesn't exist."""
+    if not os.path.exists(".aiderignore"):
+        file_content = (
+            "# Add files or directories to ignore here\n"
+            "\n"
+            "run\n"
+            "lint\n"
+            "test\n"
+            "install\n"
+            "clean\n"
+        )
+        with open(".aiderignore", encoding="utf-8", mode="w") as file:
+            file.write(file_content)
+
+
 def cli() -> int:
+    # does .git directory exist?
+    if not os.path.exists(".git"):
+        print("This is not a git repository.")
+        return 1
     check_gitignore()
+    check_aiderignore()
     args, unknown_args = parse_args()
     config = create_or_load_config()
     if args.upgrade:
