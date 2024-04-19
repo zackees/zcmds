@@ -72,6 +72,9 @@ def install_aider_if_missing() -> None:
 def parse_args() -> argparse.Namespace:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
+    argparser.add_argument(
+        "--input-file", help="Input file containing prompts", type=str
+    )
     argparser.add_argument("--json", help="Print response as json", action="store_true")
     argparser.add_argument("--set-key", help="Set OpenAI key")
     argparser.add_argument("--output", help="Output file")
@@ -124,6 +127,9 @@ def cli() -> int:
     max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
+    if args.input_file:
+        with open(args.input_file, "r") as file:
+            args.prompt = file.read().strip()
     if args.model is None:
         if args.slow:
             model = SLOW_MODEL
