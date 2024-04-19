@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.76: `askai` now had `--input-file`, for better tooling.
   * 1.4.75: Fix https://github.com/zackees/zcmds/issues/13 in `img2webp`
   * 1.4.74: Fix `https://github.com/zackees/zcmds/issues/901`
   * 1.4.73: `aicode` now accepts Windows paths and converts them to posix paths prior to sending them to Aider.
