@@ -13,13 +13,20 @@ from typing import Optional
 PORT = 5283
 
 
+@dataclass
+class VidInfo:
+    width: int
+    height: int
+    fps: float
+
+
 def install_rembg_if_missing() -> None:
     bin_path = os.path.expanduser("~/.local/bin")
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
     if shutil.which("rembg") is not None:
         return
     print("Installing rembg...")
-    os.system("pipx install rembg[cli]")
+    os.system("pipx install rembg[cli,gpu]")
     assert shutil.which("rembg") is not None, "rembg not found after install"
 
 
@@ -31,16 +38,11 @@ def open_browser_with_delay(url: str, delay: float) -> None:
     threading.Thread(target=delayed_open).start()
 
 
-@dataclass
-class VidInfo:
-    width: int
-    height: int
-    fps: float
-
-
 def get_video_info(video_path: Path) -> VidInfo:
     # use static_ffmpeg to get the video dimensions using the ffprobe and the
     # json output feature
+    assert shutil.which("vidinfo") is not None, "vidinfo not found"
+    assert video_path.exists(), f"Video file not found: {video_path}"
     command = f'vidinfo "{video_path}"'
     stdout = subprocess.check_output(command, shell=True).decode("utf-8")
     lines = stdout.split("\n")
@@ -63,31 +65,54 @@ def get_video_info(video_path: Path) -> VidInfo:
     return VidInfo(width, height, fps)
 
 
-def video_remove_background(video_path: Path, output_dir: Path) -> None:
+def video_remove_background(
+    video_path: Path,
+    output_dir: Path,
+    bitrate_megs: float,
+    output_height: Optional[int] = None,
+    model: str = "u2netp",
+    keep_files: bool = False,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     vidinfo: VidInfo = get_video_info(video_path)
-    # print(width_x_height)
     print(f"Video dimensions: {vidinfo.width}x{vidinfo.height}")
-    cmd = f"static_ffmpeg -i {video_path} {output_dir}/%05d.png"
+    cmd = f"static_ffmpeg -y -i {video_path} {output_dir}/%07d.png"
     rtn = os.system(cmd)
     if rtn != 0:
-        raise OSError("Error converting video to images")  # pragma: no cover
+        raise OSError("Error converting video to images")
     print(f"Images saved to {output_dir}")
-    # now run rembg on the images
-    # ffmpeg -i input.mp4 -ss 10 -an -f rawvideo -pix_fmt rgb24 pipe:1 | rembg b 1280 720 -o folder/output-%03u.png
-    # cmd = f'rembg b {width} {height} -o "{output_dir}/%05d.png"'
+
     final_output_dir = output_dir / "video"
     final_output_dir.mkdir(parents=True, exist_ok=True)
-    cmd = f'rembg p "{output_dir}" "{final_output_dir}"'
+    cmd = f'rembg p --post-process-mask -m {model} "{output_dir}" "{final_output_dir}"'
     print(f"Running: {cmd}")
     os.system(cmd)
     print(f"Images with background removed saved to {final_output_dir}")
-    # now convert the images back to video
+
     fps: float = vidinfo.fps
-    out_vid_path = Path(str(video_path.with_suffix("")) + "-removed-background.mp4")
-    cmd = f'static_ffmpeg -framerate {fps} -i "{final_output_dir}/%05d.png" -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p "{out_vid_path}"'
+    out_vid_path = Path(str(video_path.with_suffix("")) + "-removed-background.webm")
+    filter_stmt = ""
+    if output_height is not None:
+        filter_stmt = f'-vf "scale=-1:{output_height}"'
+    cmd = f'static_ffmpeg -y -framerate {fps} -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libvpx-vp9 -b:v {bitrate_megs}M -an "{out_vid_path}"'
     print(f"Running: {cmd}")
-    os.system(cmd)
+    rtn = os.system(cmd)
+    if rtn != 0:
+        raise OSError("Error converting images to video")
+
+    # Command to merge the audio from the original video with the new video
+    final_output_path = Path(str(video_path.with_suffix("")) + "-nobackground.webm")
+    cmd = f'static_ffmpeg -y -i "{out_vid_path}" -i "{video_path}" -c:v copy -c:a libvorbis -map 0:v:0 -map 1:a:0 "{final_output_path}"'
+    print(f"Running: {cmd}")
+    rtn = os.system(cmd)
+    if rtn != 0:
+        raise OSError("Error merging video and audio")
+
+    # Delete intermediate files if --keep-files is not set
+    if not keep_files:
+        shutil.rmtree(output_dir)
+        shutil.rmtree(final_output_dir)
+        os.remove(out_vid_path)
 
 
 def is_video_file(file_path: Path) -> bool:
@@ -110,6 +135,24 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
     )
 
+    parser.add_argument(
+        "-b",
+        "--bitrate",
+        type=float,
+        default=10.0,
+        help="Bitrate for the output video (default: 10.0)",
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        help="Height of the output video (default: None)",
+    )
+    parser.add_argument(
+        "--keep-files",
+        action="store_true",
+        help="Keep intermediate files (default: False)",
+    )
+
     return parser.parse_args()
 
 
@@ -118,9 +161,15 @@ def cli() -> int:
     args = parse_args()
     if args.file is not None:
         if is_video_file(args.file):
-            video_remove_background(args.file, args.file.with_suffix(""))
+            video_remove_background(
+                video_path=args.file,
+                output_dir=args.file.with_suffix(""),
+                bitrate_megs=args.bitrate,
+                output_height=args.height,
+                keep_files=args.keep_files,
+            )
             return 0
-        return os.system(f'rembg i "{args.file}"')
+        return os.system(f'rembg --post-process-mask -m {args.model} i "{args.file}"')
     open_browser_with_delay(f"http://localhost:{PORT}", 4)
     os.system(f"rembg s --port {PORT}")
     return 0
@@ -134,6 +183,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.argv.append("--file")
-    sys.argv.append("info-second.mp4")
+    sys.argv.append("second-part.mp4")
+    sys.argv.append("--height")
+    sys.argv.append("480")
+    sys.argv.append("--keep-files")
     sys.exit(main())
