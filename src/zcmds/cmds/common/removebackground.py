@@ -96,6 +96,7 @@ def video_remove_background(
     output_dir: Path,
     bitrate_megs: float,
     output_height: Optional[int] = None,
+    fps_override: Optional[float] = None,
     model: str = MODEL,
     keep_files: bool = False,
 ) -> None:
@@ -115,7 +116,7 @@ def video_remove_background(
     os.system(cmd)
     print(f"Images with background removed saved to {final_output_dir}")
 
-    fps: float = vidinfo.fps
+    fps: float = fps_override if fps_override else vidinfo.fps
     out_vid_path = Path(str(video_path.with_suffix("")) + "-removed-background.webm")
     filter_stmt = ""
     if output_height is not None:
@@ -173,6 +174,11 @@ def parse_args() -> argparse.Namespace:
         help="Height of the output video (default: None)",
     )
     parser.add_argument(
+        "--fps",
+        type=float,
+        help="Frames per second for the output video (default: None)",
+    )
+    parser.add_argument(
         "--keep-files",
         action="store_true",
         help="Keep intermediate files (default: False)",
@@ -198,6 +204,7 @@ def cli() -> int:
                 output_dir=args.file.with_suffix(""),
                 bitrate_megs=args.bitrate,
                 output_height=args.height,
+                fps_override=args.fps,
                 keep_files=args.keep_files,
                 model=args.model,
             )
