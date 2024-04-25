@@ -140,3 +140,6 @@ src/zcmds/cmds/common/losslesscut_bins/**
 
 !.aider.conf.yml
 !.aiderignore
+
+tests/test_data/rembg-nobackground.webm
+
