@@ -103,7 +103,7 @@ def video_remove_background(
     output_dir.mkdir(parents=True, exist_ok=True)
     vidinfo: VidInfo = get_video_info(video_path)
     print(f"Video dimensions: {vidinfo.width}x{vidinfo.height}")
-    cmd = f"static_ffmpeg -y -i {video_path} {output_dir}/%07d.png"
+    cmd = f"static_ffmpeg -hide_banner -y -i {video_path} {output_dir}/%07d.png"
     rtn = os.system(cmd)
     if rtn != 0:
         raise OSError("Error converting video to images")
@@ -117,11 +117,15 @@ def video_remove_background(
     print(f"Images with background removed saved to {final_output_dir}")
 
     fps: float = fps_override if fps_override else vidinfo.fps
-    out_vid_path = Path(str(video_path.with_suffix("")) + "-removed-background.webm")
+    out_vid_path = Path(str(video_path.with_suffix("")) + f"-nobg-{model}.webm")
     filter_stmt = ""
     if output_height is not None:
         filter_stmt = f'-vf "scale=-1:{output_height}"'
-    cmd = f'static_ffmpeg -y -framerate {fps} -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libvpx-vp9 -b:v {bitrate_megs}M -an "{out_vid_path}"'
+    cmd = (
+        f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
+        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libvpx-vp9 -b:v {bitrate_megs}M'
+        f' -an -r {fps} "{out_vid_path}"'
+    )
     print(f"Running: {cmd}")
     rtn = os.system(cmd)
     if rtn != 0:
@@ -129,7 +133,11 @@ def video_remove_background(
 
     # Command to merge the audio from the original video with the new video
     final_output_path = Path(str(video_path.with_suffix("")) + "-nobackground.webm")
-    cmd = f'static_ffmpeg -y -i "{out_vid_path}" -i "{video_path}" -c:v copy -c:a libvorbis -map 0:v:0 -map 1:a:0 "{final_output_path}"'
+    print(f"Mixing audio from {video_path} into {final_output_path}")
+    cmd = (
+        f'static_ffmpeg -hide_banner -y -i "{out_vid_path}" -i "{video_path}"'
+        f' -c:v copy -c:a libvorbis -map 0:v:0 -map 1:a:0 "{final_output_path}"'
+    )
     print(f"Running: {cmd}")
     rtn = os.system(cmd)
     if rtn != 0:
@@ -197,24 +205,31 @@ def parse_args() -> argparse.Namespace:
 def cli() -> int:
     install_rembg_if_missing()
     args = parse_args()
-    if args.file is not None:
-        if is_video_file(args.file):
-            video_remove_background(
-                video_path=args.file,
-                output_dir=args.file.with_suffix(""),
-                bitrate_megs=args.bitrate,
-                output_height=args.height,
-                fps_override=args.fps,
-                keep_files=args.keep_files,
-                model=args.model,
-            )
-            return 0
-        return os.system(
-            f'rembg -a -ae 15 --post-process-mask -m {args.model} i "{args.file}"'
+
+    if args.file is None:
+        open_browser_with_delay(f"http://localhost:{PORT}", 4)
+        os.system(f"rembg s --port {PORT}")
+        return 0
+
+    if is_video_file(args.file):
+        video_remove_background(
+            video_path=args.file,
+            output_dir=args.file.with_suffix(""),
+            bitrate_megs=args.bitrate,
+            output_height=args.height,
+            fps_override=args.fps,
+            keep_files=args.keep_files,
+            model=args.model,
         )
-    open_browser_with_delay(f"http://localhost:{PORT}", 4)
-    os.system(f"rembg s --port {PORT}")
-    return 0
+        return 0
+    cmd = f'rembg -a -ae 15 --post-process-mask -m {args.model} i "{args.file}"'
+    print(f"Running: {cmd}")
+    rtn = os.system(cmd)
+    if rtn != 0:
+        import warnings
+
+        warnings.warn(f"Error running command: {cmd}, return code: {rtn}")
+    return rtn
 
 
 def main() -> int:
@@ -224,8 +239,30 @@ def main() -> int:
         return 1
 
 
-if __name__ == "__main__":
-    sys.argv.append("second-part.mp4")
-    sys.argv.append("--height")
-    sys.argv.append("480")
+def _project_root() -> Path:
+    here = Path(__file__).parent
+    return here.parent.parent.parent.parent
+
+
+def _cd_to_project_root() -> None:
+    project_root = _project_root()
+    os.chdir(project_root)
+
+
+def test_data() -> str:
+    return str(_project_root() / "tests" / "test_data" / "rembg.mp4")
+
+
+def unit_test() -> None:
+    _cd_to_project_root()
+    test_mp4 = test_data()
+    sys.argv.append(test_mp4)
+    # u2net_human_seg
+    # sys.argv.append("--model")
+    # sys.argv.append("isnet-general-use")
     sys.exit(main())
+
+
+if __name__ == "__main__":
+    unit_test()
+    # main()
