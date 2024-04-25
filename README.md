@@ -62,7 +62,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
   * push
     * A safer way to `git push`, checks if the rebase is dirty.
   * removbackground
-    * Launches an AI tool in the browser to remove the background from an Image. Front end for `rembg` backend.
+    * Launches an AI tool in the browser to remove the background from an Image. Can also generate video with background removed. Front end for `rembg` backend.
   * search_and_replace
     * Search all the files from the current directory and applies exact text search and replace.
   * search_in_files
