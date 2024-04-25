@@ -22,6 +22,28 @@ except KeyboardInterrupt:
     sys.exit(1)
 
 
+@dataclass
+class Model:
+    name: str
+    description: str
+    model_str: str
+
+
+MODELS = {
+    "gpt-4": Model("gpt-4", "The GPT-4 model.", "gpt-4"),
+    "gpt-4-1106-preview": Model(
+        "gpt-4-1106-preview",
+        "The GPT-4 model with the 1106 preview.",
+        "gpt-4-1106-preview",
+    ),
+    "claude3": Model("claude3", "The Claude3 model.", "opus"),
+}
+
+CLAUD3_MODELS = {"claude3"}
+
+MODEL_CHOICES = list(MODELS.keys())
+
+
 def install_aider_if_missing() -> None:
     bin_path = os.path.expanduser("~/.local/bin")
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
@@ -59,11 +81,17 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
         "prompt", nargs="*", help="Args to pass onto aider"
     )  # Changed nargs to '*'
     argparser.add_argument("--set-key", help="Set OpenAI key")
+    argparser.add_argument("--set-anthropic-key", help="Set Claude3 key")
     argparser.add_argument(
         "--upgrade", action="store_true", help="Upgrade aider using pipx"
     )
     argparser.add_argument(
         "--keep", action="store_true", help="Keep chat/input history"
+    )
+    argparser.add_argument(
+        "--auto-commit",
+        "-a",
+        action="store_true",
     )
     model_group = argparser.add_mutually_exclusive_group()
     model_group.add_argument(
@@ -82,11 +110,10 @@ def parse_args() -> Tuple[argparse.Namespace, list]:
         help=f"bleeding edge model: {ADVANCED_MODEL}",
     )
     model_group.add_argument(
-        "--auto-commit",
-        "-a",
+        "--claude3",
         action="store_true",
     )
-    model_group.add_argument("--model", default=None)
+    model_group.add_argument("--model", choices=MODEL_CHOICES, help="Model to use")
     args, unknown_args = argparser.parse_known_args()
     return args, unknown_args
 
@@ -116,6 +143,9 @@ def get_model(args: argparse.Namespace) -> str:
         return SLOW_MODEL
     elif args.advanced:
         return ADVANCED_MODEL
+    elif args.claude3:
+        assert "claude3" in MODELS
+        return "claude3"
     elif args.model is not None:
         return args.model
     else:
@@ -293,17 +323,31 @@ def cli() -> int:
         config["aider_update_info"] = {}  # Purge stale update info
         save_config(config)
         return 0
-
     if args.set_key:
+        print("Setting openai key")
         config["openai_key"] = args.set_key
+        save_config(config)
+        config = create_or_load_config()
+    if args.set_anthropic_key:
+        print("Setting anthropic key")
+        config["anthropic_key"] = args.set_anthropic_key
         save_config(config)
         config = create_or_load_config()
     model = get_model(args)
     install_aider_if_missing()
-    openai_key = config.get("openai_key")
-    if openai_key is None:
-        print("OpenAI key not found, please set one with --set-key")
-        return 1
+    is_anthropic_model = model in CLAUD3_MODELS
+    anthropic_key = config.get("anthropic_key")
+    if is_anthropic_model:
+        if anthropic_key is None:
+            print("Claude3 key not found, please set one with --set-anthropic-key")
+            return 1
+        os.environ["ANTHROPIC_API_KEY"] = anthropic_key
+    else:
+        openai_key = config.get("openai_key")
+        if openai_key is None:
+            print("OpenAI key not found, please set one with --set-key")
+            return 1
+        os.environ["OPENAI_API_KEY"] = openai_key
 
     last_aider_update_info: dict[str, Union[str, bool]] = config.get(
         "aider_update_info", {}
@@ -326,8 +370,10 @@ def cli() -> int:
     # it may soon no longer be necessary to specify the model.
     os.environ["AIDER_MODEL"] = model
     print(f"Starting aider with model {os.environ['AIDER_MODEL']}")
-    os.environ["OPENAI_API_KEY"] = openai_key
+    # os.environ["OPENAI_API_KEY"] = openai_key
     cmd_list = ["aider", "--skip-check-update"]
+    if is_anthropic_model:
+        cmd_list.append("--opus")
     if args.auto_commit:
         cmd_list.append("--auto-commit")
     else:
@@ -357,4 +403,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    sys.argv.extend(["--claude3"])
     sys.exit(main())

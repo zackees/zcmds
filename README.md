@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.80: `aicode` now supports `--claude3`, use `--set-anthropic-key` to set the key.
   * 1.4.79: `removebackground` now allows `--fps`
   * 1.4.78: `removebackground` now allows `--height`
   * 1.4.77: `removebackground` now allows video/image as input.
