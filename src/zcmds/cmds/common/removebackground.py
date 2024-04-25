@@ -12,6 +12,32 @@ from typing import Optional
 
 PORT = 5283
 
+MODEL = "u2net"
+
+"""
+u2net: A pre-trained model for general use cases.
+u2netp: A lightweight version of u2net model.
+u2net_human_seg: A pre-trained model for human segmentation.
+u2net_cloth_seg: A pre-trained model for Cloths Parsing from human portrait. Here clothes are parsed into 3 category: Upper body, Lower body and Full body.
+silueta: Same as u2net but the size is reduced to 43Mb.
+isnet-general-use: A new pre-trained model for general use cases.
+isnet-anime: A high-accuracy segmentation for anime character.
+sam (download encoder, download decoder, source): A pre-trained model for any use cases.
+"""
+
+MODELS = {
+    "u2net": "A pre-trained model for general use cases.",
+    "u2netp": "A lightweight version of u2net model.",
+    "u2net_human_seg": "A pre-trained model for human segmentation.",
+    "u2net_cloth_seg": "A pre-trained model for Cloths Parsing from human portrait. Here clothes are parsed into 3 category: Upper body, Lower body and Full body.",
+    "silueta": "Same as u2net but the size is reduced to 43Mb.",
+    "isnet-general-use": "A new pre-trained model for general use cases.",
+    "isnet-anime": "A high-accuracy segmentation for anime character.",
+    "sam": "A pre-trained model for any use cases.",
+}
+
+MODEL_CHOICES = list(MODELS.keys())
+
 
 @dataclass
 class VidInfo:
@@ -70,7 +96,7 @@ def video_remove_background(
     output_dir: Path,
     bitrate_megs: float,
     output_height: Optional[int] = None,
-    model: str = "u2netp",
+    model: str = MODEL,
     keep_files: bool = False,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -84,7 +110,7 @@ def video_remove_background(
 
     final_output_dir = output_dir / "video"
     final_output_dir.mkdir(parents=True, exist_ok=True)
-    cmd = f'rembg p --post-process-mask -m {model} "{output_dir}" "{final_output_dir}"'
+    cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{output_dir}" "{final_output_dir}"'
     print(f"Running: {cmd}")
     os.system(cmd)
     print(f"Images with background removed saved to {final_output_dir}")
@@ -110,8 +136,7 @@ def video_remove_background(
 
     # Delete intermediate files if --keep-files is not set
     if not keep_files:
-        shutil.rmtree(output_dir)
-        shutil.rmtree(final_output_dir)
+        shutil.rmtree(output_dir, ignore_errors=True)
         os.remove(out_vid_path)
 
 
@@ -152,6 +177,13 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Keep intermediate files (default: False)",
     )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=MODEL,
+        choices=MODEL_CHOICES,
+        help=f"Model to use (default: {MODEL}, choices: {MODEL_CHOICES})",
+    )
 
     return parser.parse_args()
 
@@ -167,9 +199,12 @@ def cli() -> int:
                 bitrate_megs=args.bitrate,
                 output_height=args.height,
                 keep_files=args.keep_files,
+                model=args.model,
             )
             return 0
-        return os.system(f'rembg --post-process-mask -m {args.model} i "{args.file}"')
+        return os.system(
+            f'rembg -a -ae 15 --post-process-mask -m {args.model} i "{args.file}"'
+        )
     open_browser_with_delay(f"http://localhost:{PORT}", 4)
     os.system(f"rembg s --port {PORT}")
     return 0
@@ -186,5 +221,4 @@ if __name__ == "__main__":
     sys.argv.append("second-part.mp4")
     sys.argv.append("--height")
     sys.argv.append("480")
-    sys.argv.append("--keep-files")
     sys.exit(main())
