@@ -141,7 +141,6 @@ def video_remove_background(
             cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{chunk_dir}" "{final_output_dir}"'
             print(f"Running: {cmd}")
             # os.system(cmd)
-            import subprocess
 
             subprocess.run(cmd, shell=True, env=env, check=True)
             print(f"Images with background removed saved to {final_output_dir}")
@@ -170,7 +169,7 @@ def video_remove_background(
     cmd = (
         f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
         f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libvpx-vp9 -b:v {bitrate_megs}M'
-        f' -an -r {fps} "{out_vid_path}"'
+        f' -auto-alt-ref 0 -pix_fmt yuva420p -an -r {fps} "{out_vid_path}"'
     )
     print(f"Running: {cmd}")
     rtn = os.system(cmd)
@@ -312,6 +311,7 @@ def unit_test() -> None:
     sys.argv.append(test_mp4)
     sys.argv.append("--gpu-count")
     sys.argv.append("2")
+    # sys.argv.append("--keep-files")
     # u2net_human_seg
     # sys.argv.append("--model")
     # sys.argv.append("isnet-general-use")
