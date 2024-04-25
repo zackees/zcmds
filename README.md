@@ -135,6 +135,8 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.79: `removebackground` now allows `--fps`
+  * 1.4.78: `removebackground` now allows `--height`
   * 1.4.77: `removebackground` now allows video/image as input.
   * 1.4.76: `askai` now had `--input-file`, for better tooling.
   * 1.4.75: Fix https://github.com/zackees/zcmds/issues/13 in `img2webp`
