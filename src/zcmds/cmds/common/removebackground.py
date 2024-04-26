@@ -214,7 +214,7 @@ def video_remove_background(
     tmp_mp4 = Path(str(video_path.with_suffix("")) + "-nobackground.mp4")
     cmd = (
         f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
-        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libx265 -crf 28'
+        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libx264 -b:v {bitrate_megs}M'
         f' -an -r {fps} "{tmp_mp4}"'
     )
 
@@ -270,12 +270,20 @@ def parse_args() -> argparse.Namespace:
         nargs="?",
     )
 
+    def parse_bitrate(value: str) -> float:
+        if value.endswith("k") or value.endswith("K"):
+            return float(value[:-1]) / 1000
+        elif value.endswith("m") or value.endswith("M"):
+            return float(value[:-1])
+        else:
+            return float(value)
+
     parser.add_argument(
         "-b",
         "--bitrate",
-        type=float,
-        default=10.0,
-        help="Bitrate for the output video (default: 10.0)",
+        type=parse_bitrate,
+        default="10M",
+        help="Bitrate for the output video with optional unit (e.g., '10M', '500k') (default: 10M)",
     )
     parser.add_argument(
         "--height",
