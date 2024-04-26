@@ -11,6 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+# Needed for some reason.
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+
 PORT = 5283
 
 MODEL = "u2net"
@@ -101,6 +104,7 @@ def video_remove_background(
     model: str = MODEL,
     keep_files: bool = False,
     exposed_gpus: Optional[list[int]] = None,
+    num_jobs: Optional[int] = None,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     vidinfo: VidInfo = get_video_info(video_path)
@@ -111,6 +115,12 @@ def video_remove_background(
         raise OSError("Error converting video to images")
     print(f"Images saved to {output_dir}")
 
+    if num_jobs is None:
+        if exposed_gpus is None:
+            num_jobs = 1
+        else:
+            num_jobs = len(exposed_gpus)
+
     if exposed_gpus is None or len(exposed_gpus) == 1:
         final_output_dir = output_dir / "video"
         final_output_dir.mkdir(parents=True, exist_ok=True)
@@ -120,43 +130,48 @@ def video_remove_background(
         print(f"Images with background removed saved to {final_output_dir}")
     else:
         # Split the images into subfolders for parallel processing
-        num_gpus = len(exposed_gpus)
         img_files = list(output_dir.glob("*.png"))
         img_files.sort()
-        chunk_size = (len(img_files) + num_gpus - 1) // num_gpus
+        chunk_size = (len(img_files) + num_jobs - 1) // num_jobs
         img_chunks = [
             img_files[i : i + chunk_size] for i in range(0, len(img_files), chunk_size)
         ]
 
-        def process_chunk(chunk, gpu_id):
-            chunk_dir = output_dir / str(gpu_id)
+        def process_chunk(chunk, gpu_id, job_id):
+            chunk_dir = output_dir / str(job_id)
             chunk_dir.mkdir(parents=True, exist_ok=True)
             for img in chunk:
                 shutil.move(str(img), str(chunk_dir / img.name))
 
             final_output_dir = chunk_dir / "video"
             final_output_dir.mkdir(parents=True, exist_ok=True)
-            env = os.environ.copy()
-            env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+            env = {}
+            env["NVIDIA_VISIBLE_DEVICES"] = str(gpu_id)
+            env["CUDA_VISIBLE_DEVICES"] = "0"
+            new_env = env.copy()
+            env.update(os.environ)
             cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{chunk_dir}" "{final_output_dir}"'
-            print(f"Running: {cmd}")
-            # os.system(cmd)
-
+            print(f"Running: {cmd}, with updated environment: {new_env}")
             subprocess.run(cmd, shell=True, env=env, check=True)
             print(f"Images with background removed saved to {final_output_dir}")
             print()
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=num_gpus) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_jobs) as executor:
             futures = [
-                executor.submit(process_chunk, chunk, gpu_id)
-                for gpu_id, chunk in enumerate(img_chunks)
+                executor.submit(
+                    process_chunk,
+                    chunk,
+                    exposed_gpus[job_id % len(exposed_gpus)],
+                    job_id,
+                )
+                for job_id, chunk in enumerate(img_chunks)
             ]
             concurrent.futures.wait(futures)
 
         # Merge the processed images back into the main video directory
         final_output_dir = output_dir / "video"
         final_output_dir.mkdir(parents=True, exist_ok=True)
-        for gpu_id in range(num_gpus):
+        for gpu_id in range(num_jobs):
             chunk_output_dir = output_dir / str(gpu_id) / "video"
             for img in chunk_output_dir.glob("*.png"):
                 shutil.move(str(img), str(final_output_dir / img.name))
@@ -249,7 +264,11 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Number of GPUs to use for parallel processing (default: 1)",
     )
-
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        help="Number of parallel jobs to run (default: same as --gpu-count)",
+    )
     return parser.parse_args()
 
 
@@ -263,6 +282,9 @@ def cli() -> int:
         return 0
 
     if is_video_file(args.file):
+        import time
+
+        start = time.time()
         video_remove_background(
             video_path=args.file,
             output_dir=args.file.with_suffix(""),
@@ -272,7 +294,10 @@ def cli() -> int:
             keep_files=args.keep_files,
             model=args.model,
             exposed_gpus=[int(i) for i in range(args.gpu_count)],
+            num_jobs=args.jobs or args.gpu_count,
         )
+        diff = time.time() - start
+        print(f"Time taken: {diff:.2f} seconds")
         return 0
     cmd = f'rembg -a -ae 15 --post-process-mask -m {args.model} i "{args.file}"'
     print(f"Running: {cmd}")
@@ -311,6 +336,8 @@ def unit_test() -> None:
     sys.argv.append(test_mp4)
     sys.argv.append("--gpu-count")
     sys.argv.append("2")
+    sys.argv.append("--jobs")
+    sys.argv.append("4")
     # sys.argv.append("--keep-files")
     # u2net_human_seg
     # sys.argv.append("--model")
