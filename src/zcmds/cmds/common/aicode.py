@@ -136,7 +136,7 @@ def upgrade_aider() -> None:
     os.system("pipx upgrade aider-chat")
 
 
-def get_model(args: argparse.Namespace) -> str:
+def get_model(args: argparse.Namespace, anthropic_key: Optional[str]) -> str:
     if args.fast:
         return FAST_MODEL
     elif args.slow:
@@ -148,6 +148,8 @@ def get_model(args: argparse.Namespace) -> str:
         return "claude3"
     elif args.model is not None:
         return args.model
+    elif anthropic_key is not None:
+        return "claude3"
     else:
         return SLOW_MODEL
 
@@ -333,10 +335,10 @@ def cli() -> int:
         config["anthropic_key"] = args.set_anthropic_key
         save_config(config)
         config = create_or_load_config()
-    model = get_model(args)
+    anthropic_key = config.get("anthropic_key")
+    model = get_model(args, anthropic_key)
     install_aider_if_missing()
     is_anthropic_model = model in CLAUD3_MODELS
-    anthropic_key = config.get("anthropic_key")
     if is_anthropic_model:
         if anthropic_key is None:
             print("Claude3 key not found, please set one with --set-anthropic-key")
