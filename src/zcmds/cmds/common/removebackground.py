@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import time
+import warnings
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,6 +45,12 @@ MODEL_CHOICES = list(MODELS.keys())
 
 
 @dataclass
+class RemoveBackgroundVideoResult:
+    webm_path: Path
+    mp4_path: Path
+
+
+@dataclass
 class VidInfo:
     width: int
     height: int
@@ -56,7 +63,7 @@ def install_rembg_if_missing() -> None:
     if shutil.which("rembg") is not None:
         return
     print("Installing rembg...")
-    os.system("pipx install rembg[cli,gpu]")
+    _exec("pipx install rembg[cli,gpu]")
     assert shutil.which("rembg") is not None, "rembg not found after install"
 
 
@@ -95,6 +102,13 @@ def get_video_info(video_path: Path) -> VidInfo:
     return VidInfo(width, height, fps)
 
 
+def _exec(cmd: str) -> None:
+    print(f"\n\nRunning:\n    {cmd}\n\n")
+    rtn = os.system(cmd)
+    if rtn != 0:
+        raise OSError(f"Error running command: {cmd}, return code: {rtn}")
+
+
 def video_remove_background(
     video_path: Path,
     output_dir: Path,
@@ -105,14 +119,12 @@ def video_remove_background(
     keep_files: bool = False,
     exposed_gpus: Optional[list[int]] = None,
     num_jobs: Optional[int] = None,
-) -> None:
+) -> RemoveBackgroundVideoResult:
     output_dir.mkdir(parents=True, exist_ok=True)
     vidinfo: VidInfo = get_video_info(video_path)
     print(f"Video dimensions: {vidinfo.width}x{vidinfo.height}")
     cmd = f"static_ffmpeg -hide_banner -y -i {video_path} {output_dir}/%07d.png"
-    rtn = os.system(cmd)
-    if rtn != 0:
-        raise OSError("Error converting video to images")
+    _exec(cmd)
     print(f"Images saved to {output_dir}")
 
     if num_jobs is None:
@@ -125,8 +137,7 @@ def video_remove_background(
         final_output_dir = output_dir / "video"
         final_output_dir.mkdir(parents=True, exist_ok=True)
         cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{output_dir}" "{final_output_dir}"'
-        print(f"Running: {cmd}")
-        os.system(cmd)
+        _exec(cmd)
         print(f"Images with background removed saved to {final_output_dir}")
     else:
         # Split the images into subfolders for parallel processing
@@ -177,36 +188,66 @@ def video_remove_background(
                 shutil.move(str(img), str(final_output_dir / img.name))
 
     fps: float = fps_override if fps_override else vidinfo.fps
-    out_vid_path = Path(str(video_path.with_suffix("")) + f"-nobg-{model}.webm")
+    out_vid_path = Path(str(video_path.with_suffix("")) + "-nobackground.webm")
     filter_stmt = ""
     if output_height is not None:
-        filter_stmt = f'-vf "scale=-1:{output_height}"'
+        filter_stmt = f'-vf "scale=trunc(oh*a/2)*2:{output_height}"'
+
+    # Generate webm format for Chrome/Firefox
     cmd = (
         f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
         f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libvpx-vp9 -b:v {bitrate_megs}M'
         f' -auto-alt-ref 0 -pix_fmt yuva420p -an -r {fps} "{out_vid_path}"'
     )
-    print(f"Running: {cmd}")
-    rtn = os.system(cmd)
-    if rtn != 0:
-        raise OSError("Error converting images to video")
+    _exec(cmd)
 
     # Command to merge the audio from the original video with the new video
-    final_output_path = Path(str(video_path.with_suffix("")) + "-nobackground.webm")
+    final_output_path = Path(str(video_path.with_suffix("")) + f"-nobg-{model}.webm")
     print(f"Mixing audio from {video_path} into {final_output_path}")
     cmd = (
         f'static_ffmpeg -hide_banner -y -i "{out_vid_path}" -i "{video_path}"'
         f' -c:v copy -c:a libvorbis -map 0:v:0 -map 1:a:0 "{final_output_path}"'
     )
-    print(f"Running: {cmd}")
-    rtn = os.system(cmd)
-    if rtn != 0:
-        raise OSError("Error merging video and audio")
+    _exec(cmd)
+
+    # Generate HEVC mp4 format for Safari
+    tmp_mp4 = Path(str(video_path.with_suffix("")) + "-nobackground.mp4")
+    cmd = (
+        f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
+        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libx265 -crf 28'
+        f' -an -r {fps} "{tmp_mp4}"'
+    )
+
+    _exec(cmd)
+
+    # now mix in the audio
+    out_mp4 = Path(str(video_path.with_suffix("")) + f"-nobg-{model}.mp4")
+    cmd = (
+        f'static_ffmpeg -hide_banner -y -i "{tmp_mp4}" -i "{video_path}"'
+        f' -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{out_mp4}"'
+    )
+    _exec(cmd)
 
     # Delete intermediate files if --keep-files is not set
     if not keep_files:
-        shutil.rmtree(output_dir, ignore_errors=True)
-        os.remove(out_vid_path)
+        items_to_delete: list[Path] = [output_dir, out_vid_path, tmp_mp4]
+        for item in items_to_delete:
+            if item.exists():
+                try:
+                    if item.is_dir():
+                        shutil.rmtree(item, ignore_errors=True)
+                    else:
+                        os.remove(item)
+                except Exception as e:
+                    warnings.warn(f"Failed to delete {item}: {e}")
+
+    print(
+        f"Generated transparent supporting webm (vp9 with yuva420p) for Chrome/Firefox: {final_output_path}"
+    )
+    print(
+        f"Generated transparent supporting mp4 (HEVC with yuva420p) for Safari: {out_mp4}"
+    )
+    return RemoveBackgroundVideoResult(final_output_path, out_mp4)
 
 
 def is_video_file(file_path: Path) -> bool:
@@ -278,7 +319,7 @@ def cli() -> int:
 
     if args.file is None:
         open_browser_with_delay(f"http://localhost:{PORT}", 4)
-        os.system(f"rembg s --port {PORT}")
+        _exec(f"rembg s --port {PORT}")
         return 0
 
     if is_video_file(args.file):
@@ -300,13 +341,8 @@ def cli() -> int:
         print(f"Time taken: {diff:.2f} seconds")
         return 0
     cmd = f'rembg -a -ae 15 --post-process-mask -m {args.model} i "{args.file}"'
-    print(f"Running: {cmd}")
-    rtn = os.system(cmd)
-    if rtn != 0:
-        import warnings
-
-        warnings.warn(f"Error running command: {cmd}, return code: {rtn}")
-    return rtn
+    _exec(cmd)
+    return 0
 
 
 def main() -> int:

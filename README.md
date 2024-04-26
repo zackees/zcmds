@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.82: `removebackground` now generates an mp4 encoded in HEVC for yuva420p support as well as webm with vp9 yuva420p.
   * 1.4.81: `aicode` now defaults to `--claude3` if anthropic key is set. `removebackground` now supports parallel processing.
   * 1.4.80: `aicode` now supports `--claude3`, use `--set-anthropic-key` to set the key.
   * 1.4.79: `removebackground` now allows `--fps`
