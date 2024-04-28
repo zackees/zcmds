@@ -1,4 +1,5 @@
 import argparse
+import atexit
 import concurrent.futures
 import os
 import shutil
@@ -11,6 +12,9 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
+# notes: https://github.com/danielgatis/rembg/issues/312
+ENABLE_GPU_INSTALL = False  # experimental, not recommended for now
 
 # Needed for some reason.
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -57,13 +61,36 @@ class VidInfo:
     fps: float
 
 
+def has_cuda() -> bool:
+    # if nvidia-smi is available, then we have CUDA
+    return shutil.which("nvidia-smi") is not None
+
+
 def install_rembg_if_missing() -> None:
     bin_path = os.path.expanduser("~/.local/bin")
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + bin_path
     if shutil.which("rembg") is not None:
-        return
+        return  # already installed
     print("Installing rembg...")
     _exec("pipx install rembg[cli,gpu]")
+    if has_cuda() and ENABLE_GPU_INSTALL:
+        # To work around the issue with onnxruntime-gpu not using the GPU, we have to
+        # uninstall it and then reinstall it with the correct dependencies
+        try:
+            _exec("pipx runpip rembg uninstall onnxruntime-gpu --yes")
+            _exec("pipx runpip rembg uninstall torch --yes")
+            _exec("pipx runpip rembg uninstall torchvision --yes")
+            _exec("pipx runpip rembg uninstall torchaudio --yes")
+            _exec(
+                "pipx runpip rembg install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
+            )
+            _exec("pipx runpip rembg install onnxruntime-gpu")
+        except Exception as e:
+            warnings.warn(f"Failed to install GPU dependencies: {e}")
+            _exec(
+                "pipx uninstall rembg"
+            )  # uninstall rembg so that this program can run again
+            raise e
     assert shutil.which("rembg") is not None, "rembg not found after install"
 
 
@@ -109,6 +136,26 @@ def _exec(cmd: str) -> None:
         raise OSError(f"Error running command: {cmd}, return code: {rtn}")
 
 
+def chunkify(data_list: list, num_chunks: int) -> list:
+    chunk_size = (len(data_list) + num_chunks - 1) // num_chunks
+    return [data_list[i : i + chunk_size] for i in range(0, len(data_list), chunk_size)]
+
+
+def schedule_cleanup(path: Path) -> None:
+    def _cleanup(p: Path) -> None:
+        if p.exists():
+            path_str = str(p)
+            try:
+                if p.is_dir():
+                    shutil.rmtree(path_str, ignore_errors=True)
+                else:
+                    os.remove(path_str)
+            except Exception as e:
+                warnings.warn(f"Failed to delete {path_str}: {e}")
+
+    atexit.register(_cleanup, path)
+
+
 def video_remove_background(
     video_path: Path,
     output_dir: Path,
@@ -121,6 +168,8 @@ def video_remove_background(
     num_jobs: Optional[int] = None,
 ) -> RemoveBackgroundVideoResult:
     output_dir.mkdir(parents=True, exist_ok=True)
+    if not keep_files:
+        schedule_cleanup(output_dir)
     vidinfo: VidInfo = get_video_info(video_path)
     print(f"Video dimensions: {vidinfo.width}x{vidinfo.height}")
     cmd = f"static_ffmpeg -hide_banner -y -i {video_path} {output_dir}/%07d.png"
@@ -133,7 +182,7 @@ def video_remove_background(
         else:
             num_jobs = len(exposed_gpus)
 
-    if exposed_gpus is None or len(exposed_gpus) == 1:
+    if num_jobs == 1:
         final_output_dir = output_dir / "video"
         final_output_dir.mkdir(parents=True, exist_ok=True)
         cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{output_dir}" "{final_output_dir}"'
@@ -143,10 +192,7 @@ def video_remove_background(
         # Split the images into subfolders for parallel processing
         img_files = list(output_dir.glob("*.png"))
         img_files.sort()
-        chunk_size = (len(img_files) + num_jobs - 1) // num_jobs
-        img_chunks = [
-            img_files[i : i + chunk_size] for i in range(0, len(img_files), chunk_size)
-        ]
+        img_chunks = chunkify(img_files, num_jobs)
 
         def process_chunk(chunk, gpu_id, job_id):
             chunk_dir = output_dir / str(job_id)
@@ -168,11 +214,12 @@ def video_remove_background(
             print()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_jobs) as executor:
+            _exposed_gpus = exposed_gpus or [0]
             futures = [
                 executor.submit(
                     process_chunk,
                     chunk,
-                    exposed_gpus[job_id % len(exposed_gpus)],
+                    _exposed_gpus[job_id % len(_exposed_gpus)],
                     job_id,
                 )
                 for job_id, chunk in enumerate(img_chunks)
@@ -212,10 +259,14 @@ def video_remove_background(
 
     # Generate HEVC mp4 format for Safari
     tmp_mp4 = Path(str(video_path.with_suffix("")) + "-nobackground.mp4")
+    # Generate HEVC mp4 format for Safari
+    # So apparently the only codec to encode alpha channel compatible with Safari iOS is to use the
+    # hevc_videotoolbox encoder. The software x265 encoder does not support alpha channel encoding.
+    # so we will have to come back to this.
     cmd = (
         f"static_ffmpeg -hide_banner -y -framerate {vidinfo.fps}"
-        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libx264 -b:v {bitrate_megs}M'
-        f' -an -r {fps} "{tmp_mp4}"'
+        f' -i "{final_output_dir}/%07d.png" {filter_stmt} -c:v libx265 -b:v {bitrate_megs}M'
+        f' -tag:v hvc1 -an -r {fps} "{tmp_mp4}"'
     )
 
     _exec(cmd)
@@ -227,19 +278,6 @@ def video_remove_background(
         f' -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 "{out_mp4}"'
     )
     _exec(cmd)
-
-    # Delete intermediate files if --keep-files is not set
-    if not keep_files:
-        items_to_delete: list[Path] = [output_dir, out_vid_path, tmp_mp4]
-        for item in items_to_delete:
-            if item.exists():
-                try:
-                    if item.is_dir():
-                        shutil.rmtree(item, ignore_errors=True)
-                    else:
-                        os.remove(item)
-                except Exception as e:
-                    warnings.warn(f"Failed to delete {item}: {e}")
 
     print(
         f"Generated transparent supporting webm (vp9 with yuva420p) for Chrome/Firefox: {final_output_path}"
