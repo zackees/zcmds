@@ -196,7 +196,7 @@ class AiderUpdateResult:
         )
 
 
-def aider_check_update() -> AiderUpdateResult:
+def aider_check_update(current_version: Optional[str]) -> AiderUpdateResult:
     # rtn = os.system("aider --check-update")
     try:
         cp = subprocess.run(
@@ -207,20 +207,33 @@ def aider_check_update() -> AiderUpdateResult:
         )
         if cp.returncode == 0:
             return AiderUpdateResult(False, "", "")
+    except KeyboardInterrupt:
+        raise
     except Exception:  # pylint: disable=broad-except
         return AiderUpdateResult(False, "", "")
+    if current_version is None:
+        cmd = "aider --version"
+        stdout = subprocess.run(
+            cmd, capture_output=True, check=False, text=True
+        ).stdout.strip()
+        try:
+            current_version = extract_version_string(stdout)
+        except Exception:
+            warnings.warn(f"Could not extract version info from {stdout}")
+            current_version = "Unknown"
     stdout = cp.stdout.strip()
-    lines = stdout.split("\n")
+    # lines = stdout.split("\n")
     try:
-        current_version: str = extract_version_string(lines[0])
-        latest_version: str = extract_version_string(lines[1])
+        # current_version: str = extract_version_string(current_version)
+        # current_version = "Unknown"  # TODO: Get current version
+        latest_version: str = extract_version_string(stdout)
         out = AiderUpdateResult(True, latest_version, current_version)
         # print(out.get_update_msg())
         return out
     except Exception as err:  # pylint: disable=broad-except
-        warnings.warn(f"Failed to parse update message: {lines}\n because of {err}")
+        warnings.warn(f"Failed to parse update message: {stdout}\n because of {err}")
         pass
-    return AiderUpdateResult(True, "Unknown", "Unknown")
+    return AiderUpdateResult(True, "Unknown", current_version)
 
 
 def check_gitignore() -> None:
@@ -256,7 +269,13 @@ def background_update_task(config: dict) -> None:
         # Wait for aider to start so that we don't impact startup time.
         # This is really needed for windows because startup is so slow.
         time.sleep(5)
-        update_info = aider_check_update()
+        current_version = None
+        aider_update_info = config.get("aider_update_info")
+        if aider_update_info is not None:
+            current_version = aider_update_info.get("current_version")
+            if current_version == "Unknown":
+                current_version = None
+        update_info = aider_check_update(current_version)
         if update_info.has_update:
             config["aider_update_info"] = update_info.to_json_data()
             save_config(config)
