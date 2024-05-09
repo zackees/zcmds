@@ -218,7 +218,7 @@ def aider_check_update() -> AiderUpdateResult:
         # print(out.get_update_msg())
         return out
     except Exception as err:  # pylint: disable=broad-except
-        warnings.warn(f"Failed to parse update message: {err}")
+        warnings.warn(f"Failed to parse update message: {lines}\n because of {err}")
         pass
     return AiderUpdateResult(True, "Unknown", "Unknown")
 
