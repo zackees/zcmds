@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.86: New tool `git-diff`
   * 1.4.85: `aicode` now defaults to use `openai/gpt-4o` whenever possible, because it's that much better that claude3.
   * 1.4.84: Fixes `aicode` issue where the saved version number could become corrupted with a KeyboardInterrupt
   * 1.4.83: `removebackground` now uses `-b` for bitrate for mp4 like it does webm. Bitrates can now be specified in other units like 500k.code
