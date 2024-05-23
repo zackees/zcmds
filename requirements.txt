@@ -27,3 +27,4 @@ send2trash
 magic-wormhole
 gpt4all
 wormhole-tx
+advanced-aicode
