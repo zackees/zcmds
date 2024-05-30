@@ -20,14 +20,15 @@ def zf_write(zf: zipfile.ZipFile, file_abs: str, archive_path: Optional[str]) ->
 
 
 def make_archive(
-    folder_or_file: str, archive_name: str, root_dir: Optional[str] = None
+    folder_or_file: str, archive_name: str, root_dir: Optional[str] = None, no_deflate: bool = False
 ) -> None:
     if archive_name is None:
         archive_name = folder_or_file + ".zip"
     root_dir = root_dir or os.path.dirname(folder_or_file)
 
     try:
-        with zipfile.ZipFile(archive_name, "w", zipfile.ZIP_DEFLATED) as zf:
+        compression = zipfile.ZIP_STORED if no_deflate else zipfile.ZIP_DEFLATED
+        with zipfile.ZipFile(archive_name, "w", compression) as zf:
             if os.path.isfile(folder_or_file):
                 zf_write(zf=zf, file_abs=folder_or_file, archive_path=None)
             else:
@@ -58,6 +59,11 @@ def make_argparse() -> argparse.ArgumentParser:
         help="Name of archive",
         nargs="?",
     )
+    parser.add_argument(
+        "--no-deflate",
+        action="store_true",
+        help="Store files without compression",
+    )
     return parser
 
 
@@ -71,7 +77,7 @@ def chop_ext(filename: str) -> str:
 def main_args(args: Any) -> int:
     folder_or_file = args.folder_or_file
     archive_name = args.archive_name or chop_ext(folder_or_file) + ".zip"
-    make_archive(folder_or_file, archive_name)
+    make_archive(folder_or_file, archive_name, no_deflate=args.no_deflate)
     return 0
 
 
