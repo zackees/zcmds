@@ -27,4 +27,5 @@ send2trash
 magic-wormhole
 gpt4all
 wormhole-tx
+pillow-heif
 advanced-aicode

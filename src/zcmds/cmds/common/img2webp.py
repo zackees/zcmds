@@ -14,6 +14,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 from PIL import Image  # type: ignore
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 
 @dataclass
