@@ -19,28 +19,39 @@ def zf_write(zf: zipfile.ZipFile, file_abs: str, archive_path: Optional[str]) ->
         print(e, file=sys.stderr)
 
 
+def get_paths(start_path: str) -> list[str]:
+    out: list[str] = []
+    for root, dirs, files in os.walk(start_path):
+        for file in files:
+            file_abs = os.path.join(root, file)
+            out.append(file_abs)
+    return out
+
+
 def make_archive(
-    folder_or_file: str, archive_name: str, root_dir: Optional[str] = None, no_deflate: bool = False
+    folder_or_file: str,
+    archive_name: str,
+    root_dir: Optional[str] = None,
+    no_deflate: bool = False,
 ) -> None:
     if archive_name is None:
         archive_name = folder_or_file + ".zip"
     root_dir = root_dir or os.path.dirname(folder_or_file)
-
     try:
         compression = zipfile.ZIP_STORED if no_deflate else zipfile.ZIP_DEFLATED
         with zipfile.ZipFile(archive_name, "w", compression) as zf:
             if os.path.isfile(folder_or_file):
                 zf_write(zf=zf, file_abs=folder_or_file, archive_path=None)
             else:
-                for root, dirs, files in os.walk(folder_or_file):
-                    for file in files:
-                        print("compressing " + file)
-                        file_abs = os.path.join(root, file)
-                        zf_write(
-                            zf=zf,
-                            file_abs=file_abs,
-                            archive_path=os.path.relpath(file_abs, root_dir),
-                        )
+                paths: list[str] = get_paths(start_path=folder_or_file)
+                for file_abs in paths:
+                    print(f"compressing {file_abs}")
+                    zf_write(
+                        zf=zf,
+                        file_abs=file_abs,
+                        archive_path=os.path.relpath(file_abs, root_dir),
+                    )
+
     except PermissionError as perm_err:
         print(perm_err, file=sys.stderr)
 
