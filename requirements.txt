@@ -28,4 +28,4 @@ magic-wormhole
 gpt4all
 wormhole-tx
 pillow-heif
-advanced-aicode
+advanced-aicode>=1.1.0
