@@ -1,11 +1,12 @@
 # pylint: skip-file
 
 import argparse
-import json
 import os
 import subprocess
 import sys
 from typing import Tuple
+
+import json5 as json
 
 
 def exec(cmd: str) -> Tuple[int, str, str]:
