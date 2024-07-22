@@ -37,7 +37,8 @@ AI_ASSISTANT = (
 AI_ASSISTANT_CHECKER_PROMPT = (
     "Now check this answer and verify if it's correct. If it's correct, say so. \n"
     "If it's not correct or if there are any issues, explain what's wrong and provide the correct information. \n"
-    "Otherwise, say that this correct and repeat the answer VERBATIM."
+    "Otherwise, say that this correct and repeat the answer VERBATIM.\n"
+    'Do not provide any additional information, such as "This is correct." or "This is incorrect.", just provide the correct information.'
 )
 
 FORCE_COLOR = False
@@ -63,6 +64,17 @@ class OutStream:
     def write(self, text: str) -> None:
         self.outfile.write(text)
         self.color_term.update(text)
+
+    def close(self) -> None:
+        pass
+
+
+class NullOutStream(OutStream):
+    def __init__(self):
+        super().__init__(None)
+
+    def write(self, text: str) -> None:
+        pass
 
     def close(self) -> None:
         pass
@@ -123,11 +135,13 @@ def run_chat_query(
     prompts: list[str],
     output_stream: OutStream,
     args: argparse.Namespace,
+    print_status: bool,
 ) -> Optional[int]:
     # allow exit() and exit to exit the app
     as_json = args.json
     if not as_json:
-        print("############ OPEN-AI QUERY")
+        if print_status:
+            print("############ OPEN-AI QUERY")
     try:
         chat_stream: ChatStream = chatbot.query(prompts, no_stream=args.no_stream)
     except ChatGPTConnectionError as err:
@@ -151,7 +165,8 @@ def run_chat_query(
         output_stream.write(str(chat_stream.response()))
         return 1
     if not args.output:
-        print("############ OPEN-AI RESPONSE\n")
+        if print_status:
+            print("############ OPEN-AI RESPONSE\n")
     response_text = ""
     for text in chat_stream:
         if text is None:
@@ -229,7 +244,12 @@ def cli() -> int:
     while True:
         try:
             rtn: Optional[int] = None
-            output_stream = OutStream(args.output)  # needs to be created every time.
+            output_stream: OutStream = OutStream(
+                args.output
+            )  # needs to be created every time.
+            if args.check:
+                # if we're checking, we need to use a null output stream
+                output_stream = NullOutStream()
             new_cmd = prompts[-1].strip().replace("()", "")
             if new_cmd.startswith("!"):
                 prompts = prompts[0:-1]
@@ -241,7 +261,9 @@ def cli() -> int:
             elif new_cmd == "exit":
                 print("Exited due to 'exit' command")
                 return 0
-            rtn = run_chat_query(chatbot, prompts, output_stream, args)
+            rtn = run_chat_query(
+                chatbot, prompts, output_stream, args, print_status=True
+            )
             if rtn is not None:
                 return rtn
 
@@ -252,7 +274,9 @@ def cli() -> int:
                 check_prompt = AI_ASSISTANT_CHECKER_PROMPT + "\n\n" + prompts[-1]
                 prompts.append(check_prompt)
                 print("\n############ CHECKING RESPONSE")
-                rtn = run_chat_query(chatbot, prompts, output_stream, args)
+                rtn = run_chat_query(
+                    chatbot, prompts, output_stream, args, print_status=False
+                )
                 if rtn is not None:
                     return rtn
 
