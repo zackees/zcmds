@@ -35,8 +35,9 @@ AI_ASSISTANT = (
 )
 
 AI_ASSISTANT_CHECKER_PROMPT = (
-    "Now check this answer and verify if it's correct. If it's correct, say so. "
-    "If it's not correct or if there are any issues, explain what's wrong and provide the correct information."
+    "Now check this answer and verify if it's correct. If it's correct, say so. \n"
+    "If it's not correct or if there are any issues, explain what's wrong and provide the correct information. \n"
+    "Otherwise, say that this correct and repeat the answer VERBATIM."
 )
 
 FORCE_COLOR = False
@@ -107,6 +108,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Code mode: enables aider mode",
+    )
+    argparser.add_argument(
+        "--check",
+        action="store_true",
+        default=False,
+        help="Sends the response back to the chatbot for a second opinion",
     )
     return argparser.parse_args()
 
@@ -235,10 +242,23 @@ def cli() -> int:
                 print("Exited due to 'exit' command")
                 return 0
             rtn = run_chat_query(chatbot, prompts, output_stream, args)
-            if not interactive:
-                return rtn or 0
             if rtn is not None:
                 return rtn
+
+            if args.check:
+                output_stream = OutStream(
+                    args.output
+                )  # needs to be created every time.
+                check_prompt = AI_ASSISTANT_CHECKER_PROMPT + "\n\n" + prompts[-1]
+                prompts.append(check_prompt)
+                print("\n############ CHECKING RESPONSE")
+                rtn = run_chat_query(chatbot, prompts, output_stream, args)
+                if rtn is not None:
+                    return rtn
+
+            if not interactive:
+                return 0
+
             # next loop.
             prompts.append(prompt_input())
         finally:
