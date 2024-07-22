@@ -23,13 +23,6 @@ HIDDEN_PROMPT_TOKEN_COUNT = (
 )
 ADVANCED_MODEL = "gpt-4o"
 FAST_MODEL = "gpt-4o-mini"
-AI_ASSISTANT_AS_PROGRAMMER = (
-    "You are a helpful assistant to a senior programmer. "
-    "If I am asking how to do something in general then go ahead "
-    "and recommend popular third-party apps that can get the job done, "
-    "but don't recommend additional tools when I'm currently asking how to do use "
-    "a specific tool."
-)
 
 
 class ChatGPTConnectionError(APIConnectionError):

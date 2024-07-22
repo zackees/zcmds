@@ -13,7 +13,6 @@ from zcmds.util.streaming_console import StreamingConsole
 try:
     from zcmds.util.chatgpt import (
         ADVANCED_MODEL,
-        AI_ASSISTANT_AS_PROGRAMMER,
         FAST_MODEL,
         ChatBot,
         ChatGPTAuthenticationError,
@@ -27,6 +26,18 @@ except KeyboardInterrupt:
     # than throw a cryptic error and stack trace.
     sys.exit(1)
 
+AI_ASSISTANT = (
+    "You are a helpful assistant to a senior programmer. "
+    "If I am asking how to do something in general then go ahead "
+    "and recommend popular third-party apps that can get the job done, "
+    "but don't recommend additional tools when I'm currently asking how to do use "
+    "a specific tool."
+)
+
+AI_ASSISTANT_CHECKER_PROMPT = (
+    "Now check this answer and verify if it's correct. If it's correct, say so. "
+    "If it's not correct or if there are any issues, explain what's wrong and provide the correct information."
+)
 
 FORCE_COLOR = False
 
@@ -83,9 +94,7 @@ def parse_args() -> argparse.Namespace:
     model_group.add_argument("--model", default=None)
     argparser.add_argument("--verbose", action="store_true", default=False)
     argparser.add_argument("--no-stream", action="store_true", default=False)
-    argparser.add_argument(
-        "--assistant-prompt", type=str, default=AI_ASSISTANT_AS_PROGRAMMER
-    )
+    argparser.add_argument("--assistant-prompt", type=str, default=AI_ASSISTANT)
     argparser.add_argument(
         "--assistant-prompt-file", type=str, help="File containing assistant prompt"
     )
@@ -166,9 +175,8 @@ def cli() -> int:
         ai_assistant_prompt=ai_assistant_prompt,
     )
 
-    def run_chat_query(output_stream: OutStream) -> Optional[int]:
+    def run_chat_query(prompts: list[str], output_stream: OutStream) -> Optional[int]:
         # allow exit() and exit to exit the app
-        nonlocal prompts
         new_cmd = prompts[-1].strip().replace("()", "")
         if new_cmd.startswith("!"):
             prompts = prompts[0:-1]
@@ -201,7 +209,7 @@ def cli() -> int:
             print(chat_stream)
             return 0
         if chat_stream is None or not chat_stream.success():
-            print("No error response recieved from from OpenAI, response was:")
+            print("No error response received from OpenAI, response was:")
             output_stream.write(str(chat_stream.response()))
             return 1
         if not args.output:
@@ -222,7 +230,7 @@ def cli() -> int:
     while True:
         try:
             output_stream = OutStream(args.output)
-            rtn = run_chat_query(output_stream)
+            rtn = run_chat_query(prompts, output_stream)
             if not interactive:
                 return rtn or 0
             if rtn is not None:
