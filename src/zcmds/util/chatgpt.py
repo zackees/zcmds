@@ -22,9 +22,8 @@ MAX_TOKENS = 4096
 HIDDEN_PROMPT_TOKEN_COUNT = (
     100  # this hack corrects for the unnaccounted for tokens in the prompt
 )
-ADVANCED_MODEL = "openai/gpt-4o"
-SLOW_MODEL = "openai/gpt-4o"  # now the same as ADVANCED_MODEL because it's so much better at everything
-FAST_MODEL = "gpt-3.5-turbo"
+ADVANCED_MODEL = "gpt-4-turbo"
+FAST_MODEL = "gpt-4o-mini"
 AI_ASSISTANT_AS_PROGRAMMER = (
     "You are a helpful assistant to a senior programmer. "
     "If I am asking how to do something in general then go ahead "

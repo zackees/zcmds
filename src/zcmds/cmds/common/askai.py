@@ -16,7 +16,6 @@ try:
         ADVANCED_MODEL,
         AI_ASSISTANT_AS_PROGRAMMER,
         FAST_MODEL,
-        SLOW_MODEL,
         ChatBot,
         ChatGPTAuthenticationError,
         ChatGPTConnectionError,
@@ -85,10 +84,7 @@ def parse_args() -> argparse.Namespace:
         "--fast",
         action="store_true",
         default=False,
-        help=f"chat gpt 3 turbo: {FAST_MODEL}",
-    )
-    model_group.add_argument(
-        "--slow", action="store_true", default=False, help=f"chat gpt 4: {SLOW_MODEL}"
+        help=f"chat gpt 4o mini: {FAST_MODEL}",
     )
     model_group.add_argument(
         "--advanced",
@@ -127,20 +123,17 @@ def cli() -> int:
     max_tokens = args.max_tokens
     if args.fast:
         args.model = FAST_MODEL
+        max_tokens = 16384
     if args.input_file:
         with open(args.input_file, "r") as file:
             args.prompt = file.read().strip()
     if args.model is None:
-        if args.slow:
-            model = SLOW_MODEL
-            if max_tokens is None:
-                max_tokens = 4096
-        elif args.advanced:
+        if args.advanced:
             model = ADVANCED_MODEL
-            max_tokens = 128000
+            max_tokens = 4096
         else:
             model = FAST_MODEL
-            max_tokens = 4096
+            max_tokens = 16384
     else:
         model = args.model
 
