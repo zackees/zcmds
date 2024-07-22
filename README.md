@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.90: `askai` is upgraded to the latest models. ChatGPT3.5 has been replaced with GPT4o-mini. --advanced is now gpt-4o
   * 1.4.89: Fixes `vidinfo --full` not being able to parse json with trailing commas.
   * 1.4.88: `aicode` now has minimal version 1.1.0
   * 1.4.87: `aicode` has been externalized into package `advanced-aicode`, but can still be invoked using `aicode`.

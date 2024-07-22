@@ -18,11 +18,10 @@ except KeyboardInterrupt:
     sys.exit(1)
 
 
-MAX_TOKENS = 4096
 HIDDEN_PROMPT_TOKEN_COUNT = (
     100  # this hack corrects for the unnaccounted for tokens in the prompt
 )
-ADVANCED_MODEL = "gpt-4-turbo"
+ADVANCED_MODEL = "gpt-4o"
 FAST_MODEL = "gpt-4o-mini"
 AI_ASSISTANT_AS_PROGRAMMER = (
     "You are a helpful assistant to a senior programmer. "
@@ -66,9 +65,6 @@ def get_client_instance(openai_key: str) -> OpenAI:
 
 
 def count_tokens(model: str, text: str):
-    # Ensure you have the right model, for example, "gpt-3.5-turbo"
-    if "gpt-4" in model:
-        model = "gpt-3.5-turbo"  # Hack to make this works
     enc = tiktoken.encoding_for_model(model)
     return len(enc.encode(text))
 
