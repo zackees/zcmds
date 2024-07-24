@@ -29,3 +29,4 @@ gpt4all
 wormhole-tx
 pillow-heif
 advanced-aicode>=1.1.0
+advanced-askai

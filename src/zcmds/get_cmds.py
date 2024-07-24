@@ -2,7 +2,7 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-EXTRA_COMMANDS = ["transcribe-anything", "aicode"]
+EXTRA_COMMANDS = ["transcribe-anything", "aicode", "askai"]
 
 
 def get_cmds(just_names: bool = False) -> list[str]:

@@ -1,4 +1,4 @@
-askai = "zcmds.cmds.common.askai:main"
+
 imgai = "zcmds.cmds.common.imgai:main"
 img2webp = "zcmds.cmds.common.img2webp:main"
 zcmds = "zcmds.cmds.common.zcmds_main:main"

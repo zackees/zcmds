@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.94: `askai` has now been moved to it's own package.
   * 1.4.93: `askai` is now less verbose when using `--check`, and only the final response is returned.
   * 1.4.92: `askai` now allows `--check` which asks the AI agent if the last answer was correct.
   * 1.4.91: `askai` using `exit` will better exit in interactive mode.
