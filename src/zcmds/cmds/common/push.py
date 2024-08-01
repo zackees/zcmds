@@ -1,67 +1,69 @@
-import argparse
+import os
+import subprocess
 import sys
-import warnings
-
-from git import GitCommandError, Repo
 
 from zcmds.util.say import say
 
 
 def warn(msg: str) -> None:
     """Prints a warning message."""
-    warnings.warn(msg)
+    print(f"Warning: {msg}", file=sys.stderr)
     say(msg)
 
 
-def git_has_uncommitted_changes_or_untracked_files() -> tuple[bool, bool]:
-    """Returns True if git has uncommitted changes or untracked files."""
-    try:
-        from git import Repo  # type: ignore
-    except ImportError:
-        warnings.warn("GitPython is not installed.")
-        return False, False
-    repo = Repo(".")
-    return repo.is_dirty(), len(repo.untracked_files) > 0
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Pushes to git",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+def git_status() -> tuple[bool, bool]:
+    """Returns (has_changes, has_untracked_files)"""
+    status = subprocess.check_output(["git", "status", "--porcelain"]).decode().strip()
+    has_changes = any(
+        line.startswith(" M") or line.startswith("M") for line in status.split("\n")
     )
-    return parser.parse_args()
+    has_untracked = any(line.startswith("??") for line in status.split("\n"))
+    return has_changes, has_untracked
+
+
+def get_current_branch() -> str:
+    """Returns the name of the current git branch."""
+    return (
+        subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+        .decode()
+        .strip()
+    )
 
 
 def main() -> int:
-    is_dirty, has_untracked_files = git_has_uncommitted_changes_or_untracked_files()
-    if is_dirty:
-        msg = "Push failed: there are uncommitted changes that need to be committed or stashed first."
-        warn(msg)
+    has_changes, has_untracked = git_status()
+    if has_changes:
+        warn(
+            "Push failed: there are uncommitted changes that need to be committed or stashed first."
+        )
         return 1
-    if has_untracked_files:
-        msg = "Push failed: there are untracked files that need to be committed or removed first."
-        warn(msg)
+    if has_untracked:
+        warn(
+            "Push failed: there are untracked files that need to be committed or removed first."
+        )
         return 1
-    args = parse_args()  # pylint: disable=unused-variable
-    args = args  # Silence warnings
-    repo = Repo(".")
-    original_branch = repo.active_branch
-    # fetch the repo
-    repo.git.fetch()
-    # can rebase succeed?
-    # _todo: check if rebase succeeds
-    # check if head has changed
-    try:
-        repo.git.push("origin", original_branch)
-    except GitCommandError as e:
-        if "no upstream branch" in str(e).lower():
+
+    current_branch = get_current_branch()
+
+    # Fetch the repo
+    os.system("git fetch")
+
+    # Push to origin
+    push_result = os.system(f"git push origin {current_branch}")
+    if push_result != 0:
+        if (
+            "no upstream branch"
+            in subprocess.getoutput(f"git push origin {current_branch}").lower()
+        ):
             warn(
-                f"No upstream branch found for {original_branch}. Push failed, but returning 0 as requested."
+                f"No upstream branch found for {current_branch}. Push failed, but returning 0 as requested."
             )
             return 0
         else:
-            warn(f"Push failed: {e}")
+            warn(f"Push failed with exit code {push_result}")
             return 1
+
+    print(f"Successfully pushed to origin/{current_branch}")
     return 0
 
 
