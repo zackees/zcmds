@@ -53,7 +53,7 @@ def main() -> int:
     # _todo: check if rebase succeeds
     # check if head has changed
     try:
-        repo.git.push("origin", original_branch)
+        rtn = repo.git.push("origin", original_branch)
     except GitCommandError as e:
         if "no upstream branch" in str(e).lower():
             warn(f"No upstream branch found for {original_branch}. Push failed, but returning 0 as requested.")
