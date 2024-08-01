@@ -2,7 +2,7 @@ import argparse
 import sys
 import warnings
 
-from git import Repo, GitCommandError
+from git import GitCommandError, Repo
 
 from zcmds.util.say import say
 
@@ -47,16 +47,17 @@ def main() -> int:
     repo = Repo(".")
     original_branch = repo.active_branch
     # fetch the repo
-    rtn = repo.git.fetch()
-    print(rtn)
+    repo.git.fetch()
     # can rebase succeed?
     # _todo: check if rebase succeeds
     # check if head has changed
     try:
-        rtn = repo.git.push("origin", original_branch)
+        repo.git.push("origin", original_branch)
     except GitCommandError as e:
         if "no upstream branch" in str(e).lower():
-            warn(f"No upstream branch found for {original_branch}. Push failed, but returning 0 as requested.")
+            warn(
+                f"No upstream branch found for {original_branch}. Push failed, but returning 0 as requested."
+            )
             return 0
         else:
             warn(f"Push failed: {e}")
