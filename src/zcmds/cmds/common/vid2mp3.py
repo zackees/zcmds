@@ -6,7 +6,13 @@ import sys
 from pathlib import Path
 
 
-def run(filename: str, output: str | None, normalize: bool) -> int:
+def run(
+    filename: str,
+    output: str | None,
+    normalize: bool,
+    start: str | None,
+    end: str | None,
+) -> int:
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
@@ -15,7 +21,12 @@ def run(filename: str, output: str | None, normalize: bool) -> int:
         assert out_path.endswith(".mp3")
     else:
         out_path = str(Path(filename).with_suffix(".mp3"))
-    cmd = f'static_ffmpeg -hide_banner -i "{filename}" -vn -c:a libmp3lame -y ".{out_path}"'
+    cmd = f'static_ffmpeg -hide_banner -i "{filename}"'
+    if start:
+        cmd += f" -ss {start}"
+    if end:
+        cmd += f" -to {end}"
+    cmd += f' -vn -c:a libmp3lame -y ".{out_path}"'
     print(f"Executing:\n  {cmd}")
     os.system(cmd)
     assert os.path.exists(f".{out_path}")
@@ -38,10 +49,12 @@ def main() -> int:
     parser.add_argument("filename", help="The video file to convert to mp3")
     parser.add_argument("-o", "--output", help="The output file name")
     parser.add_argument("-n", "--normalize", action="store_true")
+    parser.add_argument("--start", help="Start time for cutting (format: HH:MM:SS)")
+    parser.add_argument("--end", help="End time for cutting (format: HH:MM:SS)")
     args = parser.parse_args()
     filename = sys.argv[1:2][0]
     print(f"Converting {filename} to mp3")
-    rtn = run(filename, args.output, args.normalize)
+    rtn = run(filename, args.output, args.normalize, args.start, args.end)
     return rtn
 
 
