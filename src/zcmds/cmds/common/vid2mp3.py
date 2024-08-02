@@ -22,7 +22,7 @@ def run(
         assert out_path.endswith(".mp3") or (wave and out_path.endswith(".wav"))
     else:
         out_path = str(Path(filename).with_suffix(".wav" if wave else ".mp3"))
-    cmd = f'static_ffmpeg -hide_banner -i "{filename}"'
+    cmd = f'static_ffmpeg -y -hide_banner -i "{filename}"'
     if start:
         cmd += f" -ss {start}"
     if end:
