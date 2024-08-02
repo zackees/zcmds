@@ -135,6 +135,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.96: `vid2mp3` now includes audio clipping and save to wave format.
   * 1.4.95: `push` now uses straight up `git` commands to get better tracing and notification when push failed.
   * 1.4.94: `askai` has now been moved to it's own package.
   * 1.4.93: `askai` is now less verbose when using `--check`, and only the final response is returned.
