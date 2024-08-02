@@ -12,22 +12,21 @@ def run(
     normalize: bool,
     start: str | None,
     end: str | None,
-    wave: bool,
 ) -> int:
     if not os.path.exists(filename):
         print(f"{filename} does not exist")
         sys.exit(1)
     if output:
         out_path = output
-        assert out_path.endswith(".mp3") or (wave and out_path.endswith(".wav"))
+        assert out_path.endswith(".mp3") or out_path.endswith(".wav")
     else:
-        out_path = str(Path(filename).with_suffix(".wav" if wave else ".mp3"))
+        out_path = str(Path(filename).with_suffix(".mp3"))
     cmd = f'static_ffmpeg -y -hide_banner -i "{filename}"'
     if start:
         cmd += f" -ss {start}"
     if end:
         cmd += f" -to {end}"
-    if wave:
+    if out_path.endswith(".wav"):
         cmd += f' -vn -acodec pcm_s16le -y ".{out_path}"'
     else:
         cmd += f' -vn -c:a libmp3lame -y ".{out_path}"'
@@ -55,13 +54,11 @@ def main() -> int:
     parser.add_argument("-n", "--normalize", action="store_true")
     parser.add_argument("--start", help="Start time for cutting (format: HH:MM:SS)")
     parser.add_argument("--end", help="End time for cutting (format: HH:MM:SS)")
-    parser.add_argument(
-        "--wave", action="store_true", help="Generate .wav file instead of .mp3"
-    )
     args = parser.parse_args()
     filename = sys.argv[1:2][0]
-    print(f"Converting {filename} to {'wav' if args.wave else 'mp3'}")
-    rtn = run(filename, args.output, args.normalize, args.start, args.end, args.wave)
+    output_format = "wav" if args.output and args.output.endswith(".wav") else "mp3"
+    print(f"Converting {filename} to {output_format}")
+    rtn = run(filename, args.output, args.normalize, args.start, args.end)
     return rtn
 
 
