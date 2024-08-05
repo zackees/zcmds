@@ -65,7 +65,7 @@ def convert_img_to_format(
     im = Image.open(file)
     # Convert the image to RGB if it's RGBA and the output format is JPEG
     if im.mode == "RGBA" and format == "jpeg":
-        im = im.convert("RGB")
+        im = im.convert("RGB")  # type: ignore
     # Reduce the image size by half
     if options.height is not None:
         height = options.height
