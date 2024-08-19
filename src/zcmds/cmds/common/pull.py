@@ -1,9 +1,10 @@
 import argparse
 import subprocess
 import sys
+import warnings
 
 
-def run_git_command(command: list[str]) -> str:
+def run_git_command(command: list[str]) -> tuple[int, str]:
     try:
         result = subprocess.run(
             command,
@@ -12,11 +13,11 @@ def run_git_command(command: list[str]) -> str:
             stderr=subprocess.PIPE,
             text=True,
         )
-        return result.stdout
+        return 0, result.stdout
     except subprocess.CalledProcessError as e:
         msg = f"Error running command {' '.join(command)}: {e.stderr}"
-        print(msg, file=sys.stderr)
-        sys.exit(1)
+        warnings.warn(msg)
+        return e.returncode, msg
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,14 +41,20 @@ def fetch_branches(all: bool) -> None:
 
 
 def get_remote_branches() -> list[str]:
-    branches = run_git_command(["git", "branch", "-r"]).splitlines()
+    rtn, msg = run_git_command(["git", "branch", "-r"])
+    if rtn != 0:
+        raise RuntimeError(f"Error fetching remote branches: {msg}")
+    branches = msg.splitlines()
     return [
         branch.strip() for branch in branches if "->" not in branch
     ]  # Exclude remote HEAD pointer
 
 
 def get_local_branches() -> list[str]:
-    branches = run_git_command(["git", "branch"]).splitlines()
+    rtn, msg = run_git_command(["git", "branch"])
+    if rtn != 0:
+        raise RuntimeError("Error fetching local branches")
+    branches = msg.splitlines()
     return [branch.strip().replace("* ", "") for branch in branches]
 
 
@@ -58,17 +65,27 @@ def create_missing_local_branches(
         branch_name = branch.replace("origin/", "")
         if branch_name not in local_branches:
             print(f"Creating local branch for {branch}...")
-            run_git_command(["git", "branch", "--track", branch_name, branch])
+            rtn, msg = run_git_command(
+                ["git", "branch", "--track", branch_name, branch]
+            )
+            if rtn != 0:
+                raise RuntimeError(f"Error creating local branch: {msg}")
 
 
 def pull_rebase_branch(branch: str) -> None:
     print(f"Updating {branch} with git pull --rebase...")
-    run_git_command(["git", "checkout", branch])
+    rtn, msg = run_git_command(["git", "checkout", branch])
+    if rtn != 0:
+        raise RuntimeError(f"Error checking out branch {branch}: {msg}")
     run_git_command(["git", "pull", "--rebase", "origin", branch])
 
 
 def get_current_branch() -> str:
-    return run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip()
+    rtn, msg = run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    if rtn != 0:
+        raise RuntimeError(f"Error getting current branch: {msg}")
+    msg = msg.strip()
+    return msg
 
 
 def pull_rebase_all_branches(local_branches: list[str]) -> None:
@@ -78,7 +95,9 @@ def pull_rebase_all_branches(local_branches: list[str]) -> None:
 
 def set_remote_url(url: str) -> None:
     print(f"Setting remote origin URL to {url}...")
-    run_git_command(["git", "remote", "set-url", "origin", url])
+    rtn, msg = run_git_command(["git", "remote", "set-url", "origin", url])
+    if rtn != 0:
+        raise RuntimeError(f"Error setting remote origin URL: {msg}")
 
 
 def main() -> int:
@@ -100,7 +119,10 @@ def main() -> int:
     else:
         pull_rebase_all_branches(["main"])
         print("main branch updated successfully.")
-    run_git_command(["git", "checkout", original_branch])
+    rtn, msg = run_git_command(["git", "checkout", original_branch])
+    if rtn != 0:
+        print(f"Error checking out branch {original_branch}: {msg}")
+        return 1
     return 0
 
 
