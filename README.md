@@ -73,6 +73,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Reduces a stereo audio / video to a single mono track.
   * sudo (win32 only)
     * Runs a command as in sudo, using the gsudo tool.
+  * trustdir
+    * Adds the specified directories to the be excluded from OS scanning for threats.
   * vidcat
     * Concatenates two videos together, upscaling a lower resolution video.
   * vidmute

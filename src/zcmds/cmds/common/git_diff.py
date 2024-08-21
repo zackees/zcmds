@@ -107,5 +107,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    os.chdir(r"C:\Users\niteris\dev\ads_dashboard")
     sys.exit(main())
