@@ -137,6 +137,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.4.99: Added `trustdir` which adds a directory for OS security scanning exclusion, making builds faster.
   * 1.4.98: Fixed `pull --all` to handle missing repos between remote and local.
   * 1.4.97: More improvements to `vid2mp3` - auto overwrite and auto wave format.
   * 1.4.96: `vid2mp3` now includes audio clipping and save to wave format.
