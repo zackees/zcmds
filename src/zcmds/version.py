@@ -1,5 +1,5 @@
 """Just holds the version for the app"""
 
 # Also change version in pyproject.toml
-VERSION = "1.4.99"  # pylint: disable=R0801
+VERSION = "1.4.100"  # pylint: disable=R0801
 __version__ = VERSION
