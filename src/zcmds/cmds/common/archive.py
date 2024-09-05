@@ -35,7 +35,11 @@ def make_archive(
     no_deflate: bool = False,
 ) -> None:
     if archive_name is None:
-        archive_name = folder_or_file + ".zip"
+        sanitized_name = folder_or_file
+        # remove trailing slash
+        if sanitized_name.endswith(os.sep):
+            sanitized_name = sanitized_name[:-1]
+        archive_name = sanitized_name + ".zip"
     root_dir = root_dir or os.path.dirname(folder_or_file)
     try:
         compression = zipfile.ZIP_STORED if no_deflate else zipfile.ZIP_DEFLATED
