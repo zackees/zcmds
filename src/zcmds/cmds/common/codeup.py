@@ -6,7 +6,7 @@ Runs:
     * if ./lint exists, then run it
     * if ./test exists, then run it
     * git add .
-    * aicommits
+    * aicommit2
 """
 
 import argparse
@@ -52,9 +52,9 @@ def check_environment() -> Path:
         print("Error: .git directory does not exist.")
         sys.exit(1)
 
-    if not which("aicommits"):
+    if not which("aicommit2"):
         warnings.warn(
-            "aicommits is not installed. Skipping automatic commit message generation."
+            "aicommit2 is not installed. Skipping automatic commit message generation."
         )
     return Path(git_dir)
 
@@ -82,19 +82,25 @@ def main() -> int:
             if answer.lower() != "y":
                 print("Aborting.")
                 return 1
+            for untracked_file in repo.untracked_files:
+                answer = input(f"  Add {untracked_file}? [y/N] ")
+                if answer.lower() == "y":
+                    _exec(f"git add {untracked_file}")
+                else:
+                    print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint"):
             _exec("./lint")
         if not args.no_test and os.path.exists("./test"):
             _exec("./test")
         _exec("git add .")
-        if which("aicommits"):
-            _exec("aicommits")
+        if which("aicommit2"):
+            _exec("aicommit2")
         else:
             # Manual commit
             msg = input("Commit message: ")
             _exec(f"git commit -m {msg}")
         if not args.no_push:
-            _exec("push")
+            _exec("git push")
     except KeyboardInterrupt:
         print("Aborting")
         return 1

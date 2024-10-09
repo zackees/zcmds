@@ -137,6 +137,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.5.0: New better `codeup`
   * 1.4.100: Added `-y` to invocation of vidclip static_ffmpeg.
   * 1.4.99: Added `trustdir` which adds a directory for OS security scanning exclusion, making builds faster.
   * 1.4.98: Fixed `pull --all` to handle missing repos between remote and local.
