@@ -98,6 +98,7 @@ def main() -> int:
         else:
             # Manual commit
             msg = input("Commit message: ")
+            msg = f'"{msg}"'
             _exec(f"git commit -m {msg}")
         if not args.no_push:
             _exec("git push")
