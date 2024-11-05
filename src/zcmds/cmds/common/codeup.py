@@ -15,6 +15,7 @@ import sys
 import warnings
 from pathlib import Path
 from shutil import which
+from typing import Optional
 
 from git import Repo
 
@@ -59,6 +60,19 @@ def check_environment() -> Path:
     return Path(git_dir)
 
 
+def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
+    """Ask a yes/no question and return the answer."""
+    while True:
+        answer = input(question + " [y/n]: ").lower()
+        if answer in ["y", "yes"]:
+            return True
+        if answer in ["n", "no"]:
+            return False
+        if answer == "" and default is not None:
+            return default == "y"
+        print("Please answer 'yes' or 'no'.")
+
+
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
     parser = argparse.ArgumentParser()
@@ -78,13 +92,15 @@ def main() -> int:
         has_untracked = len(repo.untracked_files) > 0
         if has_untracked:
             print("There are untracked files.")
-            answer = input("Continue? [y/N] ")
-            if answer.lower() != "y":
+            answer_yes = get_answer_yes_or_no("Continue? [y/N] ", "y")
+            if answer_yes:
                 print("Aborting.")
                 return 1
             for untracked_file in repo.untracked_files:
-                answer = input(f"  Add {untracked_file}? [y/N] ")
-                if answer.lower() == "y":
+                answer_yes = get_answer_yes_or_no(
+                    f"  Add {untracked_file}? [y/N] ", "y"
+                )
+                if answer_yes:
                     _exec(f"git add {untracked_file}")
                 else:
                     print(f"  Skipping {untracked_file}")
