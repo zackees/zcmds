@@ -64,15 +64,11 @@ def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
     """Ask a yes/no question and return the answer."""
     while True:
         answer = input(question + " [y/n]: ").lower().strip()
-        print(f"answer was {answer}")
         if "y" in answer:
-            print("returning True")
             return True
         if "n" in answer:
-            print("returning False")
             return False
         if answer == "" and default is not None:
-            print(f"returning default {default}")
             return default == "y"
         print("Please answer 'yes' or 'no'.")
 
