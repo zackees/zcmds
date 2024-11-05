@@ -137,6 +137,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.5.1: `codeup` now defaults for "yes" when asking if to include files.
   * 1.5.0: New better `codeup`
   * 1.4.100: Added `-y` to invocation of vidclip static_ffmpeg.
   * 1.4.99: Added `trustdir` which adds a directory for OS security scanning exclusion, making builds faster.
