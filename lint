@@ -6,10 +6,8 @@ echo Running isort
 isort --profile black src
 echo Running black
 black src
-echo Running flake8 src
-flake8 src
-echo Running pylint src
-pylint src
+echo Running ruff src
+ruff check src
 echo Running mypy src
 mypy src
 echo Linting complete!

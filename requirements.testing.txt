@@ -1,6 +1,5 @@
-flake8
 mypy
-pylint
 pytest
 black
 wheel
+ruff
