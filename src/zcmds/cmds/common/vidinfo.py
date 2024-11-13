@@ -61,6 +61,16 @@ def get_videostream_info(videstream: dict) -> str:
     lines.append(
         f"    Encoder: {videstream['codec_long_name']}, {videstream['codec_tag_string']}"
     )
+
+    def get_duration_str() -> str:
+        dur = videstream.get("duration")
+        if not dur:
+            return "N/A"
+        duration = float(dur)
+        return format_duration(duration)
+
+    duration_string = get_duration_str()
+
     # pix format
     pix_fmt = videstream["pix_fmt"]
     lines.append(f"    Pixel format: {pix_fmt}")
@@ -69,13 +79,17 @@ def get_videostream_info(videstream: dict) -> str:
         lines.append(f"    B-Frames: {has_bframes}")
     lines.append(f"    Height: {videstream['height']}")
     lines.append(f"    Width: {videstream['width']}")
-    lines.append(f"    Duration: {format_duration(float(videstream['duration']))}")
-    video_bitrate = videstream["bit_rate"]
+    lines.append(f"    Duration: {duration_string}")
+    # video_bitrate = videstream["bit_rate"]
+    video_bitrate = videstream.get("bit_rate", "N/A")
     if video_bitrate.isdigit():
         video_bitrate = int(video_bitrate)
         video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
+    else:
+        video_bitrate_str = "N/A"
+    nb_frames_str = videstream.get("nb_frames", "N/A")
     lines.append(f"    Bitrate: {video_bitrate_str}")
-    lines.append(f"    Frame count: {videstream['nb_frames']}")
+    lines.append(f"    Frame count: {nb_frames_str}")
     fr_num = int(videstream["r_frame_rate"].split("/")[0])
     fr_den = int(videstream["r_frame_rate"].split("/")[1])
     framerate = float(fr_num) / float(fr_den)
@@ -90,13 +104,25 @@ def get_audiostream_info(audiostream: dict) -> str:
     lines.append(
         f"    Encoder: {audiostream['codec_long_name']}, {audiostream['codec_tag_string']}"
     )
+
+    def get_duration_str() -> str:
+        dur = audiostream.get("duration")
+        if not dur:
+            return "N/A"
+        duration = float(dur)
+        return format_duration(duration)
+
+    duration_str = get_duration_str()
     lines.append(f"    Channels: {audiostream['channels']}")
-    lines.append(f"    Duration: {format_duration(float(audiostream['duration']))}")
+    lines.append(f"    Duration: {duration_str}")
     lines.append(f"    Sample rate: {audiostream['sample_rate']}")
-    audio_bitrate = audiostream["bit_rate"]
+    # audio_bitrate = audiostream["bit_rate"]
+    audio_bitrate = audiostream.get("bit_rate", "N/A")
     if audio_bitrate.isdigit():
         audio_bitrate = int(audio_bitrate)
         audio_bitrate_str = f"{audio_bitrate / 1000:.2f} kbps"
+    else:
+        audio_bitrate_str = "N/A"
     lines.append(f"    Bitrate: {audio_bitrate_str}")
     return "\n".join(lines)
 

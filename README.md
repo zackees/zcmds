@@ -137,6 +137,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.5.3: `vidinfo` is now more robust and can now handle mkv files without crashing.
   * 1.5.2: `codeup` now defaults for "yes" when asking if to include files.
   * 1.5.0: New better `codeup`
   * 1.4.100: Added `-y` to invocation of vidclip static_ffmpeg.
