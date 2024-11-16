@@ -80,8 +80,15 @@ def main() -> int:
     parser.add_argument(
         "--no-push", help="Do not push after successful commit", action="store_true"
     )
+    parser.add_argument(
+        "--verbose",
+        help="Passes the verbose flag to the linter and tester",
+        action="store_true",
+    )
     parser.add_argument("--no-test", help="Do not run tests", action="store_true")
+    parser.add_argument("--no-lint", help="Do not run linter", action="store_true")
     args = parser.parse_args()
+    verbose = args.verbose
 
     git_path = check_environment()
     os.chdir(str(git_path))
@@ -102,10 +109,10 @@ def main() -> int:
                     _exec(f"git add {untracked_file}")
                 else:
                     print(f"  Skipping {untracked_file}")
-        if os.path.exists("./lint"):
-            _exec("./lint")
+        if os.path.exists("./lint") and not args.no_lint:
+            _exec("./lint" + (" --verbose" if verbose else ""))
         if not args.no_test and os.path.exists("./test"):
-            _exec("./test")
+            _exec("./test" + (" --verbose" if verbose else ""))
         _exec("git add .")
         if which("aicommit2"):
             _exec("aicommit2")
