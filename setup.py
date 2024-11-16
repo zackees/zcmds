@@ -32,6 +32,8 @@ def get_console_scripts() -> list[str]:
     cmds_txt = os.path.join(HERE, "src", "zcmds", "cmds.txt")
     with open(cmds_txt, encoding="utf-8", mode="r") as cmds_file:
         cmds = cmds_file.readlines()
+    all_have_equals = all("=" in c for c in cmds if c.strip())
+    assert all_have_equals, "All commands must have an equals sign"
     cmds = [cmd.replace('"', "").strip() for cmd in cmds]
     return cmds
 
