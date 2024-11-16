@@ -35,6 +35,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Shows all the ports that are in use at the current computer (useful for Arduino debugging).
   * diskaudit
     * walks the directory from the current directory and catalogs which of the child folders take up the most space.
+  * docker-purge:
+    * Removes all docker artifacts allowing a clean build.
   * git-bash (win32)
     * launches git-bash terminal (windows only).
   * gitconfig
@@ -137,6 +139,7 @@ Running tox will install hooks into the .tox directory. Keep this in my if you a
 TODO: Add a cleanup function to undo this.
 
 # Release Notes
+  * 1.5.5: `docker-purge` to remove all docker artifacts and do a clean build.
   * 1.5.4: `codeup` no accepts `--verbose` and `--no-lint`
   * 1.5.3: `vidinfo` is now more robust and can now handle mkv files without crashing.
   * 1.5.2: `codeup` now defaults for "yes" when asking if to include files.
