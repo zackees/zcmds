@@ -149,10 +149,10 @@ def _publish() -> None:
     if not os.path.exists(publish_script):
         print(f"Error: {publish_script} does not exist.")
         sys.exit(1)
-    _exec("upload_package.sh", bash=True)
+    _exec("./upload_package.sh", bash=True)
 
 
-def _drain_stdin_if_necessary() -> None:
+def __drain_stdin_if_necessary() -> None:
     try:
         if os.name == "posix":
             import select
@@ -173,6 +173,15 @@ def _drain_stdin_if_necessary() -> None:
         raise
     except Exception as e:
         print(f"Error draining stdin: {e}")
+
+
+def _drain_stdin_if_necessary() -> None:
+    # do this through a process so we don't mess up the terminal
+    from multiprocessing import Process
+
+    proc = Process(target=__drain_stdin_if_necessary)
+    proc.start()
+    proc.join()
 
 
 def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
