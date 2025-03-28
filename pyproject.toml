@@ -11,9 +11,6 @@ keywords = ["zcmds"]
 license = { text = "BSD 3-Clause License" }
 classifiers = ["Programming Language :: Python :: 3"]
 dynamic = ["dependencies", "scripts", "entry-points", "version"]
-# Change this with the version number bump.
-# Also make the change in zcmds/version.py
-# version = "1.4.34"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
