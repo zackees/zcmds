@@ -23,7 +23,35 @@ from typing import Optional
 from git import Repo
 
 
-def _exec(cmd: str, bash: bool) -> None:
+def is_uv_project(directory=".") -> bool:
+    """
+    Detect if the given directory is a uv-managed Python project.
+
+    Args:
+        directory (str): Path to the directory to check (default is current directory).
+
+    Returns:
+        bool: True if it's a uv project, False otherwise.
+    """
+    try:
+        required_files = ["pyproject.toml", "uv.lock"]
+        return all(os.path.isfile(os.path.join(directory, f)) for f in required_files)
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+
+
+IS_UV_PROJECT = is_uv_project()
+
+# Example usage
+if __name__ == "__main__":
+    if is_uv_project():
+        print("This is a uv project.")
+    else:
+        print("This is not a uv project.")
+
+
+def _exec(cmd: str, bash: bool, die=True) -> int:
     print(f"Running: {cmd}")
     if bash and sys.platform == "win32":
         # we need to run this in the git bash
@@ -31,7 +59,9 @@ def _exec(cmd: str, bash: bool) -> None:
     rtn = os.system(cmd)
     if rtn != 0:
         print(f"Error: {cmd} returned {rtn}")
-        exit(1)
+        if die:
+            sys.exit(1)
+    return rtn
 
 
 def find_git_directory() -> str:
@@ -275,7 +305,26 @@ def main() -> int:
                 else:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
-            _exec("./lint" + (" --verbose" if verbose else ""), bash=True)
+            cmd = "./lint" + (" --verbose" if verbose else "")
+            rtn = _exec(cmd, bash=True, die=False)
+            if rtn != 0:
+                print("Error: Linting failed.")
+                answer_yes = get_answer_yes_or_no(
+                    "'uv pip install -e . --refresh'?", "n"
+                )
+                if not answer_yes:
+                    print("Aborting.")
+                    sys.exit(1)
+
+                for _ in range(3):
+                    refresh_rtn = _exec(
+                        "uv pip install -e . --refresh", bash=True, die=False
+                    )
+                    if refresh_rtn == 0:
+                        break
+                else:
+                    print("Error: uv pip install -e . --refresh failed.")
+                    sys.exit(1)
         if not args.no_test and os.path.exists("./test"):
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
