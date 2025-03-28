@@ -22,7 +22,6 @@ GitPython
 transcribe-anything>=2.7.27
 send2trash
 magic-wormhole
-gpt4all
 wormhole-tx
 pillow-heif
 advanced-aicode>=1.1.0
