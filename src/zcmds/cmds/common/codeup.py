@@ -237,6 +237,10 @@ def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None
     )
     proc.start()
     proc.join()
+    rtn = proc.exitcode
+    if rtn != 0:
+        print(f"Error: aicommit2 returned {rtn}")
+        raise SystemExit(rtn)
 
 
 # demo help message
