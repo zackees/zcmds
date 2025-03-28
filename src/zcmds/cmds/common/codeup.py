@@ -23,9 +23,9 @@ from typing import Optional
 from git import Repo
 
 
-def _exec(cmd: str) -> None:
+def _exec(cmd: str, bash: bool) -> None:
     print(f"Running: {cmd}")
-    if sys.platform == "win32":
+    if bash and sys.platform == "win32":
         # we need to run this in the git bash
         cmd = f"bash -c '{cmd}'"
     rtn = os.system(cmd)
@@ -149,7 +149,7 @@ def _publish() -> None:
     if not os.path.exists(publish_script):
         print(f"Error: {publish_script} does not exist.")
         sys.exit(1)
-    _exec("upload_package.sh")
+    _exec("upload_package.sh", bash=True)
 
 
 def _drain_stdin_if_necessary() -> None:
@@ -226,7 +226,7 @@ def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None
         # Manual commit
         msg = input("Commit message: ")
         msg = f'"{msg}"'
-        _exec(f"git commit -m {msg}")
+        _exec(f"git commit -m {msg}", bash=False)
 
 
 # demo help message
@@ -254,17 +254,17 @@ def main() -> int:
             for untracked_file in repo.untracked_files:
                 answer_yes = get_answer_yes_or_no(f"  Add {untracked_file}?", "y")
                 if answer_yes:
-                    _exec(f"git add {untracked_file}")
+                    _exec(f"git add {untracked_file}", bash=False)
                 else:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
-            _exec("./lint" + (" --verbose" if verbose else ""))
+            _exec("./lint" + (" --verbose" if verbose else ""), bash=True)
         if not args.no_test and os.path.exists("./test"):
-            _exec("./test" + (" --verbose" if verbose else ""))
-        _exec("git add .")
+            _exec("./test" + (" --verbose" if verbose else ""), bash=True)
+        _exec("git add .", bash=False)
         _ai_commit_or_prompt_for_commit_message(args.auto_accept_aicommits)
         if not args.no_push:
-            _exec("git push")
+            _exec("git push", bash=False)
         if args.publish:
             _publish()
     except KeyboardInterrupt:
