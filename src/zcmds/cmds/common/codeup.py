@@ -13,6 +13,7 @@ import argparse
 import os
 import sys
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
 from typing import Optional
@@ -73,8 +74,16 @@ def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
         print("Please answer 'yes' or 'no'.")
 
 
-def main() -> int:
-    """Run git status, lint, test, add, and commit."""
+@dataclass
+class Args:
+    repo: str
+    no_push: bool
+    verbose: bool
+    no_test: bool
+    no_lint: bool
+
+
+def _parse_args() -> Args:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
     parser.add_argument(
@@ -87,7 +96,22 @@ def main() -> int:
     )
     parser.add_argument("--no-test", help="Do not run tests", action="store_true")
     parser.add_argument("--no-lint", help="Do not run linter", action="store_true")
-    args = parser.parse_args()
+    tmp = parser.parse_args()
+
+    out: Args = Args(
+        repo=tmp.repo,
+        no_push=tmp.no_push,
+        verbose=tmp.verbose,
+        no_test=tmp.no_test,
+        no_lint=tmp.no_lint,
+    )
+    return out
+
+
+def main() -> int:
+    """Run git status, lint, test, add, and commit."""
+
+    args = _parse_args()
     verbose = args.verbose
 
     git_path = check_environment()
