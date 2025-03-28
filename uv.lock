@@ -527,7 +527,7 @@ name = "ffmpeg-normalize"
 version = "1.31.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "colorlog" },
     { name = "ffmpeg-progress-yield" },
     { name = "tqdm" },
@@ -2461,7 +2461,7 @@ dependencies = [
     { name = "transcribe-anything" },
     { name = "wormhole-tx" },
     { name = "ytclip" },
-    { name = "zcmds-win32", marker = "platform_system == 'Windows'" },
+    { name = "zcmds-win32", marker = "sys_platform == 'win32'" },
 ]
 
 [package.metadata]
@@ -2494,7 +2494,7 @@ requires-dist = [
     { name = "transcribe-anything", specifier = ">=2.7.27" },
     { name = "wormhole-tx" },
     { name = "ytclip" },
-    { name = "zcmds-win32", marker = "platform_system == 'Windows'", specifier = ">=1.2.12" },
+    { name = "zcmds-win32", marker = "sys_platform == 'win32'", specifier = ">=1.2.12" },
 ]
 
 [[package]]
