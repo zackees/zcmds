@@ -165,9 +165,9 @@ def main() -> int:
                 else:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
-            _exec("./lint" + (" --verbose" if verbose else ""))
+            _exec("bash lint" + (" --verbose" if verbose else ""))
         if not args.no_test and os.path.exists("./test"):
-            _exec("./test" + (" --verbose" if verbose else ""))
+            _exec("bash test" + (" --verbose" if verbose else ""))
         _exec("git add .")
         if which("aicommit2"):
             _exec("aicommit2")
