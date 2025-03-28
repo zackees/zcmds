@@ -114,7 +114,7 @@ class Args:
     no_test: bool
     no_lint: bool
     publish: bool
-    auto_accept_aicommits: bool
+    no_autoaccept: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -134,19 +134,13 @@ class Args:
             self.publish, bool
         ), f"Expected bool, got {type(self.publish)}"
         assert isinstance(
-            self.auto_accept_aicommits, bool
-        ), f"Expected bool, got {type(self.auto_accept_aicommits)}"
+            self.no_autoaccept, bool
+        ), f"Expected bool, got {type(self.no_autoaccept)}"
 
 
 def _parse_args() -> Args:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
-    parser.add_argument(
-        "-a",
-        "--accept-auto-commit",
-        help="Accept auto commit message from ai",
-        action="store_true",
-    )
     parser.add_argument(
         "--no-push", help="Do not push after successful commit", action="store_true"
     )
@@ -160,6 +154,12 @@ def _parse_args() -> Args:
         "--no-test", "-nt", help="Do not run tests", action="store_true"
     )
     parser.add_argument("--no-lint", help="Do not run linter", action="store_true")
+    parser.add_argument(
+        "--no-autoaccept",
+        "-na",
+        help="Do not auto-accept commit messages from AI",
+        action="store_true",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -169,7 +169,7 @@ def _parse_args() -> Args:
         no_test=tmp.no_test,
         no_lint=tmp.no_lint,
         publish=tmp.publish,
-        auto_accept_aicommits=tmp.accept_auto_commit,
+        no_autoaccept=tmp.no_autoaccept,
     )
     return out
 
@@ -261,12 +261,12 @@ def _in_process_ai_commit_or_prompt_for_commit_message(
         _exec(f"git commit -m {msg}", bash=False)
 
 
-def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
+def _ai_commit_or_prompt_for_commit_message(no_autoaccept: bool) -> None:
     from multiprocessing import Process
 
     proc = Process(
         target=_in_process_ai_commit_or_prompt_for_commit_message,
-        args=(auto_accept_aicommits,),
+        args=(not no_autoaccept,),  # Auto-accept unless no_autoaccept is True
     )
     proc.start()
     proc.join()
@@ -328,7 +328,7 @@ def main() -> int:
         if not args.no_test and os.path.exists("./test"):
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
-        _ai_commit_or_prompt_for_commit_message(args.auto_accept_aicommits)
+        _ai_commit_or_prompt_for_commit_message(args.no_autoaccept)
         if not args.no_push:
             _exec("git push", bash=False)
         if args.publish:
