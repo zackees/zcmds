@@ -7,17 +7,6 @@ URL = "https://github.com/zackees/zcmds"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-def get_version() -> str:
-    """Get the version from the version.py file."""
-    version_py = os.path.join(HERE, "src", "zcmds", "version.py")
-    # version looks like VERSION = "1.4.31"
-    with open(version_py, encoding="utf-8", mode="r") as version_file:
-        version = version_file.read()
-    version = version.split("VERSION = ")[1].split('"')[1]
-    # remove comment block that's after
-    version = version.split("#")[0]
-    version = version.strip()
-    return version
 
 
 def get_readme() -> str:
@@ -46,8 +35,7 @@ if __name__ == "__main__":
         url=URL,
         package_data={"": ["assets/bell.mp3"]},
         include_package_data=True,
-        version=get_version(),
         entry_points={
-            "console_scripts": [get_console_scripts()],
+            "console_scripts": get_console_scripts(),
         },
     )

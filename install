@@ -1,33 +1,37 @@
 #!/bin/bash
+set -e
 
-kernelName="$(uname -s)"
-
-if [ "$kernelName" == "Darwin" ]; then
-    # Check if Homebrew is installed
-    if command -v brew >/dev/null 2>&1; then
-        echo "Homebrew is installed. Continuing with installation."
-        brew install python@3.11
-        python3.11 -m venv venv
-        source venv/bin/activate
-        python install.py
+# Check if UV is not found
+if ! command -v uv &> /dev/null; then
+  # If Darwin (macOS), use brew to install UV
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    brew install uv
+  else
+    # If it's Windows, use pip to install UV, else use pip3
+    if [[ "$OSTYPE" == "msys" ]]; then
+      pip install uv
     else
-        echo "Error: Homebrew is not installed. Please install Homebrew and rerun this script."
-        exit 1
+      pip3 install uv
     fi
-elif [ "$kernelName" == "Linux" ]; then
-    sudo apt-get install python3.11
-    python3.11 -m venv venv
-    source venv/bin/activate
-    python install.py
-elif [[ "$kernelName" == CYGWIN* ]] || [[ "$kernelName" == MINGW32* ]] || [[ "$kernelName" == MSYS* ]] || [[ "$kernelName" == MINGW* ]]; then
-    echo "Windows OS detected"
-    python -m venv venv
-    source venv/Scripts/activate
-    python install.py
-    echo "finished windows install"
-    exit 0
+  fi
+fi
+
+uv venv --python 3.11 --seed
+uv run pip install -e .
+
+# If requirements.testing.txt exists, then install it
+if [[ -f requirements.testing.txt ]]; then
+  uv run pip install -r requirements.testing.txt
+fi
+
+# If activate exists, delete it
+if [[ -f activate ]]; then
+  rm activate
+fi
+
+# If Windows, then symlink .venv/Scripts/activate to .venv/bin/activate
+if [[ "$OSTYPE" == "msys" ]]; then
+  ln -s .venv/Scripts/activate ./activate
 else
-    # Error
-    echo "Unknown operating system: $kernelName"
-    exit 1
+  ln -s .venv/bin/activate ./activate
 fi
