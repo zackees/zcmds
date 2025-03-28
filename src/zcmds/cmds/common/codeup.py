@@ -76,11 +76,30 @@ def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
 
 @dataclass
 class Args:
-    repo: str
+    repo: str | None
     no_push: bool
     verbose: bool
     no_test: bool
     no_lint: bool
+    publish: bool
+
+    def __post_init__(self) -> None:
+        assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
+        assert isinstance(
+            self.no_push, bool
+        ), f"Expected bool, got {type(self.no_push)}"
+        assert isinstance(
+            self.verbose, bool
+        ), f"Expected bool, got {type(self.verbose)}"
+        assert isinstance(
+            self.no_test, bool
+        ), f"Expected bool, got {type(self.no_test)}"
+        assert isinstance(
+            self.no_lint, bool
+        ), f"Expected bool, got {type(self.no_lint)}"
+        assert isinstance(
+            self.publish, bool
+        ), f"Expected bool, got {type(self.publish)}"
 
 
 def _parse_args() -> Args:
@@ -94,7 +113,10 @@ def _parse_args() -> Args:
         help="Passes the verbose flag to the linter and tester",
         action="store_true",
     )
-    parser.add_argument("--no-test", help="Do not run tests", action="store_true")
+    parser.add_argument("--publish", "-p", help="Publish the repo", action="store_true")
+    parser.add_argument(
+        "--no-test", "-nt", help="Do not run tests", action="store_true"
+    )
     parser.add_argument("--no-lint", help="Do not run linter", action="store_true")
     tmp = parser.parse_args()
 
@@ -104,8 +126,17 @@ def _parse_args() -> Args:
         verbose=tmp.verbose,
         no_test=tmp.no_test,
         no_lint=tmp.no_lint,
+        publish=tmp.publish,
     )
     return out
+
+
+def _publish() -> None:
+    publish_script = "upload_package.sh"
+    if not os.path.exists(publish_script):
+        print(f"Error: {publish_script} does not exist.")
+        sys.exit(1)
+    _exec("bash upload_package.sh")
 
 
 def main() -> int:
@@ -147,6 +178,8 @@ def main() -> int:
             _exec(f"git commit -m {msg}")
         if not args.no_push:
             _exec("git push")
+        if args.publish:
+            _publish()
     except KeyboardInterrupt:
         print("Aborting")
         return 1
