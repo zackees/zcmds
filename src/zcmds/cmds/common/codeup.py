@@ -306,7 +306,7 @@ def main() -> int:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
             cmd = "./lint" + (" --verbose" if verbose else "")
-            rtn = _exec(cmd, bash=True, die=False)
+            rtn = _exec(cmd, bash=True, die=True)  # Come back to this
             if rtn != 0:
                 print("Error: Linting failed.")
                 answer_yes = get_answer_yes_or_no(
