@@ -11,7 +11,9 @@ Runs:
 
 import argparse
 import os
+import subprocess
 import sys
+import time
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -174,17 +176,61 @@ def _drain_stdin_if_necessary() -> None:
 
 
 def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
-    if which("aicommit2"):
+    cmd = "aicommits"
+    if which(cmd):
         _drain_stdin_if_necessary()
-        cmd = "aicommit2"
+
         if auto_accept_aicommits:
-            cmd += " --confirm"
-        _exec(cmd)
+            if os.name == "posix":
+                import pty
+
+                master_fd, slave_fd = pty.openpty()  # type: ignore
+                process = subprocess.Popen(
+                    cmd,
+                    shell=True,
+                    stdin=slave_fd,
+                    stdout=slave_fd,
+                    stderr=slave_fd,
+                    close_fds=True,
+                )
+                os.close(slave_fd)
+                with os.fdopen(master_fd, "rb+", buffering=0) as master:
+                    for line in master:
+                        line_str = line.decode("utf-8", errors="ignore").strip()
+                        print(line_str)
+                        if "Yes" in line_str and "No" in line_str:
+                            master.write(b"\n")
+                    process.wait()
+
+            elif os.name == "nt":
+                from winpty import PtyProcess
+
+                proc = PtyProcess.spawn(cmd)
+                while proc.isalive():
+                    line = proc.readline()
+                    linestr: str
+                    if isinstance(line, bytes):
+                        linestr = line.decode("utf-8", errors="ignore")
+                    else:
+                        linestr = line
+                    linestr = linestr.strip()
+                    if not line:
+                        break
+                    print(linestr)
+                    if "Yes" in linestr and "No" in linestr:
+                        proc.write("\r\n")  # simulate ENTER
+                    time.sleep(0.1)
+                proc.wait()
+        else:
+            subprocess.run(cmd, shell=True)
     else:
         # Manual commit
         msg = input("Commit message: ")
         msg = f'"{msg}"'
         _exec(f"git commit -m {msg}")
+
+
+# demo help message
 
 
 def main() -> int:
