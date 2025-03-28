@@ -175,7 +175,9 @@ def _drain_stdin_if_necessary() -> None:
         print(f"Error draining stdin: {e}")
 
 
-def __ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
+def _in_process_ai_commit_or_prompt_for_commit_message(
+    auto_accept_aicommits: bool,
+) -> None:
     cmd = "aicommits"
     if which(cmd):
         _drain_stdin_if_necessary()
@@ -233,7 +235,8 @@ def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None
     from multiprocessing import Process
 
     proc = Process(
-        target=__ai_commit_or_prompt_for_commit_message, args=(auto_accept_aicommits,)
+        target=_in_process_ai_commit_or_prompt_for_commit_message,
+        args=(auto_accept_aicommits,),
     )
     proc.start()
     proc.join()
