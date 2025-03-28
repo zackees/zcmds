@@ -154,8 +154,12 @@ def _drain_stdin_if_necessary() -> None:
 
             while msvcrt.kbhit():
                 msvcrt.getwch()  # or getch() for bytes
-    except (EOFError, KeyboardInterrupt):
+    except EOFError:
         pass
+    except KeyboardInterrupt:
+        raise
+    except Exception as e:
+        print(f"Error draining stdin: {e}")
 
 
 def main() -> int:
