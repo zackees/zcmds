@@ -152,7 +152,7 @@ def _publish() -> None:
     _exec("./upload_package.sh", bash=True)
 
 
-def __drain_stdin_if_necessary() -> None:
+def _drain_stdin_if_necessary() -> None:
     try:
         if os.name == "posix":
             import select
@@ -175,16 +175,7 @@ def __drain_stdin_if_necessary() -> None:
         print(f"Error draining stdin: {e}")
 
 
-def _drain_stdin_if_necessary() -> None:
-    # do this through a process so we don't mess up the terminal
-    from multiprocessing import Process
-
-    proc = Process(target=__drain_stdin_if_necessary)
-    proc.start()
-    proc.join()
-
-
-def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
+def __ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
     cmd = "aicommits"
     if which(cmd):
         _drain_stdin_if_necessary()
@@ -236,6 +227,16 @@ def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None
         msg = input("Commit message: ")
         msg = f'"{msg}"'
         _exec(f"git commit -m {msg}", bash=False)
+
+
+def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
+    from multiprocessing import Process
+
+    proc = Process(
+        target=__ai_commit_or_prompt_for_commit_message, args=(auto_accept_aicommits,)
+    )
+    proc.start()
+    proc.join()
 
 
 # demo help message
