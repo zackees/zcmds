@@ -82,6 +82,7 @@ class Args:
     no_test: bool
     no_lint: bool
     publish: bool
+    auto_accept_aicommits: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -100,11 +101,20 @@ class Args:
         assert isinstance(
             self.publish, bool
         ), f"Expected bool, got {type(self.publish)}"
+        assert isinstance(
+            self.auto_accept_aicommits, bool
+        ), f"Expected bool, got {type(self.auto_accept_aicommits)}"
 
 
 def _parse_args() -> Args:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo", help="Path to the repo to summarize", nargs="?")
+    parser.add_argument(
+        "-a",
+        "--accept-auto-commit",
+        help="Accept auto commit message from ai",
+        action="store_true",
+    )
     parser.add_argument(
         "--no-push", help="Do not push after successful commit", action="store_true"
     )
@@ -127,6 +137,7 @@ def _parse_args() -> Args:
         no_test=tmp.no_test,
         no_lint=tmp.no_lint,
         publish=tmp.publish,
+        auto_accept_aicommits=tmp.accept_auto_commit,
     )
     return out
 
@@ -162,6 +173,20 @@ def _drain_stdin_if_necessary() -> None:
         print(f"Error draining stdin: {e}")
 
 
+def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None:
+    if which("aicommit2"):
+        _drain_stdin_if_necessary()
+        cmd = "aicommit2"
+        if auto_accept_aicommits:
+            cmd += " --confirm"
+        _exec(cmd)
+    else:
+        # Manual commit
+        msg = input("Commit message: ")
+        msg = f'"{msg}"'
+        _exec(f"git commit -m {msg}")
+
+
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
@@ -192,14 +217,7 @@ def main() -> int:
         if not args.no_test and os.path.exists("./test"):
             _exec("bash test" + (" --verbose" if verbose else ""))
         _exec("git add .")
-        if which("aicommit2"):
-            _drain_stdin_if_necessary()
-            _exec("aicommit2")
-        else:
-            # Manual commit
-            msg = input("Commit message: ")
-            msg = f'"{msg}"'
-            _exec(f"git commit -m {msg}")
+        _ai_commit_or_prompt_for_commit_message(args.auto_accept_aicommits)
         if not args.no_push:
             _exec("git push")
         if args.publish:
