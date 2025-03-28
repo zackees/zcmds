@@ -220,7 +220,6 @@ def _ai_commit_or_prompt_for_commit_message(auto_accept_aicommits: bool) -> None
                     if "Yes" in linestr and "No" in linestr:
                         proc.write("\r\n")  # simulate ENTER
                     time.sleep(0.1)
-                proc.wait()
         else:
             subprocess.run(cmd, shell=True)
     else:
