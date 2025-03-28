@@ -139,6 +139,25 @@ def _publish() -> None:
     _exec("bash upload_package.sh")
 
 
+def _drain_stdin_if_necessary() -> None:
+    try:
+        if os.name == "posix":
+            import select
+
+            while True:
+                ready, _, _ = select.select([sys.stdin], [], [], 0)
+                if not ready:
+                    break
+                sys.stdin.read(1)
+        elif os.name == "nt":
+            import msvcrt
+
+            while msvcrt.kbhit():
+                msvcrt.getwch()  # or getch() for bytes
+    except (EOFError, KeyboardInterrupt):
+        pass
+
+
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
@@ -170,6 +189,7 @@ def main() -> int:
             _exec("bash test" + (" --verbose" if verbose else ""))
         _exec("git add .")
         if which("aicommit2"):
+            _drain_stdin_if_necessary()
             _exec("aicommit2")
         else:
             # Manual commit
