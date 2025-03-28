@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "zcmds"
 description = "Cross platform(ish) productivity commands written in python."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = ["zcmds"]
 license = { text = "BSD 3-Clause License" }
 classifiers = ["Programming Language :: Python :: 3"]
