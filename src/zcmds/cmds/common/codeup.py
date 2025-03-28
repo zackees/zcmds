@@ -149,7 +149,7 @@ def _publish() -> None:
     if not os.path.exists(publish_script):
         print(f"Error: {publish_script} does not exist.")
         sys.exit(1)
-    _exec("bash upload_package.sh")
+    _exec("upload_package.sh")
 
 
 def _drain_stdin_if_necessary() -> None:
@@ -258,9 +258,9 @@ def main() -> int:
                 else:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
-            _exec("bash lint" + (" --verbose" if verbose else ""))
+            _exec("./lint" + (" --verbose" if verbose else ""))
         if not args.no_test and os.path.exists("./test"):
-            _exec("bash test" + (" --verbose" if verbose else ""))
+            _exec("./test" + (" --verbose" if verbose else ""))
         _exec("git add .")
         _ai_commit_or_prompt_for_commit_message(args.auto_accept_aicommits)
         if not args.no_push:
