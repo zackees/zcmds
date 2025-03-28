@@ -51,11 +51,15 @@ if __name__ == "__main__":
         print("This is not a uv project.")
 
 
+def _to_exec_str(cmd: str, bash: bool) -> str:
+    if bash and sys.platform == "win32":
+        return f"bash -c '{cmd}'"
+    return cmd
+
+
 def _exec(cmd: str, bash: bool, die=True) -> int:
     print(f"Running: {cmd}")
-    if bash and sys.platform == "win32":
-        # we need to run this in the git bash
-        cmd = f"bash -c '{cmd}'"
+    cmd = _to_exec_str(cmd, bash)
     rtn = os.system(cmd)
     if rtn != 0:
         print(f"Error: {cmd} returned {rtn}")
@@ -306,16 +310,31 @@ def main() -> int:
                     print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
             cmd = "./lint" + (" --verbose" if verbose else "")
-            rtn = _exec(cmd, bash=True, die=True)  # Come back to this
-            if rtn != 0:
+            # rtn = _exec(cmd, bash=True, die=True)  # Come back to this
+
+            cmd = _to_exec_str(cmd, bash=True)
+            uv_resolved_dependencies = True
+            proc = subprocess.Popen(
+                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
+            with proc:
+                assert proc.stdout is not None
+                for line in proc.stdout:
+                    linestr = line.decode("utf-8", errors="ignore").strip()
+                    print(linestr)
+                    if "No solution found when resolving dependencies" in linestr:
+                        uv_resolved_dependencies = False
+            proc.wait()
+            if proc.returncode != 0:
                 print("Error: Linting failed.")
+                if uv_resolved_dependencies:
+                    sys.exit(1)
                 answer_yes = get_answer_yes_or_no(
                     "'uv pip install -e . --refresh'?", "n"
                 )
                 if not answer_yes:
                     print("Aborting.")
                     sys.exit(1)
-
                 for _ in range(3):
                     refresh_rtn = _exec(
                         "uv pip install -e . --refresh", bash=True, die=False
