@@ -1,5 +1,5 @@
 """
-    Module for doing file searching and replacing stuff.
+Module for doing file searching and replacing stuff.
 """
 
 import os

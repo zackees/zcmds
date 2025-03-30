@@ -1,5 +1,5 @@
 """
-    Lists the video duration of every video found.
+Lists the video duration of every video found.
 """
 
 import argparse

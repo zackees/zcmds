@@ -1,6 +1,6 @@
 # pylint: skip-file
 """
-    Module for doing file searching stuff.
+Module for doing file searching stuff.
 """
 import os
 

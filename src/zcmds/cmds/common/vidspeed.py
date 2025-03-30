@@ -1,5 +1,5 @@
 """
-    Normalizes the audio of a video file.
+Normalizes the audio of a video file.
 """
 
 import argparse

@@ -188,19 +188,19 @@ def _publish() -> None:
 
 def _drain_stdin_if_necessary() -> None:
     try:
-        if os.name == "posix":
-            import select
+        # if os.name == "posix":
+        #     import select
 
-            while True:
-                ready, _, _ = select.select([sys.stdin], [], [], 0)
-                if not ready:
-                    break
-                sys.stdin.read(1)
-        elif os.name == "nt":
+        #     while True:
+        #         ready, _, _ = select.select([sys.stdin], [], [], 0)
+        #         if not ready:
+        #             break
+        #         sys.stdin.read(1)
+        if os.name == "nt":
             import msvcrt
 
-            while msvcrt.kbhit():
-                msvcrt.getwch()  # or getch() for bytes
+            while msvcrt.kbhit():  # type: ignore
+                msvcrt.getwch()  # type: ignore
     except EOFError:
         pass
     except KeyboardInterrupt:
@@ -218,25 +218,30 @@ def _in_process_ai_commit_or_prompt_for_commit_message(
 
         if auto_accept_aicommits:
             if os.name == "posix":
-                import pty
-
-                master_fd, slave_fd = pty.openpty()  # type: ignore
-                process = subprocess.Popen(
+                _ = subprocess.run(
                     cmd,
                     shell=True,
-                    stdin=slave_fd,
-                    stdout=slave_fd,
-                    stderr=slave_fd,
-                    close_fds=True,
+                    capture_output=False,
                 )
-                os.close(slave_fd)
-                with os.fdopen(master_fd, "rb+", buffering=0) as master:
-                    for line in master:
-                        line_str = line.decode("utf-8", errors="ignore").strip()
-                        print(line_str)
-                        if "Yes" in line_str and "No" in line_str:
-                            master.write(b"\n")
-                    process.wait()
+                # import pty
+
+                # master_fd, slave_fd = pty.openpty()  # type: ignore
+                # process = subprocess.Popen(
+                #     cmd,
+                #     shell=True,
+                #     stdin=slave_fd,
+                #     stdout=slave_fd,
+                #     stderr=slave_fd,
+                #     close_fds=True,
+                # )
+                # os.close(slave_fd)
+                # with os.fdopen(master_fd, "rb+", buffering=0) as master:
+                #     for line in master:
+                #         line_str = line.decode("utf-8", errors="ignore").strip()
+                #         print(line_str)
+                #         if "Yes" in line_str and "No" in line_str:
+                #             master.write(b"\n")
+                #     process.wait()
 
             elif os.name == "nt":
                 from winpty import PtyProcess

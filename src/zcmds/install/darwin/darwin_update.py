@@ -1,7 +1,7 @@
 # pylint: disable=invalid-name
 
 """
-    Update mechanism for darwin (MacOS)
+Update mechanism for darwin (MacOS)
 """
 
 import os

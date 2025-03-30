@@ -1,5 +1,5 @@
 """
-    Helper functions for file based operations.
+Helper functions for file based operations.
 """
 
 import argparse

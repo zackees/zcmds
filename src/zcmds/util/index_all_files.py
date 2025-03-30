@@ -1,5 +1,5 @@
 """
-    Helper function to index a file system
+Helper function to index a file system
 """
 
 import os
