@@ -221,6 +221,7 @@ def _in_process_ai_commit_or_prompt_for_commit_message(
                 _ = subprocess.run(
                     cmd,
                     shell=True,
+                    check=True,
                     capture_output=False,
                 )
                 # import pty
