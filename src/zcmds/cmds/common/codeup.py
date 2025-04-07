@@ -249,18 +249,29 @@ def _in_process_ai_commit_or_prompt_for_commit_message(
                 proc = PtyProcess.spawn(cmd)
                 while proc.isalive():
                     line = proc.readline()
+
                     linestr: str
                     if isinstance(line, bytes):
                         linestr = line.decode("utf-8", errors="ignore")
                     else:
                         linestr = line
                     linestr = linestr.strip()
+                    print(linestr)
                     if not line:
                         break
                     print(linestr)
+                    if "quota" in linestr.lower():
+                        print("Quota exceeded.")
+                        proc.terminate()
+                        raise RuntimeError("Quota exceeded.")
                     if "Yes" in linestr and "No" in linestr:
                         proc.write("\r\n")  # simulate ENTER
                     time.sleep(0.1)
+                proc.wait()
+                rtn = proc.exitstatus
+                if rtn != 0:
+                    print(f"Error: {cmd} returned {rtn}")
+                    raise SystemExit(rtn)
         else:
             subprocess.run(cmd, shell=True)
     else:
@@ -282,7 +293,9 @@ def _ai_commit_or_prompt_for_commit_message(no_autoaccept: bool) -> None:
     rtn = proc.exitcode
     if rtn != 0:
         print(f"Error: aicommit2 returned {rtn}")
-        raise SystemExit(rtn)
+        commit_message = input("AI Commit failed, comment message: ")
+        commit_message = f'"{commit_message}"'
+        _exec(f"git commit -m {commit_message}", bash=False)
 
 
 # demo help message
