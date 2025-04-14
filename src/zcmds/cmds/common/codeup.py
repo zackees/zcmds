@@ -256,7 +256,6 @@ def _in_process_ai_commit_or_prompt_for_commit_message(
                     else:
                         linestr = line
                     linestr = linestr.strip()
-                    print(linestr)
                     if not line:
                         break
                     print(linestr)
@@ -293,7 +292,9 @@ def _ai_commit_or_prompt_for_commit_message(no_autoaccept: bool) -> None:
     rtn = proc.exitcode
     if rtn != 0:
         print(f"Error: aicommit2 returned {rtn}")
-        commit_message = input("AI Commit failed! Manually enter commit message: ")
+        commit_message = input(
+            "AI Commit failed! (Check your billing balance for OpenAI)\nManually enter commit message: "
+        )
         commit_message = f'"{commit_message}"'
         _exec(f"git commit -m {commit_message}", bash=False)
 
