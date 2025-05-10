@@ -7,7 +7,7 @@ isort --profile black src
 echo Running black
 black src
 echo Running ruff src
-ruff check src
+ruff check --fix src
 echo Running mypy src
 mypy src
 echo Linting complete!
