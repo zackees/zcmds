@@ -349,7 +349,7 @@ def main() -> int:
                 if uv_resolved_dependencies:
                     sys.exit(1)
                 answer_yes = get_answer_yes_or_no(
-                    "'uv pip install -e . --refresh'?", "n"
+                    "'uv pip install -e . --refresh'?", "y"
                 )
                 if not answer_yes:
                     print("Aborting.")
