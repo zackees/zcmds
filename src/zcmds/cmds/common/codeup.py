@@ -18,7 +18,6 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
-from typing import Optional
 
 from git import Repo
 
@@ -97,7 +96,7 @@ def check_environment() -> Path:
     return Path(git_dir)
 
 
-def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
+def get_answer_yes_or_no(question: str, default: bool | str = "y") -> bool:
     """Ask a yes/no question and return the answer."""
     while True:
         answer = input(question + " [y/n]: ").lower().strip()
@@ -105,8 +104,15 @@ def get_answer_yes_or_no(question: str, default: Optional[str] = None) -> bool:
             return True
         if "n" in answer:
             return False
-        if answer == "" and default is not None:
-            return default == "y"
+        if answer == "":
+            if isinstance(default, bool):
+                return default
+            if isinstance(default, str):
+                if default.lower() == "y":
+                    return True
+                elif default.lower() == "n":
+                    return False
+            return True
         print("Please answer 'yes' or 'no'.")
 
 
@@ -349,7 +355,8 @@ def main() -> int:
                 if uv_resolved_dependencies:
                     sys.exit(1)
                 answer_yes = get_answer_yes_or_no(
-                    "'uv pip install -e . --refresh'?", "y"
+                    "'uv pip install -e . --refresh'?",
+                    "y",
                 )
                 if not answer_yes:
                     print("Aborting.")
