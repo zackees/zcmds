@@ -19,8 +19,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
 
-from git import Repo
-
 
 def is_uv_project(directory=".") -> bool:
     """
@@ -308,6 +306,25 @@ def _ai_commit_or_prompt_for_commit_message(no_autoaccept: bool) -> None:
 # demo help message
 
 
+def get_git_status() -> str:
+    """Get git status output."""
+    result = subprocess.run(
+        ["git", "status"], capture_output=True, text=True, check=True
+    )
+    return result.stdout
+
+
+def get_untracked_files() -> list[str]:
+    """Get list of untracked files."""
+    result = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return [f.strip() for f in result.stdout.splitlines() if f.strip()]
+
+
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
@@ -317,17 +334,17 @@ def main() -> int:
     git_path = check_environment()
     os.chdir(str(git_path))
     try:
-        repo = Repo(".")
-        git_status_str = repo.git.status()
+        git_status_str = get_git_status()
         print(git_status_str)
-        has_untracked = len(repo.untracked_files) > 0
+        untracked_files = get_untracked_files()
+        has_untracked = len(untracked_files) > 0
         if has_untracked:
             print("There are untracked files.")
             answer_yes = get_answer_yes_or_no("Continue?", "y")
             if not answer_yes:
                 print("Aborting.")
                 return 1
-            for untracked_file in repo.untracked_files:
+            for untracked_file in untracked_files:
                 answer_yes = get_answer_yes_or_no(f"  Add {untracked_file}?", "y")
                 if answer_yes:
                     _exec(f"git add {untracked_file}", bash=False)
