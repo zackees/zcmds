@@ -220,8 +220,11 @@ def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
             else:
                 # Use opencommit interactively
                 subprocess.run([cmd], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error: {cmd} returned {e.returncode}")
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            if isinstance(e, subprocess.CalledProcessError):
+                print(f"Error: {cmd} returned {e.returncode}")
+            else:
+                print(f"Error: {cmd} command not found")
             print("Falling back to manual commit message...")
             msg = input("Commit message: ")
             _exec(f'git commit -m "{msg}"', bash=False)

@@ -107,6 +107,8 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
     * Sends the folder or files to the trash. This sometimes works better than deleting files on Windows.
   * whichall
     * Finds all the executables in the path.
+  * yolo
+    * Launches Claude Code with dangerous mode (--dangerously-skip-permissions), bypassing all permission prompts. WARNING: Use with caution as this removes safety guardrails.
   * unzip
     * unzip the provided file
   * fixinternet
