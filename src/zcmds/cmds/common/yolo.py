@@ -8,6 +8,7 @@ def main() -> int:
     """
     Launch Claude Code with dangerous mode (--dangerously-skip-permissions).
     This bypasses all permission prompts for a more streamlined workflow.
+    Additionally prevents VSCode and Cursor from auto-attaching debuggers.
 
     WARNING: This mode removes all safety guardrails. Use with caution.
     """
@@ -38,8 +39,14 @@ def main() -> int:
         # Build the command with all arguments passed through
         cmd = [claude_path, "--dangerously-skip-permissions"] + sys.argv[1:]
 
-        # Execute Claude with the dangerous permissions flag
-        result = subprocess.run(cmd)
+        # Set environment variables to prevent VSCode/Cursor debugger auto-attach
+        env = os.environ.copy()
+        env["NODE_OPTIONS"] = "--inspect=0"  # Disable Node.js inspector
+        env["VSCODE_INSPECTOR_OPTIONS"] = ""  # Clear VSCode inspector options
+        env["CODE_DISABLE_EXTENSIONS"] = "true"  # Disable extensions that might attach
+
+        # Execute Claude with the dangerous permissions flag and debugger prevention
+        result = subprocess.run(cmd, env=env)
 
         return result.returncode
 
