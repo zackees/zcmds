@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)"
+      "Bash(python:*)",
+      "Bash(./install)",
+      "Bash(yolo:*)",
+      "Bash(uv run:*)"
     ],
     "deny": [],
     "ask": []
