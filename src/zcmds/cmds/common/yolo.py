@@ -1,7 +1,34 @@
+import argparse
 import os
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class Args:
+    """Typed arguments for the yolo command."""
+
+    claude_args: List[str]
+
+
+def parse_args() -> Args:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="yolo",
+        description="Launch Claude Code with dangerous mode (--dangerously-skip-permissions). "
+        "This bypasses all permission prompts for a more streamlined workflow.",
+        epilog="All unknown arguments are passed directly to Claude Code. "
+        "WARNING: This mode removes all safety guardrails. Use with caution.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Parse known args, allowing unknown args to be passed to Claude
+    known_args, unknown_args = parser.parse_known_args()
+
+    return Args(claude_args=unknown_args)
 
 
 def main() -> int:
@@ -11,6 +38,8 @@ def main() -> int:
 
     WARNING: This mode removes all safety guardrails. Use with caution.
     """
+    args = parse_args()
+
     try:
         # Try to find claude in PATH, including common Windows locations
         claude_path = shutil.which("claude")
@@ -36,7 +65,7 @@ def main() -> int:
             return 1
 
         # Build the command with all arguments passed through
-        cmd = [claude_path, "--dangerously-skip-permissions"] + sys.argv[1:]
+        cmd = [claude_path, "--dangerously-skip-permissions"] + args.claude_args
 
         # Execute Claude with the dangerous permissions flag
         result = subprocess.run(cmd)
