@@ -6,18 +6,26 @@ Runs:
     * if ./lint exists, then run it
     * if ./test exists, then run it
     * git add .
-    * aicommit2
+    * opencommit (oco)
 """
 
 import argparse
 import os
 import subprocess
 import sys
-import time
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
+
+# Force UTF-8 encoding for proper international character handling
+if sys.platform == "win32":
+    import codecs
+
+    if sys.stdout.encoding != "utf-8":
+        sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+    if sys.stderr.encoding != "utf-8":
+        sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 
 
 def is_uv_project(directory=".") -> bool:
@@ -87,9 +95,9 @@ def check_environment() -> Path:
         print("Error: .git directory does not exist.")
         sys.exit(1)
 
-    if not which("aicommit2"):
+    if not which("oco"):
         warnings.warn(
-            "aicommit2 is not installed. Skipping automatic commit message generation."
+            "opencommit (oco) is not installed. Skipping automatic commit message generation."
         )
     return Path(git_dir)
 
@@ -123,6 +131,7 @@ class Args:
     no_lint: bool
     publish: bool
     no_autoaccept: bool
+    message: str | None
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -144,6 +153,9 @@ class Args:
         assert isinstance(
             self.no_autoaccept, bool
         ), f"Expected bool, got {type(self.no_autoaccept)}"
+        assert isinstance(
+            self.message, str | None
+        ), f"Expected str, got {type(self.message)}"
 
 
 def _parse_args() -> Args:
@@ -168,6 +180,12 @@ def _parse_args() -> Args:
         help="Do not auto-accept commit messages from AI",
         action="store_true",
     )
+    parser.add_argument(
+        "-m",
+        "--message",
+        help="Commit message (bypasses AI commit generation)",
+        type=str,
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -178,6 +196,7 @@ def _parse_args() -> Args:
         no_lint=tmp.no_lint,
         publish=tmp.publish,
         no_autoaccept=tmp.no_autoaccept,
+        message=tmp.message,
     )
     return out
 
@@ -190,117 +209,38 @@ def _publish() -> None:
     _exec("./upload_package.sh", bash=True)
 
 
-def _drain_stdin_if_necessary() -> None:
-    try:
-        # if os.name == "posix":
-        #     import select
-
-        #     while True:
-        #         ready, _, _ = select.select([sys.stdin], [], [], 0)
-        #         if not ready:
-        #             break
-        #         sys.stdin.read(1)
-        if os.name == "nt":
-            import msvcrt
-
-            while msvcrt.kbhit():  # type: ignore
-                msvcrt.getwch()  # type: ignore
-    except EOFError:
-        pass
-    except KeyboardInterrupt:
-        raise
-    except Exception as e:
-        print(f"Error draining stdin: {e}")
-
-
-def _in_process_ai_commit_or_prompt_for_commit_message(
-    auto_accept_aicommits: bool,
-) -> None:
-    cmd = "aicommits"
+def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
+    """Use opencommit (oco) to generate commit message or prompt for manual input."""
+    cmd = "oco"
     if which(cmd):
-        _drain_stdin_if_necessary()
-
-        if auto_accept_aicommits:
-            if os.name == "posix":
-                _ = subprocess.run(
-                    cmd,
-                    shell=True,
-                    capture_output=False,
-                )
-                # import pty
-
-                # master_fd, slave_fd = pty.openpty()  # type: ignore
-                # process = subprocess.Popen(
-                #     cmd,
-                #     shell=True,
-                #     stdin=slave_fd,
-                #     stdout=slave_fd,
-                #     stderr=slave_fd,
-                #     close_fds=True,
-                # )
-                # os.close(slave_fd)
-                # with os.fdopen(master_fd, "rb+", buffering=0) as master:
-                #     for line in master:
-                #         line_str = line.decode("utf-8", errors="ignore").strip()
-                #         print(line_str)
-                #         if "Yes" in line_str and "No" in line_str:
-                #             master.write(b"\n")
-                #     process.wait()
-
-            elif os.name == "nt":
-                from winpty import PtyProcess
-
-                proc = PtyProcess.spawn(cmd)
-                while proc.isalive():
-                    line = proc.readline()
-
-                    linestr: str
-                    if isinstance(line, bytes):
-                        linestr = line.decode("utf-8", errors="ignore")
-                    else:
-                        linestr = line
-                    linestr = linestr.strip()
-                    if not line:
-                        break
-                    print(linestr)
-                    if "quota" in linestr.lower():
-                        print("Quota exceeded.")
-                        proc.terminate()
-                        raise RuntimeError("Quota exceeded.")
-                    if "Yes" in linestr and "No" in linestr:
-                        proc.write("\r\n")  # simulate ENTER
-                    time.sleep(0.1)
-                proc.wait()
-                rtn = proc.exitstatus
-                if rtn != 0:
-                    print(f"Error: {cmd} returned {rtn}")
-                    raise SystemExit(rtn)
-        else:
-            subprocess.run(cmd, shell=True)
+        try:
+            if auto_accept:
+                # Use opencommit with auto-confirm flag
+                subprocess.run([cmd, "--yes"], check=True)
+            else:
+                # Use opencommit interactively
+                subprocess.run([cmd], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error: {cmd} returned {e.returncode}")
+            print("Falling back to manual commit message...")
+            msg = input("Commit message: ")
+            _exec(f'git commit -m "{msg}"', bash=False)
     else:
         # Manual commit
         msg = input("Commit message: ")
-        msg = f'"{msg}"'
-        _exec(f"git commit -m {msg}", bash=False)
+        _exec(f'git commit -m "{msg}"', bash=False)
 
 
-def _ai_commit_or_prompt_for_commit_message(no_autoaccept: bool) -> None:
-    from multiprocessing import Process
-
-    proc = Process(
-        target=_in_process_ai_commit_or_prompt_for_commit_message,
-        args=(not no_autoaccept,),  # Auto-accept unless no_autoaccept is True
-    )
-    proc.start()
-    proc.join()
-    rtn = proc.exitcode
-    if rtn != 0:
-        print(f"Error: aicommit2 returned {rtn}")
-        commit_message = input(
-            "AI Commit failed! (Check your billing balance for OpenAI)\nManually enter commit message: "
-        )
-        commit_message = f'"{commit_message}"'
-        _exec(f"git commit -m {commit_message}", bash=False)
+def _ai_commit_or_prompt_for_commit_message(
+    no_autoaccept: bool, message: str | None = None
+) -> None:
+    """Generate commit message using AI or prompt for manual input."""
+    if message:
+        # Use provided commit message directly
+        _exec(f'git commit -m "{message}"', bash=False)
+    else:
+        # Use AI or interactive commit
+        _opencommit_or_prompt_for_commit_message(auto_accept=not no_autoaccept)
 
 
 # demo help message
@@ -390,7 +330,7 @@ def main() -> int:
         if not args.no_test and os.path.exists("./test"):
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
-        _ai_commit_or_prompt_for_commit_message(args.no_autoaccept)
+        _ai_commit_or_prompt_for_commit_message(args.no_autoaccept, args.message)
         if not args.no_push:
             _exec("git push", bash=False)
         if args.publish:

@@ -29,5 +29,9 @@ test = [
     "isort",
 ]
 
+[tool.isort]
+profile = "black"
+src_paths = ["src"]
+
 [tool.mypy]
 ignore_missing_imports = true

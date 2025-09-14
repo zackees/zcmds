@@ -15,7 +15,15 @@
       "Bash(uv pip:*)",
       "Bash(uv:*)",
       "Read(//c/Users/niteris/**)",
-      "Bash(source ~/.bashrc)"
+      "Bash(source ~/.bashrc)",
+      "Bash(aicommits --version)",
+      "WebSearch",
+      "Bash(npm install:*)",
+      "Bash(oco:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
