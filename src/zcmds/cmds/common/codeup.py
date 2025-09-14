@@ -132,6 +132,7 @@ class Args:
     publish: bool
     no_autoaccept: bool
     message: str | None
+    no_rebase: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -156,6 +157,9 @@ class Args:
         assert isinstance(
             self.message, str | None
         ), f"Expected str, got {type(self.message)}"
+        assert isinstance(
+            self.no_rebase, bool
+        ), f"Expected bool, got {type(self.no_rebase)}"
 
 
 def _parse_args() -> Args:
@@ -186,6 +190,11 @@ def _parse_args() -> Args:
         help="Commit message (bypasses AI commit generation)",
         type=str,
     )
+    parser.add_argument(
+        "--no-rebase",
+        help="Do not attempt to rebase before pushing",
+        action="store_true",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -197,6 +206,7 @@ def _parse_args() -> Args:
         publish=tmp.publish,
         no_autoaccept=tmp.no_autoaccept,
         message=tmp.message,
+        no_rebase=tmp.no_rebase,
     )
     return out
 
@@ -305,6 +315,116 @@ def get_untracked_files() -> list[str]:
     return [f.strip() for f in result.stdout.splitlines() if f.strip()]
 
 
+def get_main_branch() -> str:
+    """Get the main branch name (main, master, etc.)."""
+    try:
+        # Try to get the default branch from remote
+        result = subprocess.run(
+            ["git", "symbolic-ref", "refs/remotes/origin/HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        if result.returncode == 0:
+            return result.stdout.strip().split("/")[-1]
+    except Exception:
+        pass
+
+    # Fallback: check common branch names
+    for branch in ["main", "master"]:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--verify", f"origin/{branch}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            if result.returncode == 0:
+                return branch
+        except Exception:
+            continue
+
+    return "main"  # Default fallback
+
+
+def get_current_branch() -> str:
+    """Get the current branch name."""
+    result = subprocess.run(
+        ["git", "branch", "--show-current"],
+        capture_output=True,
+        text=True,
+        check=True,
+        encoding="utf-8",
+    )
+    return result.stdout.strip()
+
+
+def check_rebase_needed(main_branch: str) -> bool:
+    """Check if current branch is behind the remote main branch."""
+    try:
+        remote_hash = subprocess.run(
+            ["git", "rev-parse", f"origin/{main_branch}"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+        # Check if we're behind
+        merge_base = subprocess.run(
+            ["git", "merge-base", "HEAD", f"origin/{main_branch}"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+        return merge_base != remote_hash
+
+    except Exception:
+        return False
+
+
+def check_rebase_conflicts(main_branch: str) -> bool:
+    """Check if rebase would have conflicts using merge-tree."""
+    try:
+        # Use git merge-tree to simulate the merge
+        result = subprocess.run(
+            ["git", "merge-tree", f"origin/{main_branch}", "HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        # If merge-tree outputs anything, there are conflicts
+        return bool(result.stdout.strip())
+
+    except Exception:
+        return True  # Assume conflicts if we can't check
+
+
+def perform_rebase(main_branch: str) -> bool:
+    """Perform the actual rebase. Returns True if successful."""
+    try:
+        result = subprocess.run(
+            ["git", "rebase", f"origin/{main_branch}"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        if result.returncode == 0:
+            print(f"Successfully rebased onto origin/{main_branch}")
+            return True
+        else:
+            print(f"Rebase failed: {result.stderr}")
+            return False
+
+    except Exception as e:
+        print(f"Rebase error: {e}")
+        return False
+
+
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
@@ -375,8 +495,54 @@ def main() -> int:
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
         _ai_commit_or_prompt_for_commit_message(args.no_autoaccept, args.message)
+
         if not args.no_push:
-            _exec("git push", bash=False)
+            # Fetch latest changes from remote
+            print("Fetching latest changes from remote...")
+            _exec("git fetch", bash=False)
+
+            # Check if rebase is needed and handle it
+            if not args.no_rebase:
+                main_branch = get_main_branch()
+                current_branch = get_current_branch()
+
+                if current_branch != main_branch and check_rebase_needed(main_branch):
+                    print(
+                        f"Current branch '{current_branch}' is behind origin/{main_branch}"
+                    )
+
+                    # Check for potential conflicts
+                    if check_rebase_conflicts(main_branch):
+                        print(
+                            f"Warning: Rebase onto origin/{main_branch} may have conflicts"
+                        )
+                        proceed = get_answer_yes_or_no(
+                            f"Attempt rebase onto origin/{main_branch} anyway?", "n"
+                        )
+                        if not proceed:
+                            print(
+                                "Skipping rebase. You may need to resolve conflicts manually."
+                            )
+                            print(f"Try: git rebase origin/{main_branch}")
+                            return 1
+                    else:
+                        print(f"Rebase onto origin/{main_branch} should be clean")
+                        proceed = get_answer_yes_or_no(
+                            f"Proceed with rebase onto origin/{main_branch}?", "y"
+                        )
+                        if not proceed:
+                            print("Skipping rebase.")
+                            return 1
+
+                    # Perform the rebase
+                    if not perform_rebase(main_branch):
+                        print(
+                            "Rebase failed. Please resolve conflicts manually and try again."
+                        )
+                        return 1
+
+            # Now attempt the push
+            _exec("git push --ff-only", bash=False)
         if args.publish:
             _publish()
     except KeyboardInterrupt:
