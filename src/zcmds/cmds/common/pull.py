@@ -100,6 +100,35 @@ def set_remote_url(url: str) -> None:
         raise RuntimeError(f"Error setting remote origin URL: {msg}")
 
 
+def get_default_branch() -> str:
+    """Get the default branch name from the remote origin."""
+    # First try to get the remote HEAD reference
+    rtn, msg = run_git_command(["git", "symbolic-ref", "refs/remotes/origin/HEAD"])
+    if rtn == 0:
+        # Extract branch name from refs/remotes/origin/main format
+        branch_ref = msg.strip()
+        if branch_ref.startswith("refs/remotes/origin/"):
+            return branch_ref.replace("refs/remotes/origin/", "")
+    
+    # If that fails, try to get it from remote show origin
+    rtn, msg = run_git_command(["git", "remote", "show", "origin"])
+    if rtn == 0:
+        for line in msg.splitlines():
+            line = line.strip()
+            if line.startswith("HEAD branch:"):
+                return line.split(":", 1)[1].strip()
+    
+    # If all else fails, try common default branch names
+    for branch_name in ["main", "master"]:
+        rtn, _ = run_git_command(["git", "rev-parse", "--verify", f"origin/{branch_name}"])
+        if rtn == 0:
+            return branch_name
+    
+    # Last resort: return "main" as fallback
+    warnings.warn("Could not determine default branch, falling back to 'main'")
+    return "main"
+
+
 def main() -> int:
     args = parse_args()
     original_branch = get_current_branch()
@@ -117,8 +146,9 @@ def main() -> int:
         pull_rebase_all_branches(local_branches)
         print("All branches updated successfully.")
     else:
-        pull_rebase_all_branches(["main"])
-        print("main branch updated successfully.")
+        default_branch = get_default_branch()
+        pull_rebase_all_branches([default_branch])
+        print(f"{default_branch} branch updated successfully.")
     rtn, msg = run_git_command(["git", "checkout", original_branch])
     if rtn != 0:
         print(f"Error checking out branch {original_branch}: {msg}")
