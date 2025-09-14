@@ -1,5 +1,4 @@
 #!/bin/bash
 
 set -e
-. ./activate.sh
-python -m unittest discover tests -v
+uv run --group test python -m unittest discover tests -v

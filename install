@@ -16,6 +16,9 @@ if ! command -v uv &> /dev/null; then
   fi
 fi
 
+# Clear any existing VIRTUAL_ENV to prevent uv warnings about environment mismatch
+unset VIRTUAL_ENV
+
 uv venv --python 3.11 --seed
 uv run pip install -e .
 

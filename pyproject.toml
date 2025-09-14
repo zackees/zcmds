@@ -19,5 +19,15 @@ package-dir = {"" = "src"}
 dependencies = { file = ["requirements.txt"] }
 version = { attr = "zcmds.__version__" }
 
+[dependency-groups]
+test = [
+    "mypy",
+    "pytest",
+    "black",
+    "wheel",
+    "ruff",
+    "isort",
+]
+
 [tool.mypy]
 ignore_missing_imports = true

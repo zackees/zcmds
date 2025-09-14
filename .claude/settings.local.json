@@ -4,7 +4,18 @@
       "Bash(python:*)",
       "Bash(./install)",
       "Bash(yolo:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(.venv/Scripts/yolo.exe:*)",
+      "Bash(where claude)",
+      "Bash(claude --version)",
+      "Bash(echo $VIRTUAL_ENV)",
+      "Bash(cat:*)",
+      "Bash(./clean)",
+      "Bash(export VIRTUAL_ENV=C:/Users/niteris/dev/zcmds/venv)",
+      "Bash(uv pip:*)",
+      "Bash(uv:*)",
+      "Read(//c/Users/niteris/**)",
+      "Bash(source ~/.bashrc)"
     ],
     "deny": [],
     "ask": []
