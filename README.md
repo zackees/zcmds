@@ -126,6 +126,124 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
   * `python -pip install -e .`
   * Test by typing in `zcmds`
 
+# How to Add a New Command
+
+Adding a new command to zcmds is straightforward. Here's the step-by-step process:
+
+## 1. Create the Command Module
+
+Create a new Python file in `src/zcmds/cmds/common/` with your command name:
+
+```python
+# src/zcmds/cmds/common/mycommand.py
+import subprocess
+import sys
+
+
+def main() -> int:
+    """
+    Your command description here.
+    This function serves as the entry point for your command.
+    """
+    try:
+        # Your command implementation here
+        print("Hello from mycommand!")
+        return 0
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+## 2. Register the Command
+
+Add your command to `src/zcmds/cmds.txt`:
+
+```
+mycommand = "zcmds.cmds.common.mycommand:main"
+```
+
+**Important**: Keep the entries in alphabetical order and include all existing commands.
+
+## 3. Test Your Implementation
+
+Run the development commands to ensure your code is correct:
+
+```bash
+./lint    # Run code formatting and linting
+./test    # Run all tests
+```
+
+Both commands must pass without errors.
+
+## 4. Install and Test
+
+Reinstall the package to register your new command:
+
+```bash
+./install  # Install package in development mode
+zcmds      # Verify your command appears in the list
+```
+
+Test your command:
+
+```bash
+mycommand  # Should execute your new command
+```
+
+## Example: The `yolo` Command
+
+Here's a real example from the codebase - the `yolo` command that launches Claude Code with dangerous permissions:
+
+```python
+# src/zcmds/cmds/common/yolo.py
+import subprocess
+import sys
+
+
+def main() -> int:
+    """
+    Launch Claude Code with dangerous mode (--dangerously-skip-permissions).
+    This bypasses all permission prompts for a more streamlined workflow.
+
+    WARNING: This mode removes all safety guardrails. Use with caution.
+    """
+    try:
+        # Build the command with all arguments passed through
+        cmd = ["claude", "--dangerously-skip-permissions"] + sys.argv[1:]
+
+        # Execute Claude with the dangerous permissions flag
+        result = subprocess.run(cmd)
+
+        return result.returncode
+
+    except FileNotFoundError:
+        print("Error: Claude Code is not installed or not in PATH", file=sys.stderr)
+        print("Install Claude Code from: https://claude.ai/download", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\nInterrupted by user", file=sys.stderr)
+        return 130
+    except Exception as e:
+        print(f"Error launching Claude: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+## Command Guidelines
+
+- **Return codes**: Always return 0 for success, non-zero for errors
+- **Error handling**: Use try-except blocks and print errors to stderr
+- **Documentation**: Include a clear docstring explaining what your command does
+- **Arguments**: Handle command-line arguments using `sys.argv` or `argparse`
+- **Dependencies**: Check if external tools are available before using them
 
 # Additional install
 

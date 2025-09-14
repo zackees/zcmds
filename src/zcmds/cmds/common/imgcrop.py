@@ -1,15 +1,23 @@
 import argparse
 import os
+
 from PIL import Image
+
 
 def main():
     parser = argparse.ArgumentParser(
         description="Crops an image based on specified dimensions."
     )
     parser.add_argument("input", help="Input image file.")
-    parser.add_argument("--bottom", type=int, default=0,
-                        help="Crop from the bottom by this many pixels. Use negative values to crop from the top.")
-    parser.add_argument("--output", help="Output image file (default: input_cropped.ext).")
+    parser.add_argument(
+        "--bottom",
+        type=int,
+        default=0,
+        help="Crop from the bottom by this many pixels. Use negative values to crop from the top.",
+    )
+    parser.add_argument(
+        "--output", help="Output image file (default: input_cropped.ext)."
+    )
 
     args = parser.parse_args()
 
@@ -30,7 +38,9 @@ def main():
         new_height = height - bottom_crop
 
         if new_height <= 0:
-            print(f"Error: Cropped image height would be zero or negative ({new_height}). Adjust --bottom value.")
+            print(
+                f"Error: Cropped image height would be zero or negative ({new_height}). Adjust --bottom value."
+            )
             return 1
 
         # Define the cropping box (left, upper, right, lower)
@@ -60,6 +70,7 @@ def main():
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     main()

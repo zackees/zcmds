@@ -109,7 +109,7 @@ def get_default_branch() -> str:
         branch_ref = msg.strip()
         if branch_ref.startswith("refs/remotes/origin/"):
             return branch_ref.replace("refs/remotes/origin/", "")
-    
+
     # If that fails, try to get it from remote show origin
     rtn, msg = run_git_command(["git", "remote", "show", "origin"])
     if rtn == 0:
@@ -117,13 +117,15 @@ def get_default_branch() -> str:
             line = line.strip()
             if line.startswith("HEAD branch:"):
                 return line.split(":", 1)[1].strip()
-    
+
     # If all else fails, try common default branch names
     for branch_name in ["main", "master"]:
-        rtn, _ = run_git_command(["git", "rev-parse", "--verify", f"origin/{branch_name}"])
+        rtn, _ = run_git_command(
+            ["git", "rev-parse", "--verify", f"origin/{branch_name}"]
+        )
         if rtn == 0:
             return branch_name
-    
+
     # Last resort: return "main" as fallback
     warnings.warn("Could not determine default branch, falling back to 'main'")
     return "main"

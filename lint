@@ -3,11 +3,11 @@ set -e
 # cd to self bash script directory
 cd $( dirname ${BASH_SOURCE[0]})
 echo Running isort
-isort --profile black src
+uv run isort --profile black src
 echo Running black
-black src
+uv run black src
 echo Running ruff src
-ruff check --fix src
+uv run ruff check --fix src
 echo Running mypy src
-mypy src
+uv run mypy src
 echo Linting complete!
