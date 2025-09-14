@@ -209,29 +209,61 @@ def _publish() -> None:
     _exec("./upload_package.sh", bash=True)
 
 
+def _generate_ai_commit_message() -> str | None:
+    """Generate commit message using git-ai-commit Python API."""
+    try:
+        from ai_commit_msg.core.gen_commit_msg import generate_commit_message
+        from ai_commit_msg.services.git_service import GitService
+
+        # Get staged diff using git-ai-commit's GitService
+        staged_diff = GitService.get_staged_diff()
+
+        if not staged_diff.stdout.strip():
+            # No staged changes, get regular diff
+            result = subprocess.run(
+                ["git", "diff"], capture_output=True, text=True, check=True
+            )
+            diff_text = result.stdout.strip()
+            if not diff_text:
+                return None
+        else:
+            diff_text = staged_diff.stdout
+
+        # Generate commit message using git-ai-commit API
+        commit_message = generate_commit_message(diff=diff_text, conventional=True)
+        return commit_message.strip()
+
+    except ImportError:
+        print("Warning: git-ai-commit library not available for AI commit messages")
+        print("Install with: pip install git-ai-commit")
+        return None
+    except Exception as e:
+        print(f"Warning: Failed to generate AI commit message: {e}")
+        return None
+
+
 def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
-    """Use opencommit (oco) to generate commit message or prompt for manual input."""
-    cmd = "oco"
-    if which(cmd):
-        try:
-            if auto_accept:
-                # Use opencommit with auto-confirm flag
-                subprocess.run([cmd, "--yes"], check=True)
-            else:
-                # Use opencommit interactively
-                subprocess.run([cmd], check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            if isinstance(e, subprocess.CalledProcessError):
-                print(f"Error: {cmd} returned {e.returncode}")
-            else:
-                print(f"Error: {cmd} command not found")
-            print("Falling back to manual commit message...")
-            msg = input("Commit message: ")
-            _exec(f'git commit -m "{msg}"', bash=False)
-    else:
-        # Manual commit
-        msg = input("Commit message: ")
-        _exec(f'git commit -m "{msg}"', bash=False)
+    """Generate AI commit message or prompt for manual input."""
+    # Try to generate AI commit message first
+    ai_message = _generate_ai_commit_message()
+
+    if ai_message:
+        print(f"Generated commit message: {ai_message}")
+
+        if auto_accept:
+            # Use AI message without confirmation
+            _exec(f'git commit -m "{ai_message}"', bash=False)
+            return
+        else:
+            # Ask user to confirm AI message
+            use_ai = input("Use this AI-generated message? [y/n]: ").lower().strip()
+            if use_ai in ["y", "yes", ""]:
+                _exec(f'git commit -m "{ai_message}"', bash=False)
+                return
+
+    # Fall back to manual commit message
+    msg = input("Commit message: ")
+    _exec(f'git commit -m "{msg}"', bash=False)
 
 
 def _ai_commit_or_prompt_for_commit_message(
