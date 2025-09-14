@@ -221,7 +221,11 @@ def _generate_ai_commit_message() -> str | None:
         if not staged_diff.stdout.strip():
             # No staged changes, get regular diff
             result = subprocess.run(
-                ["git", "diff"], capture_output=True, text=True, check=True
+                ["git", "diff"],
+                capture_output=True,
+                text=True,
+                check=True,
+                encoding="utf-8",
             )
             diff_text = result.stdout.strip()
             if not diff_text:
@@ -284,7 +288,7 @@ def _ai_commit_or_prompt_for_commit_message(
 def get_git_status() -> str:
     """Get git status output."""
     result = subprocess.run(
-        ["git", "status"], capture_output=True, text=True, check=True
+        ["git", "status"], capture_output=True, text=True, check=True, encoding="utf-8"
     )
     return result.stdout
 
@@ -296,6 +300,7 @@ def get_untracked_files() -> list[str]:
         capture_output=True,
         text=True,
         check=True,
+        encoding="utf-8",
     )
     return [f.strip() for f in result.stdout.splitlines() if f.strip()]
 
@@ -332,12 +337,16 @@ def main() -> int:
             cmd = _to_exec_str(cmd, bash=True)
             uv_resolved_dependencies = True
             proc = subprocess.Popen(
-                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                encoding="utf-8",
             )
             with proc:
                 assert proc.stdout is not None
                 for line in proc.stdout:
-                    linestr = line.decode("utf-8", errors="ignore").strip()
+                    linestr = line.strip()
                     print(linestr)
                     if "No solution found when resolving dependencies" in linestr:
                         uv_resolved_dependencies = False
