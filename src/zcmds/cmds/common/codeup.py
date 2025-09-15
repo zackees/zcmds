@@ -623,32 +623,17 @@ def check_rebase_needed(main_branch: str) -> bool:
         return False
 
 
-def check_rebase_conflicts(main_branch: str) -> bool:
-    """Check if rebase would have conflicts using merge-tree."""
+def attempt_safe_rebase(main_branch: str) -> tuple[bool, bool]:
+    """
+    Attempt a rebase and handle conflicts properly.
+
+    Returns:
+        tuple[bool, bool]: (success, had_conflicts)
+        - success: True if rebase completed successfully
+        - had_conflicts: True if conflicts were encountered (and rebase was aborted)
+    """
     try:
-        # Use git merge-tree to simulate the merge
-        result = subprocess.run(
-            ["git", "merge-tree", f"origin/{main_branch}", "HEAD"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
-
-        # If merge-tree outputs anything, there are conflicts
-        return bool(result.stdout.strip())
-
-    except KeyboardInterrupt:
-        logger.info("check_rebase_conflicts interrupted by user")
-        _thread.interrupt_main()
-        return True
-    except Exception as e:
-        logger.error(f"Error checking rebase conflicts: {e}")
-        return True  # Assume conflicts if we can't check
-
-
-def perform_rebase(main_branch: str) -> bool:
-    """Perform the actual rebase. Returns True if successful."""
-    try:
+        # Attempt the actual rebase
         result = subprocess.run(
             ["git", "rebase", f"origin/{main_branch}"],
             capture_output=True,
@@ -657,24 +642,56 @@ def perform_rebase(main_branch: str) -> bool:
         )
 
         if result.returncode == 0:
-            print(f"Successfully rebased onto origin/{main_branch}")
-            return True
+            # Rebase succeeded
+            logger.info(f"Successfully rebased onto origin/{main_branch}")
+            return True, False
         else:
-            print(f"Rebase failed: {result.stderr}")
-            return False
+            # Rebase failed, check if it's due to conflicts
+            stderr_lower = result.stderr.lower()
+            stdout_lower = result.stdout.lower()
+
+            if (
+                "conflict" in stderr_lower
+                or "conflict" in stdout_lower
+                or "failed to merge" in stderr_lower
+                or "failed to merge" in stdout_lower
+            ):
+
+                logger.info("Rebase failed due to conflicts, aborting rebase")
+                # Abort the rebase to return to clean state
+                abort_result = subprocess.run(
+                    ["git", "rebase", "--abort"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+
+                if abort_result.returncode != 0:
+                    logger.error(f"Failed to abort rebase: {abort_result.stderr}")
+                    print(
+                        f"Error: Failed to abort rebase: {abort_result.stderr}",
+                        file=sys.stderr,
+                    )
+
+                return False, True
+            else:
+                # Rebase failed for other reasons
+                logger.error(f"Rebase failed: {result.stderr}")
+                print(f"Rebase failed: {result.stderr}", file=sys.stderr)
+                return False, False
 
     except KeyboardInterrupt:
-        logger.info("perform_rebase interrupted by user")
+        logger.info("attempt_safe_rebase interrupted by user")
         _thread.interrupt_main()
-        return False
+        return False, False
     except Exception as e:
-        logger.error(f"Rebase error: {e}")
-        print(f"Rebase error: {e}")
-        return False
+        logger.error(f"Error attempting rebase: {e}")
+        print(f"Error attempting rebase: {e}", file=sys.stderr)
+        return False, False
 
 
 def safe_rebase_try() -> bool:
-    """Attempt a safe rebase if no conflicts would occur. Returns True if successful or no rebase needed."""
+    """Attempt a safe rebase using proper git commands. Returns True if successful or no rebase needed."""
     try:
         # Get the main branch
         main_branch = get_main_branch()
@@ -689,23 +706,25 @@ def safe_rebase_try() -> bool:
             print(f"Branch is already up to date with origin/{main_branch}")
             return True
 
-        # Check for conflicts before attempting rebase
-        if check_rebase_conflicts(main_branch):
-            print(f"Cannot safely rebase: conflicts detected with origin/{main_branch}")
-            print(
-                "Remote repository has conflicting changes and must be manually rebased."
-            )
-            print(f"Run: git rebase origin/{main_branch}")
-            print("Then resolve any conflicts manually.")
-            return False
+        # Attempt the rebase directly - this will handle conflicts properly
+        print(f"Attempting rebase onto origin/{main_branch}...")
+        success, had_conflicts = attempt_safe_rebase(main_branch)
 
-        # Safe to rebase - no conflicts detected
-        print(f"Attempting safe rebase onto origin/{main_branch}...")
-        if perform_rebase(main_branch):
+        if success:
             print(f"Successfully rebased onto origin/{main_branch}")
             return True
+        elif had_conflicts:
+            print(
+                f"Cannot automatically rebase: conflicts detected with origin/{main_branch}"
+            )
+            print(
+                "Remote repository has conflicting changes that must be manually resolved."
+            )
+            print(f"Please run: git rebase origin/{main_branch}")
+            print("Then resolve any conflicts manually.")
+            return False
         else:
-            print("Rebase failed unexpectedly")
+            print("Rebase failed for other reasons")
             return False
 
     except KeyboardInterrupt:
@@ -998,50 +1017,47 @@ def main() -> int:
                         f"Current branch '{current_branch}' is behind origin/{main_branch}"
                     )
 
-                    # Check for potential conflicts
-                    if check_rebase_conflicts(main_branch):
+                    if args.no_interactive:
                         print(
-                            f"Warning: Rebase onto origin/{main_branch} may have conflicts"
+                            f"Non-interactive mode: attempting automatic rebase onto origin/{main_branch}"
                         )
-                        if args.no_interactive:
+                        success, had_conflicts = attempt_safe_rebase(main_branch)
+                        if success:
+                            print(f"Successfully rebased onto origin/{main_branch}")
+                        elif had_conflicts:
                             print(
-                                "Non-interactive mode: skipping rebase due to potential conflicts"
+                                "Error: Rebase failed due to conflicts that need manual resolution"
                             )
+                            print(f"Please run: git rebase origin/{main_branch}")
                             print(
-                                f"You may need to resolve conflicts manually with: git rebase origin/{main_branch}"
+                                "Then resolve any conflicts manually and re-run codeup"
                             )
                             return 1
                         else:
-                            proceed = get_answer_yes_or_no(
-                                f"Attempt rebase onto origin/{main_branch} anyway?", "n"
-                            )
-                            if not proceed:
-                                print(
-                                    "Skipping rebase. You may need to resolve conflicts manually."
-                                )
-                                print(f"Try: git rebase origin/{main_branch}")
-                                return 1
+                            print("Error: Rebase failed for unknown reasons")
+                            return 1
                     else:
-                        print(f"Rebase onto origin/{main_branch} should be clean")
-                        if args.no_interactive:
-                            print(
-                                f"Non-interactive mode: automatically proceeding with rebase onto origin/{main_branch}"
-                            )
-                            proceed = True
-                        else:
-                            proceed = get_answer_yes_or_no(
-                                f"Proceed with rebase onto origin/{main_branch}?", "y"
-                            )
-                            if not proceed:
-                                print("Skipping rebase.")
-                                return 1
-
-                    # Perform the rebase
-                    if not perform_rebase(main_branch):
-                        print(
-                            "Rebase failed. Please resolve conflicts manually and try again."
+                        proceed = get_answer_yes_or_no(
+                            f"Attempt rebase onto origin/{main_branch}?", "y"
                         )
-                        return 1
+                        if not proceed:
+                            print("Skipping rebase.")
+                            return 1
+
+                        # Perform the rebase
+                        success, had_conflicts = attempt_safe_rebase(main_branch)
+                        if success:
+                            print(f"Successfully rebased onto origin/{main_branch}")
+                        elif had_conflicts:
+                            print(
+                                "Rebase failed due to conflicts. Please resolve conflicts manually and try again."
+                            )
+                            print(f"Run: git rebase origin/{main_branch}")
+                            print("Then resolve conflicts and re-run codeup")
+                            return 1
+                        else:
+                            print("Rebase failed for other reasons")
+                            return 1
 
             # Now attempt the push
             if not safe_push():
