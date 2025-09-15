@@ -160,22 +160,45 @@ def check_environment() -> Path:
 
 def get_answer_yes_or_no(question: str, default: bool | str = "y") -> bool:
     """Ask a yes/no question and return the answer."""
+    # Check if stdin is available
+    if not sys.stdin.isatty():
+        # No interactive terminal, use default
+        result = (
+            True
+            if (isinstance(default, str) and default.lower() == "y")
+            or (isinstance(default, bool) and default)
+            else False
+        )
+        print(f"{question} [y/n]: {'y' if result else 'n'} (auto-selected, no stdin)")
+        return result
+
     while True:
-        answer = input(question + " [y/n]: ").lower().strip()
-        if "y" in answer:
-            return True
-        if "n" in answer:
-            return False
-        if answer == "":
-            if isinstance(default, bool):
-                return default
-            if isinstance(default, str):
-                if default.lower() == "y":
-                    return True
-                elif default.lower() == "n":
-                    return False
-            return True
-        print("Please answer 'yes' or 'no'.")
+        try:
+            answer = input(question + " [y/n]: ").lower().strip()
+            if "y" in answer:
+                return True
+            if "n" in answer:
+                return False
+            if answer == "":
+                if isinstance(default, bool):
+                    return default
+                if isinstance(default, str):
+                    if default.lower() == "y":
+                        return True
+                    elif default.lower() == "n":
+                        return False
+                return True
+            print("Please answer 'yes' or 'no'.")
+        except EOFError:
+            # No stdin available, use default
+            result = (
+                True
+                if (isinstance(default, str) and default.lower() == "y")
+                or (isinstance(default, bool) and default)
+                else False
+            )
+            print(f"\nNo input available, using default: {'y' if result else 'n'}")
+            return result
 
 
 def configure_logging(enable_file_logging: bool) -> None:
@@ -562,8 +585,26 @@ def _opencommit_or_prompt_for_commit_message(
             return
         else:
             # Ask user to confirm AI message
-            use_ai = input("Use this AI-generated message? [y/n]: ").lower().strip()
-            if use_ai in ["y", "yes", ""]:
+            if no_interactive:
+                # In non-interactive mode, auto-accept AI generated message
+                print("Non-interactive mode: auto-accepting AI-generated message")
+                _safe_git_commit(ai_message)
+                return
+
+            try:
+                if not sys.stdin.isatty():
+                    print(
+                        "No interactive terminal - auto-accepting AI-generated message"
+                    )
+                    _safe_git_commit(ai_message)
+                    return
+
+                use_ai = input("Use this AI-generated message? [y/n]: ").lower().strip()
+                if use_ai in ["y", "yes", ""]:
+                    _safe_git_commit(ai_message)
+                    return
+            except EOFError:
+                print("No stdin available - auto-accepting AI-generated message")
                 _safe_git_commit(ai_message)
                 return
     elif no_interactive:
@@ -584,8 +625,25 @@ def _opencommit_or_prompt_for_commit_message(
         sys.exit(1)
 
     # Fall back to manual commit message
-    msg = input("Commit message: ")
-    _safe_git_commit(msg)
+    if no_interactive:
+        print("Error: Cannot get commit message input in non-interactive mode")
+        print("Using generic commit message as fallback...")
+        _safe_git_commit("chore: automated commit (AI unavailable)")
+        return
+
+    try:
+        if not sys.stdin.isatty():
+            print(
+                "No interactive terminal available - using generic commit message as fallback"
+            )
+            _safe_git_commit("chore: automated commit (no terminal)")
+            return
+        msg = input("Commit message: ")
+        _safe_git_commit(msg)
+    except EOFError:
+        print("No stdin available - using generic commit message as fallback")
+        _safe_git_commit("chore: automated commit (no stdin)")
+        return
 
 
 def _ai_commit_or_prompt_for_commit_message(
