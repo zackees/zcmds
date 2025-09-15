@@ -465,7 +465,17 @@ def _generate_ai_commit_message() -> str | None:
                 # Set the API key for both openai and git-ai-commit
                 openai.api_key = api_key
                 os.environ["OPENAI_API_KEY"] = api_key
+
+                # Force the correct OpenAI API endpoint
+                # This fixes the issue where requests were going to dashscope-intl.aliyuncs.com
+                os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+                os.environ["OPENAI_API_BASE"] = "https://api.openai.com/v1"
+
+                # Also set the openai client directly to be extra sure
+                openai.base_url = "https://api.openai.com/v1"
+
                 logger.info(f"Using OpenAI API key, length: {len(api_key)}")
+                logger.info("Set OpenAI base URL to: https://api.openai.com/v1")
             else:
                 logger.info("No OpenAI API key found, will try Anthropic fallback")
 
@@ -477,7 +487,7 @@ def _generate_ai_commit_message() -> str | None:
         logger.info("Getting git diff for commit message generation")
         staged_diff = GitService.get_staged_diff()
 
-        if not staged_diff.stdout.strip():
+        if not staged_diff or not staged_diff.stdout or not staged_diff.stdout.strip():
             # No staged changes, get regular diff
             logger.info("No staged changes, getting regular diff")
             result = subprocess.run(
