@@ -321,7 +321,9 @@ def _generate_ai_commit_message() -> str | None:
                 api_key = os.environ.get("OPENAI_API_KEY")
 
             if api_key:
+                # Set the API key for both openai and git-ai-commit
                 openai.api_key = api_key
+                os.environ["OPENAI_API_KEY"] = api_key
             else:
                 print(
                     "Warning: No OpenAI API key found in zcmds config, keyring, or OPENAI_API_KEY environment variable"
@@ -358,6 +360,11 @@ def _generate_ai_commit_message() -> str | None:
                 "ignore", category=UserWarning, module="ai_commit_msg"
             )
             commit_message = generate_commit_message(diff=diff_text, conventional=True)
+
+        if commit_message is None:
+            print("Warning: AI commit message generation returned None")
+            return None
+
         return commit_message.strip()
 
     except ImportError:
@@ -703,7 +710,9 @@ def main() -> int:
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                bufsize=0,  # Unbuffered for binary mode
+                encoding="utf-8",
+                errors="replace",  # Replace unmappable characters
+                bufsize=1,  # Line buffered
             )
 
             # Stream output with 60-second timeout between lines
@@ -733,8 +742,8 @@ def main() -> int:
                     try:
                         line = proc.stdout.readline()
                         if line:
-                            # Decode with UTF-8 and replace unmappable characters
-                            linestr = line.decode('utf-8', errors='replace').strip()
+                            # Since we're using text=True, line is already a string
+                            linestr = line.strip()
                             print(linestr)
                             last_output_time = time.time()  # Reset timeout on output
                             if (
@@ -786,7 +795,9 @@ def main() -> int:
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                bufsize=0,  # Unbuffered for binary mode
+                encoding="utf-8",
+                errors="replace",  # Replace unmappable characters
+                bufsize=1,  # Line buffered
             )
 
             # Stream test output with 60-second timeout between lines
@@ -814,8 +825,8 @@ def main() -> int:
                     try:
                         line = test_proc.stdout.readline()
                         if line:
-                            # Decode with UTF-8 and replace unmappable characters
-                            linestr = line.decode('utf-8', errors='replace').strip()
+                            # Since we're using text=True, line is already a string
+                            linestr = line.strip()
                             print(linestr)
                             last_output_time = time.time()  # Reset timeout on output
                         else:
