@@ -123,10 +123,13 @@ def multiply_numbers(a, b):
             print(f"Generated AI commit message: {ai_message}")
 
             # Verify the message follows conventional commit format
-            # Should start with a type like feat:, fix:, docs:, etc.
+            # Should start with a type like feat:, fix:, docs:, etc. with optional scope like feat(scope):
+            import re
             lower_message = ai_message.lower()
-            conventional_types = ["feat:", "fix:", "docs:", "style:", "refactor:", "perf:", "test:", "chore:", "ci:", "build:"]
-            has_conventional_format = any(lower_message.startswith(t) for t in conventional_types)
+            conventional_types = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "ci", "build"]
+            # Pattern matches: type: or type(scope):
+            pattern = rf"^({'|'.join(conventional_types)})(\([^)]+\))?:"
+            has_conventional_format = re.match(pattern, lower_message) is not None
             self.assertTrue(has_conventional_format, f"AI commit message should follow conventional format. Got: {ai_message}")
 
             # Test that we can create the commit

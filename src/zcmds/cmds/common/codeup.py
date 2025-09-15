@@ -1044,7 +1044,7 @@ def main() -> int:
             # Just run the AI commit workflow
             _exec("git add .", bash=False)
             _ai_commit_or_prompt_for_commit_message(
-                args.no_autoaccept, args.message, no_interactive=True
+                args.no_autoaccept, args.message, no_interactive=False
             )
             return 0
         except KeyboardInterrupt:

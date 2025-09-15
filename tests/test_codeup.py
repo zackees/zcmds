@@ -64,37 +64,42 @@ class CodeupTester(unittest.TestCase):
             original_input = builtins.input
             builtins.input = lambda prompt: "Test commit from unit test"
 
-            try:
-                result = codeup_main()
-                # Check that the command succeeded
-                self.assertEqual(result, 0, "codeup --just-ai-commit should return 0")
+            # Mock API key functions to return None (disable AI)
+            from unittest.mock import patch
+            with patch('zcmds.cmds.common.openaicfg.get_openai_api_key', return_value=None), \
+                 patch('zcmds.cmds.common.openaicfg.get_anthropic_api_key', return_value=None):
 
-                # Verify that changes were committed
-                status_result = subprocess.run(
-                    ["git", "status", "--porcelain"],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
+                try:
+                    result = codeup_main()
+                    # Check that the command succeeded
+                    self.assertEqual(result, 0, "codeup --just-ai-commit should return 0")
 
-                # Should be no uncommitted changes
-                self.assertEqual(status_result.stdout.strip(), "", "Working directory should be clean after commit")
+                    # Verify that changes were committed
+                    status_result = subprocess.run(
+                        ["git", "status", "--porcelain"],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
 
-                # Verify the commit was created
-                log_result = subprocess.run(
-                    ["git", "log", "--oneline", "-1"],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
+                    # Should be no uncommitted changes
+                    self.assertEqual(status_result.stdout.strip(), "", "Working directory should be clean after commit")
 
-                # Should contain our test commit message
-                self.assertIn("Test commit from unit test", log_result.stdout)
+                    # Verify the commit was created
+                    log_result = subprocess.run(
+                        ["git", "log", "--oneline", "-1"],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
 
-            finally:
-                # Restore original input function and argv
-                builtins.input = original_input
-                sys.argv = original_argv
+                    # Should contain our test commit message
+                    self.assertIn("Test commit from unit test", log_result.stdout)
+
+                finally:
+                    # Restore original input function and argv
+                    builtins.input = original_input
+                    sys.argv = original_argv
 
         except ImportError as e:
             self.skipTest(f"Could not import codeup module: {e}")
