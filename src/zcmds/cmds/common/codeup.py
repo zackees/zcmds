@@ -674,14 +674,51 @@ def main() -> int:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 encoding="utf-8",
+                bufsize=1,  # Line buffered
             )
+
+            # Stream output with 60-second timeout between lines
+            import time
+
             with proc:
                 assert proc.stdout is not None
-                for line in proc.stdout:
-                    linestr = line.strip()
-                    print(linestr)
-                    if "No solution found when resolving dependencies" in linestr:
-                        uv_resolved_dependencies = False
+                timeout_duration = 60  # 60 seconds of silence before timeout
+                last_output_time = time.time()
+
+                while True:
+                    # Check if process has finished
+                    if proc.poll() is not None:
+                        break
+
+                    # Check for timeout (no output for 60 seconds)
+                    if time.time() - last_output_time > timeout_duration:
+                        print(
+                            f"Warning: Lint process timed out after {timeout_duration} seconds of no output"
+                        )
+                        proc.kill()
+                        proc.wait()
+                        print("Error: Linting process hung and was terminated.")
+                        sys.exit(1)
+
+                    # Try to read a line
+                    try:
+                        line = proc.stdout.readline()
+                        if line:
+                            linestr = line.strip()
+                            print(linestr)
+                            last_output_time = time.time()  # Reset timeout on output
+                            if (
+                                "No solution found when resolving dependencies"
+                                in linestr
+                            ):
+                                uv_resolved_dependencies = False
+                        else:
+                            # No line available, sleep briefly and continue
+                            time.sleep(0.1)
+                    except Exception as e:
+                        logger.error(f"Error reading lint output: {e}")
+                        break
+
             proc.wait()
             if proc.returncode != 0:
                 print("Error: Linting failed.")
@@ -710,7 +747,57 @@ def main() -> int:
                     print("Error: uv pip install -e . --refresh failed.")
                     sys.exit(1)
         if not args.no_test and os.path.exists("./test"):
-            _exec("./test" + (" --verbose" if verbose else ""), bash=True)
+            test_cmd = "./test" + (" --verbose" if verbose else "")
+            test_cmd = _to_exec_str(test_cmd, bash=True)
+
+            print(f"Running: {test_cmd}")
+            test_proc = subprocess.Popen(
+                test_cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                encoding="utf-8",
+                bufsize=1,  # Line buffered
+            )
+
+            # Stream test output with 60-second timeout between lines
+            with test_proc:
+                assert test_proc.stdout is not None
+                timeout_duration = 60  # 60 seconds of silence before timeout
+                last_output_time = time.time()
+
+                while True:
+                    # Check if process has finished
+                    if test_proc.poll() is not None:
+                        break
+
+                    # Check for timeout (no output for 60 seconds)
+                    if time.time() - last_output_time > timeout_duration:
+                        print(
+                            f"Warning: Test process timed out after {timeout_duration} seconds of no output"
+                        )
+                        test_proc.kill()
+                        test_proc.wait()
+                        print("Error: Test process hung and was terminated.")
+                        sys.exit(1)
+
+                    # Try to read a line
+                    try:
+                        line = test_proc.stdout.readline()
+                        if line:
+                            print(line.strip())
+                            last_output_time = time.time()  # Reset timeout on output
+                        else:
+                            # No line available, sleep briefly and continue
+                            time.sleep(0.1)
+                    except Exception as e:
+                        logger.error(f"Error reading test output: {e}")
+                        break
+
+            test_proc.wait()
+            if test_proc.returncode != 0:
+                print("Error: Tests failed.")
+                sys.exit(1)
         _exec("git add .", bash=False)
         _ai_commit_or_prompt_for_commit_message(
             args.no_autoaccept, args.message, args.no_interactive

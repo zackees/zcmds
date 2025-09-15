@@ -133,7 +133,8 @@ Before marking the task complete, you MUST:
   - Log all exceptions using the `logging` module
   - Handle `KeyboardInterrupt` by calling `_thread.interrupt_main()` and logging the interruption
   - Use structured exception handling with specific exception types
-  - Always include general `Exception` catch-all with logging
+  - **CRITICAL**: Always include general `Exception` catch-all with logging - you MUST log every exception that occurs
+  - Never ignore exceptions - every exception must be logged before handling
 - **Logging**: Configure logging with both file and stderr output for error tracking
 - **Documentation**: Include clear docstrings explaining the command's purpose
 - **Arguments**: Handle command-line arguments appropriately (consider using `argparse` for complex cases)
