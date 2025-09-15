@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
 
+import openai
+
 # Force UTF-8 encoding for proper international character handling
 if sys.platform == "win32":
     import codecs
@@ -133,6 +135,7 @@ class Args:
     no_autoaccept: bool
     message: str | None
     no_rebase: bool
+    strict: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -160,6 +163,7 @@ class Args:
         assert isinstance(
             self.no_rebase, bool
         ), f"Expected bool, got {type(self.no_rebase)}"
+        assert isinstance(self.strict, bool), f"Expected bool, got {type(self.strict)}"
 
 
 def _parse_args() -> Args:
@@ -195,6 +199,11 @@ def _parse_args() -> Args:
         help="Do not attempt to rebase before pushing",
         action="store_true",
     )
+    parser.add_argument(
+        "--strict",
+        help="Fail if auto commit message generation fails",
+        action="store_true",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -207,6 +216,7 @@ def _parse_args() -> Args:
         no_autoaccept=tmp.no_autoaccept,
         message=tmp.message,
         no_rebase=tmp.no_rebase,
+        strict=tmp.strict,
     )
     return out
 
@@ -222,8 +232,28 @@ def _publish() -> None:
 def _generate_ai_commit_message() -> str | None:
     """Generate commit message using git-ai-commit Python API."""
     try:
-        from ai_commit_msg.core.gen_commit_msg import generate_commit_message
-        from ai_commit_msg.services.git_service import GitService
+        # Suppress pkg_resources warnings from ai_commit_msg
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", category=UserWarning, module="ai_commit_msg"
+            )
+            from ai_commit_msg.core.gen_commit_msg import generate_commit_message
+            from ai_commit_msg.services.git_service import GitService
+
+        # Import and use existing OpenAI config system
+        try:
+            from zcmds.cmds.common.openaicfg import create_or_load_config
+
+            config = create_or_load_config()
+            if "openai_key" in config and config["openai_key"]:
+                openai.api_key = config["openai_key"]
+            else:
+                print("Warning: No OpenAI API key found in zcmds config")
+                print("Set key with: imgai --set-key YOUR_KEY")
+                return None
+        except ImportError:
+            print("Warning: OpenAI configuration not available")
+            return None
 
         # Get staged diff using git-ai-commit's GitService
         staged_diff = GitService.get_staged_diff()
@@ -244,7 +274,11 @@ def _generate_ai_commit_message() -> str | None:
             diff_text = staged_diff.stdout
 
         # Generate commit message using git-ai-commit API
-        commit_message = generate_commit_message(diff=diff_text, conventional=True)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", category=UserWarning, module="ai_commit_msg"
+            )
+            commit_message = generate_commit_message(diff=diff_text, conventional=True)
         return commit_message.strip()
 
     except ImportError:
@@ -256,7 +290,9 @@ def _generate_ai_commit_message() -> str | None:
         return None
 
 
-def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
+def _opencommit_or_prompt_for_commit_message(
+    auto_accept: bool, strict: bool = False
+) -> None:
     """Generate AI commit message or prompt for manual input."""
     # Try to generate AI commit message first
     ai_message = _generate_ai_commit_message()
@@ -274,6 +310,10 @@ def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
             if use_ai in ["y", "yes", ""]:
                 _exec(f'git commit -m "{ai_message}"', bash=False)
                 return
+    elif strict:
+        # In strict mode, fail if AI commit generation fails
+        print("Error: Failed to generate AI commit message in strict mode")
+        sys.exit(1)
 
     # Fall back to manual commit message
     msg = input("Commit message: ")
@@ -281,7 +321,7 @@ def _opencommit_or_prompt_for_commit_message(auto_accept: bool) -> None:
 
 
 def _ai_commit_or_prompt_for_commit_message(
-    no_autoaccept: bool, message: str | None = None
+    no_autoaccept: bool, message: str | None = None, strict: bool = False
 ) -> None:
     """Generate commit message using AI or prompt for manual input."""
     if message:
@@ -289,7 +329,9 @@ def _ai_commit_or_prompt_for_commit_message(
         _exec(f'git commit -m "{message}"', bash=False)
     else:
         # Use AI or interactive commit
-        _opencommit_or_prompt_for_commit_message(auto_accept=not no_autoaccept)
+        _opencommit_or_prompt_for_commit_message(
+            auto_accept=not no_autoaccept, strict=strict
+        )
 
 
 # demo help message
@@ -494,7 +536,9 @@ def main() -> int:
         if not args.no_test and os.path.exists("./test"):
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
-        _ai_commit_or_prompt_for_commit_message(args.no_autoaccept, args.message)
+        _ai_commit_or_prompt_for_commit_message(
+            args.no_autoaccept, args.message, args.strict
+        )
 
         if not args.no_push:
             # Fetch latest changes from remote
