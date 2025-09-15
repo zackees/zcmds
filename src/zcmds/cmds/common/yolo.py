@@ -11,6 +11,7 @@ from typing import List
 class Args:
     """Typed arguments for the yolo command."""
 
+    prompt: str | None
     claude_args: List[str]
 
 
@@ -25,10 +26,17 @@ def parse_args() -> Args:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
+    parser.add_argument(
+        "-p",
+        "--prompt",
+        type=str,
+        help="Run Claude with this prompt and exit when complete",
+    )
+
     # Parse known args, allowing unknown args to be passed to Claude
     known_args, unknown_args = parser.parse_known_args()
 
-    return Args(claude_args=unknown_args)
+    return Args(prompt=known_args.prompt, claude_args=unknown_args)
 
 
 def main() -> int:
@@ -65,7 +73,14 @@ def main() -> int:
             return 1
 
         # Build the command with all arguments passed through
-        cmd = [claude_path, "--dangerously-skip-permissions"] + args.claude_args
+        cmd = [claude_path, "--dangerously-skip-permissions"]
+
+        # If prompt is provided, add it to the command
+        if args.prompt:
+            cmd.extend([args.prompt])
+
+        # Add any additional arguments
+        cmd.extend(args.claude_args)
 
         # Execute Claude with the dangerous permissions flag
         result = subprocess.run(cmd)

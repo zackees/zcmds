@@ -134,7 +134,6 @@ Adding a new command to zcmds is straightforward. Here's the step-by-step proces
 
 ## 1. Create the Command Module
 
-
 Create a new Python file in `src/zcmds/cmds/common/` with your command name:
 
 ```python

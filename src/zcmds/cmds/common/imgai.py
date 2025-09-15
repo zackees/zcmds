@@ -68,6 +68,11 @@ def cli() -> int:
     argparser = argparse.ArgumentParser(usage="Ask OpenAI for help with code")
     argparser.add_argument("prompt", help="Prompt to ask OpenAI", nargs="?")
     argparser.add_argument("--set-key", help="Set OpenAI key")
+    argparser.add_argument(
+        "--use-keyring",
+        action="store_true",
+        help="Store API key in system keyring instead of config file",
+    )
     argparser.add_argument("--verbose", action="store_true", default=False)
     # max tokens
     argparser.add_argument(
@@ -76,13 +81,42 @@ def cli() -> int:
     args = argparser.parse_args()
     config = create_or_load_config()
     if args.set_key:
-        config["openai_key"] = args.set_key
-        save_config(config)
+        if args.use_keyring:
+            try:
+                import keyring
+
+                keyring.set_password("zcmds", "openai_api_key", args.set_key)
+                print("OpenAI API key stored in system keyring")
+                return 0
+            except ImportError:
+                print("Error: keyring not available. Install with: pip install keyring")
+                return 1
+            except Exception as e:
+                print(f"Error storing key in keyring: {e}")
+                return 1
+        else:
+            config["openai_key"] = args.set_key
+            save_config(config)
+            print("OpenAI API key stored in config file")
+            return 0
     elif "openai_key" not in config:
-        key = input("No OpenAi key found, please enter one now: ")
-        config["openai_key"] = key
-        save_config(config)
-    key = config["openai_key"]
+        # Check keyring before prompting
+        try:
+            import keyring
+
+            keyring_key = keyring.get_password("zcmds", "openai_api_key")
+            if keyring_key:
+                key = keyring_key
+            else:
+                key = input("No OpenAi key found, please enter one now: ")
+                config["openai_key"] = key
+                save_config(config)
+        except ImportError:
+            key = input("No OpenAi key found, please enter one now: ")
+            config["openai_key"] = key
+            save_config(config)
+    else:
+        key = config["openai_key"]
     prompt = args.prompt or prompt_input()
 
     # wow this makes all the difference with this ai

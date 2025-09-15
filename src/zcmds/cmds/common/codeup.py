@@ -261,6 +261,25 @@ def _publish() -> None:
     _exec("./upload_package.sh", bash=True)
 
 
+def _get_keyring_api_key() -> str | None:
+    """Get OpenAI API key from system keyring/keystore."""
+    try:
+        import keyring
+
+        api_key = keyring.get_password("zcmds", "openai_api_key")
+        return api_key if api_key else None
+    except ImportError:
+        # keyring not available
+        return None
+    except KeyboardInterrupt:
+        logger.info("_get_keyring_api_key interrupted by user")
+        _thread.interrupt_main()
+        return None
+    except Exception as e:
+        logger.error(f"Error accessing keyring: {e}")
+        return None
+
+
 def _generate_ai_commit_message() -> str | None:
     """Generate commit message using git-ai-commit Python API."""
     try:
@@ -277,11 +296,27 @@ def _generate_ai_commit_message() -> str | None:
             from zcmds.cmds.common.openaicfg import create_or_load_config
 
             config = create_or_load_config()
+            api_key = None
+
+            # Check config file first
             if "openai_key" in config and config["openai_key"]:
-                openai.api_key = config["openai_key"]
+                api_key = config["openai_key"]
+            # Check keyring/keystore second
+            elif _get_keyring_api_key():
+                api_key = _get_keyring_api_key()
+            # Fall back to environment variable
+            elif os.environ.get("OPENAI_API_KEY"):
+                api_key = os.environ.get("OPENAI_API_KEY")
+
+            if api_key:
+                openai.api_key = api_key
             else:
-                print("Warning: No OpenAI API key found in zcmds config")
-                print("Set key with: imgai --set-key YOUR_KEY")
+                print(
+                    "Warning: No OpenAI API key found in zcmds config, keyring, or OPENAI_API_KEY environment variable"
+                )
+                print(
+                    "Set key with: imgai --set-key YOUR_KEY or export OPENAI_API_KEY=your_key"
+                )
                 return None
         except ImportError:
             print("Warning: OpenAI configuration not available")
@@ -540,49 +575,8 @@ def perform_rebase(main_branch: str) -> bool:
         return False
 
 
-def can_fast_forward_push() -> bool:
-    """Check if we can push without conflicts (local branch is ahead of remote)."""
-    try:
-        # Check if we have a remote tracking branch
-        result = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
-
-        if result.returncode != 0:
-            # No upstream branch set, assume we can push
-            return True
-
-        upstream = result.stdout.strip()
-
-        # Check if local is ahead of remote
-        result = subprocess.run(
-            ["git", "rev-list", "--count", f"{upstream}..HEAD"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
-
-        if result.returncode == 0:
-            ahead_count = int(result.stdout.strip())
-            return ahead_count > 0
-
-        return False
-
-    except KeyboardInterrupt:
-        logger.info("can_fast_forward_push interrupted by user")
-        _thread.interrupt_main()
-        return True
-    except Exception as e:
-        logger.error(f"Error in can_fast_forward_push: {e}")
-        # If we can't determine, assume we can try
-        return True
-
-
 def safe_push() -> bool:
-    """Attempt to push safely, handling different scenarios."""
+    """Attempt to push safely, never using force push operations."""
     try:
         # First, try a normal push
         print("Attempting to push to remote...")
@@ -601,28 +595,19 @@ def safe_push() -> bool:
         stderr_output = result.stderr.lower()
 
         if "non-fast-forward" in stderr_output or "rejected" in stderr_output:
-            print("Push rejected (non-fast-forward). Checking if safe to force push...")
-
-            # Check if we can determine it's safe to force push
-            if can_fast_forward_push():
-                print("Using --force-with-lease for safe force push...")
-                result = subprocess.run(
-                    ["git", "push", "--force-with-lease"],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                )
-
-                if result.returncode == 0:
-                    print("Successfully force-pushed to remote")
-                    return True
-                else:
-                    print(f"Force push failed: {result.stderr}")
-                    return False
-            else:
-                print("Cannot safely force push. Manual intervention required.")
-                print("Try: git push --force-with-lease (after reviewing changes)")
-                return False
+            print(
+                "Push rejected (non-fast-forward). Repository needs to be updated first."
+            )
+            print(
+                "This indicates the remote branch has changes that need to be integrated."
+            )
+            print(
+                "Please run 'git fetch' and 'git rebase origin/<branch>' to update your branch,"
+            )
+            print(
+                "then try pushing again. This ensures all changes are properly integrated."
+            )
+            return False
         else:
             print(f"Push failed: {result.stderr}")
             return False
