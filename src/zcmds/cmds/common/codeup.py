@@ -613,6 +613,47 @@ def get_git_status() -> str:
     return result.stdout
 
 
+def has_changes_to_commit() -> bool:
+    """Check if there are any changes (staged, unstaged, or untracked) to commit."""
+    try:
+        # Check for staged changes
+        staged_result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding="utf-8",
+        )
+        if staged_result.stdout.strip():
+            return True
+
+        # Check for unstaged changes
+        unstaged_result = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding="utf-8",
+        )
+        if unstaged_result.stdout.strip():
+            return True
+
+        # Check for untracked files
+        untracked_files = get_untracked_files()
+        if untracked_files:
+            return True
+
+        return False
+
+    except KeyboardInterrupt:
+        logger.info("has_changes_to_commit interrupted by user")
+        _thread.interrupt_main()
+        return False
+    except Exception as e:
+        logger.error(f"Error checking for changes: {e}")
+        return False
+
+
 def get_untracked_files() -> list[str]:
     """Get list of untracked files."""
     result = subprocess.run(
@@ -951,6 +992,12 @@ def main() -> int:
     try:
         git_status_str = get_git_status()
         print(git_status_str)
+
+        # Check if there are any changes to commit
+        if not has_changes_to_commit():
+            print("No changes to commit, working tree clean.")
+            return 1
+
         untracked_files = get_untracked_files()
         has_untracked = len(untracked_files) > 0
         if has_untracked:
