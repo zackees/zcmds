@@ -161,6 +161,7 @@ class Args:
     no_rebase: bool
     no_interactive: bool
     log: bool
+    just_ai_commit: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -192,6 +193,9 @@ class Args:
             self.no_interactive, bool
         ), f"Expected bool, got {type(self.no_interactive)}"
         assert isinstance(self.log, bool), f"Expected bool, got {type(self.log)}"
+        assert isinstance(
+            self.just_ai_commit, bool
+        ), f"Expected bool, got {type(self.just_ai_commit)}"
 
 
 def _parse_args() -> Args:
@@ -237,6 +241,11 @@ def _parse_args() -> Args:
         help="Enable logging to codeup.log file",
         action="store_true",
     )
+    parser.add_argument(
+        "--just-ai-commit",
+        help="Skip linting and testing, just run the automatic AI commit generator",
+        action="store_true",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -251,6 +260,7 @@ def _parse_args() -> Args:
         no_rebase=tmp.no_rebase,
         no_interactive=tmp.no_interactive,
         log=tmp.log,
+        just_ai_commit=tmp.just_ai_commit,
     )
     return out
 
@@ -638,6 +648,26 @@ def main() -> int:
 
     git_path = check_environment()
     os.chdir(str(git_path))
+
+    # Handle --just-ai-commit flag
+    if args.just_ai_commit:
+        try:
+            # Just run the AI commit workflow
+            _exec("git add .", bash=False)
+            _ai_commit_or_prompt_for_commit_message(
+                args.no_autoaccept, args.message, args.no_interactive
+            )
+            return 0
+        except KeyboardInterrupt:
+            logger.info("just-ai-commit interrupted by user")
+            print("Aborting")
+            _thread.interrupt_main()
+            return 1
+        except Exception as e:
+            logger.error(f"Unexpected error in just-ai-commit: {e}")
+            print(f"Unexpected error: {e}")
+            return 1
+
     try:
         git_status_str = get_git_status()
         print(git_status_str)
