@@ -128,11 +128,50 @@ Before marking the task complete, you MUST:
 ### Step 4: Implementation Guidelines
 
 - **Return codes**: Use 0 for success, non-zero for errors (1 for general errors, 130 for KeyboardInterrupt)
-- **Error handling**: Always use try-except blocks and print errors to stderr
+- **Error handling**: Always use comprehensive try-except blocks and print errors to stderr
+- **Exception handling**: MUST implement proper exception handling for all functions:
+  - Log all exceptions using the `logging` module
+  - Handle `KeyboardInterrupt` by calling `_thread.interrupt_main()` and logging the interruption
+  - Use structured exception handling with specific exception types
+  - Always include general `Exception` catch-all with logging
+- **Logging**: Configure logging with both file and stderr output for error tracking
 - **Documentation**: Include clear docstrings explaining the command's purpose
 - **Arguments**: Handle command-line arguments appropriately (consider using `argparse` for complex cases)
 - **Dependencies**: Check if external tools are available before using them
 - **Cross-platform**: Consider platform-specific behavior when necessary
+
+### Exception Handling Template
+
+When implementing commands, use this exception handling pattern:
+
+```python
+import logging
+import _thread
+
+# Configure logging
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('command.log'),
+        logging.StreamHandler(sys.stderr)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+def your_function():
+    try:
+        # Your implementation here
+        pass
+    except KeyboardInterrupt:
+        logger.info("your_function interrupted by user")
+        _thread.interrupt_main()
+        return appropriate_value
+    except Exception as e:
+        logger.error(f"Error in your_function: {e}")
+        print(f"Error: {e}", file=sys.stderr)
+        return appropriate_value
+```
 
 ### Example Implementation: The `yolo` Command
 

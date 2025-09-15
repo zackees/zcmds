@@ -9,7 +9,9 @@ Runs:
     * opencommit (oco)
 """
 
+import _thread
 import argparse
+import logging
 import os
 import subprocess
 import sys
@@ -19,6 +21,14 @@ from pathlib import Path
 from shutil import which
 
 import openai
+
+# Configure logging
+logging.basicConfig(
+    level=logging.ERROR,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("codeup.log"), logging.StreamHandler(sys.stderr)],
+)
+logger = logging.getLogger(__name__)
 
 # Force UTF-8 encoding for proper international character handling
 if sys.platform == "win32":
@@ -43,7 +53,12 @@ def is_uv_project(directory=".") -> bool:
     try:
         required_files = ["pyproject.toml", "uv.lock"]
         return all(os.path.isfile(os.path.join(directory, f)) for f in required_files)
+    except KeyboardInterrupt:
+        logger.info("is_uv_project interrupted by user")
+        _thread.interrupt_main()
+        return False
     except Exception as e:
+        logger.error(f"Error in is_uv_project: {e}")
         print(f"Error: {e}")
         return False
 
@@ -285,8 +300,17 @@ def _generate_ai_commit_message() -> str | None:
         print("Warning: git-ai-commit library not available for AI commit messages")
         print("Install with: pip install git-ai-commit")
         return None
+    except KeyboardInterrupt:
+        logger.info("_generate_ai_commit_message interrupted by user")
+        _thread.interrupt_main()
+        return None
     except Exception as e:
-        print(f"Warning: Failed to generate AI commit message: {e}")
+        logger.error(f"Failed to generate AI commit message: {e}")
+        error_msg = str(e)
+        if "OPENAI" in error_msg.upper():
+            print(f"Warning: OpenAI API error: {error_msg}")
+        else:
+            print(f"Warning: Failed to generate AI commit message: {error_msg}")
         return None
 
 
@@ -313,6 +337,13 @@ def _opencommit_or_prompt_for_commit_message(
     elif strict:
         # In strict mode, fail if AI commit generation fails
         print("Error: Failed to generate AI commit message in strict mode")
+        print("This may be due to:")
+        print("  - OpenAI API issues or rate limiting")
+        print("  - Missing or invalid OpenAI API key")
+        print("  - Network connectivity problems")
+        print(
+            "Try running without --strict flag or set API key with: imgai --set-key YOUR_KEY"
+        )
         sys.exit(1)
 
     # Fall back to manual commit message
@@ -369,7 +400,12 @@ def get_main_branch() -> str:
         )
         if result.returncode == 0:
             return result.stdout.strip().split("/")[-1]
-    except Exception:
+    except KeyboardInterrupt:
+        logger.info("get_main_branch interrupted by user")
+        _thread.interrupt_main()
+        return "main"
+    except Exception as e:
+        logger.error(f"Error getting main branch: {e}")
         pass
 
     # Fallback: check common branch names
@@ -383,7 +419,12 @@ def get_main_branch() -> str:
             )
             if result.returncode == 0:
                 return branch
-        except Exception:
+        except KeyboardInterrupt:
+            logger.info("get_main_branch loop interrupted by user")
+            _thread.interrupt_main()
+            return "main"
+        except Exception as e:
+            logger.error(f"Error checking branch {branch}: {e}")
             continue
 
     return "main"  # Default fallback
@@ -423,7 +464,12 @@ def check_rebase_needed(main_branch: str) -> bool:
 
         return merge_base != remote_hash
 
-    except Exception:
+    except KeyboardInterrupt:
+        logger.info("check_rebase_needed interrupted by user")
+        _thread.interrupt_main()
+        return False
+    except Exception as e:
+        logger.error(f"Error checking rebase needed: {e}")
         return False
 
 
@@ -441,7 +487,12 @@ def check_rebase_conflicts(main_branch: str) -> bool:
         # If merge-tree outputs anything, there are conflicts
         return bool(result.stdout.strip())
 
-    except Exception:
+    except KeyboardInterrupt:
+        logger.info("check_rebase_conflicts interrupted by user")
+        _thread.interrupt_main()
+        return True
+    except Exception as e:
+        logger.error(f"Error checking rebase conflicts: {e}")
         return True  # Assume conflicts if we can't check
 
 
@@ -462,8 +513,110 @@ def perform_rebase(main_branch: str) -> bool:
             print(f"Rebase failed: {result.stderr}")
             return False
 
+    except KeyboardInterrupt:
+        logger.info("perform_rebase interrupted by user")
+        _thread.interrupt_main()
+        return False
     except Exception as e:
+        logger.error(f"Rebase error: {e}")
         print(f"Rebase error: {e}")
+        return False
+
+
+def can_fast_forward_push() -> bool:
+    """Check if we can push without conflicts (local branch is ahead of remote)."""
+    try:
+        # Check if we have a remote tracking branch
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        if result.returncode != 0:
+            # No upstream branch set, assume we can push
+            return True
+
+        upstream = result.stdout.strip()
+
+        # Check if local is ahead of remote
+        result = subprocess.run(
+            ["git", "rev-list", "--count", f"{upstream}..HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        if result.returncode == 0:
+            ahead_count = int(result.stdout.strip())
+            return ahead_count > 0
+
+        return False
+
+    except KeyboardInterrupt:
+        logger.info("can_fast_forward_push interrupted by user")
+        _thread.interrupt_main()
+        return True
+    except Exception as e:
+        logger.error(f"Error in can_fast_forward_push: {e}")
+        # If we can't determine, assume we can try
+        return True
+
+
+def safe_push() -> bool:
+    """Attempt to push safely, handling different scenarios."""
+    try:
+        # First, try a normal push
+        print("Attempting to push to remote...")
+        result = subprocess.run(
+            ["git", "push"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+        if result.returncode == 0:
+            print("Successfully pushed to remote")
+            return True
+
+        # If normal push failed, check if it's due to non-fast-forward
+        stderr_output = result.stderr.lower()
+
+        if "non-fast-forward" in stderr_output or "rejected" in stderr_output:
+            print("Push rejected (non-fast-forward). Checking if safe to force push...")
+
+            # Check if we can determine it's safe to force push
+            if can_fast_forward_push():
+                print("Using --force-with-lease for safe force push...")
+                result = subprocess.run(
+                    ["git", "push", "--force-with-lease"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+
+                if result.returncode == 0:
+                    print("Successfully force-pushed to remote")
+                    return True
+                else:
+                    print(f"Force push failed: {result.stderr}")
+                    return False
+            else:
+                print("Cannot safely force push. Manual intervention required.")
+                print("Try: git push --force-with-lease (after reviewing changes)")
+                return False
+        else:
+            print(f"Push failed: {result.stderr}")
+            return False
+
+    except KeyboardInterrupt:
+        logger.info("safe_push interrupted by user")
+        _thread.interrupt_main()
+        return False
+    except Exception as e:
+        logger.error(f"Push error: {e}")
+        print(f"Push error: {e}")
         return False
 
 
@@ -586,11 +739,19 @@ def main() -> int:
                         return 1
 
             # Now attempt the push
-            _exec("git push --ff-only", bash=False)
+            if not safe_push():
+                print("Push failed. You may need to resolve conflicts manually.")
+                return 1
         if args.publish:
             _publish()
     except KeyboardInterrupt:
+        logger.info("codeup main function interrupted by user")
         print("Aborting")
+        _thread.interrupt_main()
+        return 1
+    except Exception as e:
+        logger.error(f"Unexpected error in codeup main: {e}")
+        print(f"Unexpected error: {e}")
         return 1
     return 0
 
