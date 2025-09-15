@@ -22,12 +22,7 @@ from shutil import which
 
 import openai
 
-# Configure logging
-logging.basicConfig(
-    level=logging.ERROR,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("codeup.log"), logging.StreamHandler(sys.stderr)],
-)
+# Logger will be configured in main() based on --log flag
 logger = logging.getLogger(__name__)
 
 # Force UTF-8 encoding for proper international character handling
@@ -139,6 +134,20 @@ def get_answer_yes_or_no(question: str, default: bool | str = "y") -> bool:
         print("Please answer 'yes' or 'no'.")
 
 
+def configure_logging(enable_file_logging: bool) -> None:
+    """Configure logging based on whether file logging should be enabled."""
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stderr)]
+    if enable_file_logging:
+        handlers.append(logging.FileHandler("codeup.log"))
+
+    logging.basicConfig(
+        level=logging.ERROR,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=handlers,
+        force=True,  # Override any existing configuration
+    )
+
+
 @dataclass
 class Args:
     repo: str | None
@@ -151,6 +160,7 @@ class Args:
     message: str | None
     no_rebase: bool
     strict: bool
+    log: bool
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -179,6 +189,7 @@ class Args:
             self.no_rebase, bool
         ), f"Expected bool, got {type(self.no_rebase)}"
         assert isinstance(self.strict, bool), f"Expected bool, got {type(self.strict)}"
+        assert isinstance(self.log, bool), f"Expected bool, got {type(self.log)}"
 
 
 def _parse_args() -> Args:
@@ -219,6 +230,11 @@ def _parse_args() -> Args:
         help="Fail if auto commit message generation fails",
         action="store_true",
     )
+    parser.add_argument(
+        "--log",
+        help="Enable logging to codeup.log file",
+        action="store_true",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -232,6 +248,7 @@ def _parse_args() -> Args:
         message=tmp.message,
         no_rebase=tmp.no_rebase,
         strict=tmp.strict,
+        log=tmp.log,
     )
     return out
 
@@ -624,6 +641,7 @@ def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
     args = _parse_args()
+    configure_logging(args.log)
     verbose = args.verbose
 
     git_path = check_environment()
