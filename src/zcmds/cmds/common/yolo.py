@@ -13,6 +13,7 @@ class Args:
 
     prompt: str | None
     message: str | None
+    continue_flag: bool
     claude_args: List[str]
 
 
@@ -41,11 +42,22 @@ def parse_args() -> Args:
         help="Send this message to Claude (strips the -m flag)",
     )
 
+    parser.add_argument(
+        "-c",
+        "--continue",
+        action="store_true",
+        dest="continue_flag",
+        help="Continue previous conversation (adds --continue flag to Claude)",
+    )
+
     # Parse known args, allowing unknown args to be passed to Claude
     known_args, unknown_args = parser.parse_known_args()
 
     return Args(
-        prompt=known_args.prompt, message=known_args.message, claude_args=unknown_args
+        prompt=known_args.prompt,
+        message=known_args.message,
+        continue_flag=known_args.continue_flag,
+        claude_args=unknown_args,
     )
 
 
@@ -84,6 +96,10 @@ def main() -> int:
 
         # Build the command with all arguments passed through
         cmd = [claude_path, "--dangerously-skip-permissions"]
+
+        # If continue flag is provided, add --continue
+        if args.continue_flag:
+            cmd.append("--continue")
 
         # If prompt is provided, add it with -p flag
         if args.prompt:

@@ -206,6 +206,8 @@ class Args:
     no_interactive: bool
     log: bool
     just_ai_commit: bool
+    set_key_anthropic: str | None
+    set_key_openai: str | None
 
     def __post_init__(self) -> None:
         assert isinstance(self.repo, str | None), f"Expected str, got {type(self.repo)}"
@@ -240,6 +242,12 @@ class Args:
         assert isinstance(
             self.just_ai_commit, bool
         ), f"Expected bool, got {type(self.just_ai_commit)}"
+        assert isinstance(
+            self.set_key_anthropic, str | None
+        ), f"Expected str | None, got {type(self.set_key_anthropic)}"
+        assert isinstance(
+            self.set_key_openai, str | None
+        ), f"Expected str | None, got {type(self.set_key_openai)}"
 
 
 def _parse_args() -> Args:
@@ -290,6 +298,16 @@ def _parse_args() -> Args:
         help="Skip linting and testing, just run the automatic AI commit generator",
         action="store_true",
     )
+    parser.add_argument(
+        "--set-key-anthropic",
+        type=str,
+        help="Set Anthropic API key and exit",
+    )
+    parser.add_argument(
+        "--set-key-openai",
+        type=str,
+        help="Set OpenAI API key and exit",
+    )
     tmp = parser.parse_args()
 
     out: Args = Args(
@@ -305,6 +323,8 @@ def _parse_args() -> Args:
         no_interactive=tmp.no_interactive,
         log=tmp.log,
         just_ai_commit=tmp.just_ai_commit,
+        set_key_anthropic=tmp.set_key_anthropic,
+        set_key_openai=tmp.set_key_openai,
     )
     return out
 
@@ -336,8 +356,73 @@ def _get_keyring_api_key() -> str | None:
         return None
 
 
+def _generate_ai_commit_message_anthropic(diff_text: str) -> str | None:
+    """Generate commit message using Anthropic Claude API as fallback."""
+    try:
+        import anthropic
+
+        from zcmds.cmds.common.openaicfg import get_anthropic_api_key
+
+        api_key = get_anthropic_api_key()
+        if not api_key:
+            logger.info("No Anthropic API key found")
+            return None
+
+        logger.info("Using Anthropic Claude API for commit message generation")
+        client = anthropic.Anthropic(api_key=api_key)
+
+        prompt = f"""You are an expert developer who writes clear, concise commit messages following conventional commit format.
+
+Analyze the following git diff and generate a single line commit message that:
+1. Follows conventional commit format (type(scope): description)
+2. Uses one of these types: feat, fix, docs, style, refactor, perf, test, chore, ci, build
+3. Is under 72 characters
+4. Describes the main change concisely
+5. Uses imperative mood (e.g., "add", not "added")
+
+Git diff:
+```
+{diff_text}
+```
+
+Respond with only the commit message, nothing else."""
+
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",  # Fast and cost-effective model
+            max_tokens=100,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        if response.content and len(response.content) > 0:
+            first_block = response.content[0]
+            # Check if it's a text block and has the text attribute
+            if hasattr(first_block, "text"):
+                commit_message = first_block.text.strip()  # type: ignore
+                logger.info(
+                    f"Generated Anthropic commit message: {commit_message[:50]}..."
+                )
+                return commit_message
+            else:
+                logger.warning("Anthropic API returned non-text content")
+                return None
+        else:
+            logger.warning("Anthropic API returned empty response")
+            return None
+
+    except ImportError:
+        logger.info("Anthropic library not available")
+        return None
+    except KeyboardInterrupt:
+        logger.info("_generate_ai_commit_message_anthropic interrupted by user")
+        _thread.interrupt_main()
+        return None
+    except Exception as e:
+        logger.error(f"Failed to generate Anthropic commit message: {e}")
+        return None
+
+
 def _generate_ai_commit_message() -> str | None:
-    """Generate commit message using git-ai-commit Python API."""
+    """Generate commit message using git-ai-commit Python API with Anthropic fallback."""
     try:
         # Suppress pkg_resources warnings from ai_commit_msg
         with warnings.catch_warnings():
@@ -349,48 +434,21 @@ def _generate_ai_commit_message() -> str | None:
 
         # Import and use existing OpenAI config system
         try:
-            from zcmds.cmds.common.openaicfg import create_or_load_config
+            from zcmds.cmds.common.openaicfg import get_openai_api_key
 
-            config = create_or_load_config()
-            api_key = None
-            key_source = None
-
-            # Check config file first
-            if "openai_key" in config and config["openai_key"]:
-                api_key = config["openai_key"]
-                key_source = "zcmds config"
-                logger.info(f"Using OpenAI API key from {key_source}")
-            # Check keyring/keystore second
-            elif _get_keyring_api_key():
-                api_key = _get_keyring_api_key()
-                key_source = "keyring"
-                logger.info(f"Using OpenAI API key from {key_source}")
-            # Fall back to environment variable
-            elif os.environ.get("OPENAI_API_KEY"):
-                api_key = os.environ.get("OPENAI_API_KEY")
-                key_source = "environment variable"
-                logger.info(f"Using OpenAI API key from {key_source}")
+            api_key = get_openai_api_key()
 
             if api_key:
                 # Set the API key for both openai and git-ai-commit
                 openai.api_key = api_key
                 os.environ["OPENAI_API_KEY"] = api_key
-                logger.info(
-                    f"API key configured from {key_source}, length: {len(api_key)}"
-                )
+                logger.info(f"Using OpenAI API key, length: {len(api_key)}")
             else:
-                logger.warning("No OpenAI API key found in any source")
-                print(
-                    "Warning: No OpenAI API key found in zcmds config, keyring, or OPENAI_API_KEY environment variable"
-                )
-                print(
-                    "Set key with: imgai --set-key YOUR_KEY or export OPENAI_API_KEY=your_key"
-                )
-                return None
+                logger.info("No OpenAI API key found, will try Anthropic fallback")
+
         except ImportError as e:
             logger.error(f"Import error in OpenAI config: {e}")
-            print("Warning: OpenAI configuration not available")
-            return None
+            api_key = None
 
         # Get staged diff using git-ai-commit's GitService
         logger.info("Getting git diff for commit message generation")
@@ -414,21 +472,53 @@ def _generate_ai_commit_message() -> str | None:
             diff_text = staged_diff.stdout
             logger.info(f"Got staged diff, length: {len(diff_text)}")
 
-        # Generate commit message using git-ai-commit API
-        logger.info("Calling generate_commit_message from git-ai-commit")
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", category=UserWarning, module="ai_commit_msg"
-            )
-            commit_message = generate_commit_message(diff=diff_text, conventional=True)
+        # Try OpenAI first if we have a key
+        if api_key:
+            try:
+                # Generate commit message using git-ai-commit API
+                logger.info(
+                    "Calling generate_commit_message from git-ai-commit (OpenAI)"
+                )
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore", category=UserWarning, module="ai_commit_msg"
+                    )
+                    commit_message = generate_commit_message(
+                        diff=diff_text, conventional=True
+                    )
 
-        if commit_message is None:
-            logger.warning("AI commit message generation returned None")
-            print("Warning: AI commit message generation returned None")
-            return None
+                if commit_message is not None:
+                    logger.info(
+                        f"Successfully generated OpenAI commit message: {commit_message[:50]}..."
+                    )
+                    return commit_message.strip()
+                else:
+                    logger.warning("OpenAI commit message generation returned None")
+            except Exception as e:
+                logger.warning(f"OpenAI commit message generation failed: {e}")
+                print(f"OpenAI generation failed: {e}")
 
-        logger.info(f"Successfully generated commit message: {commit_message[:50]}...")
-        return commit_message.strip()
+        # Fallback to Anthropic only if we have a key
+        from zcmds.cmds.common.openaicfg import get_anthropic_api_key
+
+        if get_anthropic_api_key():
+            logger.info("Trying Anthropic as fallback for commit message generation")
+            anthropic_message = _generate_ai_commit_message_anthropic(diff_text)
+            if anthropic_message:
+                return anthropic_message
+        else:
+            logger.info("No Anthropic API key found, skipping Anthropic fallback")
+
+        # If both failed
+        logger.warning("AI commit message generation failed")
+        print("Warning: AI commit message generation failed")
+        print("Solutions:")
+        print("  - Set OpenAI API key: export OPENAI_API_KEY=your_key")
+        print("  - Set Anthropic API key: export ANTHROPIC_API_KEY=your_key")
+        print(
+            "  - Set keys via config: python -c \"from zcmds.cmds.common.openaicfg import save_config; save_config({'openai_key': 'your_openai_key', 'anthropic_key': 'your_anthropic_key'})\""
+        )
+        return None
 
     except ImportError as e:
         logger.error(f"ImportError in _generate_ai_commit_message: {e}")
@@ -452,9 +542,6 @@ def _generate_ai_commit_message() -> str | None:
         print(f"Exception: {type(e).__name__}: {error_msg}")
         print("Full traceback:")
         print(traceback.format_exc())
-
-        if "OPENAI" in error_msg.upper():
-            print("This appears to be an OpenAI API error.")
 
         return None
 
@@ -809,6 +896,35 @@ def main() -> int:
     args = _parse_args()
     configure_logging(args.log)
     verbose = args.verbose
+
+    # Handle key setting flags
+    if args.set_key_anthropic:
+        try:
+            import keyring
+
+            keyring.set_password("zcmds", "anthropic_api_key", args.set_key_anthropic)
+            print("Anthropic API key stored in system keyring")
+            return 0
+        except ImportError:
+            print("Error: keyring not available. Install with: pip install keyring")
+            return 1
+        except Exception as e:
+            print(f"Error storing Anthropic key: {e}")
+            return 1
+
+    if args.set_key_openai:
+        try:
+            import keyring
+
+            keyring.set_password("zcmds", "openai_api_key", args.set_key_openai)
+            print("OpenAI API key stored in system keyring")
+            return 0
+        except ImportError:
+            print("Error: keyring not available. Install with: pip install keyring")
+            return 1
+        except Exception as e:
+            print(f"Error storing OpenAI key: {e}")
+            return 1
 
     git_path = check_environment()
     os.chdir(str(git_path))
