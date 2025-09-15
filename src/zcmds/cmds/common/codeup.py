@@ -496,6 +496,7 @@ def _generate_ai_commit_message() -> str | None:
                 text=True,
                 check=True,
                 encoding="utf-8",
+                errors="replace",
             )
             diff_text = result.stdout.strip()
             if not diff_text:
@@ -676,7 +677,12 @@ def _ai_commit_or_prompt_for_commit_message(
 def get_git_status() -> str:
     """Get git status output."""
     result = subprocess.run(
-        ["git", "status"], capture_output=True, text=True, check=True, encoding="utf-8"
+        ["git", "status"],
+        capture_output=True,
+        text=True,
+        check=True,
+        encoding="utf-8",
+        errors="replace",
     )
     return result.stdout
 
@@ -691,6 +697,7 @@ def has_changes_to_commit() -> bool:
             text=True,
             check=True,
             encoding="utf-8",
+            errors="replace",
         )
         if staged_result.stdout.strip():
             return True
@@ -702,6 +709,7 @@ def has_changes_to_commit() -> bool:
             text=True,
             check=True,
             encoding="utf-8",
+            errors="replace",
         )
         if unstaged_result.stdout.strip():
             return True
@@ -730,6 +738,7 @@ def get_untracked_files() -> list[str]:
         text=True,
         check=True,
         encoding="utf-8",
+        errors="replace",
     )
     return [f.strip() for f in result.stdout.splitlines() if f.strip()]
 
@@ -743,6 +752,7 @@ def get_main_branch() -> str:
             capture_output=True,
             text=True,
             encoding="utf-8",
+            errors="replace",
         )
         if result.returncode == 0:
             return result.stdout.strip().split("/")[-1]
@@ -762,6 +772,7 @@ def get_main_branch() -> str:
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
+                errors="replace",
             )
             if result.returncode == 0:
                 return branch
@@ -784,6 +795,7 @@ def get_current_branch() -> str:
         text=True,
         check=True,
         encoding="utf-8",
+        errors="replace",
     )
     return result.stdout.strip()
 
@@ -797,6 +809,7 @@ def check_rebase_needed(main_branch: str) -> bool:
             text=True,
             check=True,
             encoding="utf-8",
+            errors="replace",
         ).stdout.strip()
 
         # Check if we're behind
@@ -806,6 +819,7 @@ def check_rebase_needed(main_branch: str) -> bool:
             text=True,
             check=True,
             encoding="utf-8",
+            errors="replace",
         ).stdout.strip()
 
         return merge_base != remote_hash
@@ -835,6 +849,7 @@ def attempt_safe_rebase(main_branch: str) -> tuple[bool, bool]:
             capture_output=True,
             text=True,
             encoding="utf-8",
+            errors="replace",
         )
 
         if result.returncode == 0:
@@ -860,6 +875,7 @@ def attempt_safe_rebase(main_branch: str) -> tuple[bool, bool]:
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
+                    errors="replace",
                 )
 
                 if abort_result.returncode != 0:
@@ -943,6 +959,7 @@ def safe_push() -> bool:
             capture_output=True,
             text=True,
             encoding="utf-8",
+            errors="replace",
         )
 
         if result.returncode == 0:
@@ -969,6 +986,7 @@ def safe_push() -> bool:
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
+                    errors="replace",
                 )
 
                 if result.returncode == 0:
