@@ -703,8 +703,7 @@ def main() -> int:
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                encoding="utf-8",
-                bufsize=1,  # Line buffered
+                bufsize=0,  # Unbuffered for binary mode
             )
 
             # Stream output with 60-second timeout between lines
@@ -734,7 +733,8 @@ def main() -> int:
                     try:
                         line = proc.stdout.readline()
                         if line:
-                            linestr = line.strip()
+                            # Decode with UTF-8 and replace unmappable characters
+                            linestr = line.decode('utf-8', errors='replace').strip()
                             print(linestr)
                             last_output_time = time.time()  # Reset timeout on output
                             if (
@@ -786,8 +786,7 @@ def main() -> int:
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
-                encoding="utf-8",
-                bufsize=1,  # Line buffered
+                bufsize=0,  # Unbuffered for binary mode
             )
 
             # Stream test output with 60-second timeout between lines
@@ -815,7 +814,9 @@ def main() -> int:
                     try:
                         line = test_proc.stdout.readline()
                         if line:
-                            print(line.strip())
+                            # Decode with UTF-8 and replace unmappable characters
+                            linestr = line.decode('utf-8', errors='replace').strip()
+                            print(linestr)
                             last_output_time = time.time()  # Reset timeout on output
                         else:
                             # No line available, sleep briefly and continue
