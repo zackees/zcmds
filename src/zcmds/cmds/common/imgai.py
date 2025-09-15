@@ -10,10 +10,9 @@ import webbrowser
 from typing import Optional, Tuple
 
 import openai  # pylint: disable=import-error  # type: ignore
+from inputimeout import TimeoutOccurred, inputimeout
 
 from zcmds.cmds.common.openaicfg import create_or_load_config, save_config
-
-from .inputimeout import TimeoutOccurred, inputimeout
 
 
 def read_console(

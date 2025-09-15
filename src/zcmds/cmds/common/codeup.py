@@ -159,7 +159,7 @@ class Args:
     no_autoaccept: bool
     message: str | None
     no_rebase: bool
-    strict: bool
+    no_interactive: bool
     log: bool
 
     def __post_init__(self) -> None:
@@ -188,7 +188,9 @@ class Args:
         assert isinstance(
             self.no_rebase, bool
         ), f"Expected bool, got {type(self.no_rebase)}"
-        assert isinstance(self.strict, bool), f"Expected bool, got {type(self.strict)}"
+        assert isinstance(
+            self.no_interactive, bool
+        ), f"Expected bool, got {type(self.no_interactive)}"
         assert isinstance(self.log, bool), f"Expected bool, got {type(self.log)}"
 
 
@@ -226,8 +228,8 @@ def _parse_args() -> Args:
         action="store_true",
     )
     parser.add_argument(
-        "--strict",
-        help="Fail if auto commit message generation fails",
+        "--no-interactive",
+        help="Fail if auto commit message generation fails (non-interactive mode)",
         action="store_true",
     )
     parser.add_argument(
@@ -247,7 +249,7 @@ def _parse_args() -> Args:
         no_autoaccept=tmp.no_autoaccept,
         message=tmp.message,
         no_rebase=tmp.no_rebase,
-        strict=tmp.strict,
+        no_interactive=tmp.no_interactive,
         log=tmp.log,
     )
     return out
@@ -367,7 +369,7 @@ def _generate_ai_commit_message() -> str | None:
 
 
 def _opencommit_or_prompt_for_commit_message(
-    auto_accept: bool, strict: bool = False
+    auto_accept: bool, no_interactive: bool = False
 ) -> None:
     """Generate AI commit message or prompt for manual input."""
     # Try to generate AI commit message first
@@ -386,15 +388,20 @@ def _opencommit_or_prompt_for_commit_message(
             if use_ai in ["y", "yes", ""]:
                 _exec(f'git commit -m "{ai_message}"', bash=False)
                 return
-    elif strict:
-        # In strict mode, fail if AI commit generation fails
-        print("Error: Failed to generate AI commit message in strict mode")
+    elif no_interactive:
+        # In non-interactive mode, fail if AI commit generation fails
+        print("Error: Failed to generate AI commit message in non-interactive mode")
         print("This may be due to:")
         print("  - OpenAI API issues or rate limiting")
         print("  - Missing or invalid OpenAI API key")
         print("  - Network connectivity problems")
+        print("Solutions:")
+        print("  - Run in interactive mode: codeup (without --no-interactive)")
+        print("  - Set API key via environment: export OPENAI_API_KEY=your_key")
+        print("  - Set API key via imgai: imgai --set-key YOUR_KEY")
+        print("  - Set API key via Python config:")
         print(
-            "Try running without --strict flag or set API key with: imgai --set-key YOUR_KEY"
+            "    python -c \"from zcmds.cmds.common.openaicfg import save_config; save_config({'openai_key': 'your_key'})\""
         )
         sys.exit(1)
 
@@ -404,7 +411,7 @@ def _opencommit_or_prompt_for_commit_message(
 
 
 def _ai_commit_or_prompt_for_commit_message(
-    no_autoaccept: bool, message: str | None = None, strict: bool = False
+    no_autoaccept: bool, message: str | None = None, no_interactive: bool = False
 ) -> None:
     """Generate commit message using AI or prompt for manual input."""
     if message:
@@ -413,7 +420,7 @@ def _ai_commit_or_prompt_for_commit_message(
     else:
         # Use AI or interactive commit
         _opencommit_or_prompt_for_commit_message(
-            auto_accept=not no_autoaccept, strict=strict
+            auto_accept=not no_autoaccept, no_interactive=no_interactive
         )
 
 
@@ -638,16 +645,23 @@ def main() -> int:
         has_untracked = len(untracked_files) > 0
         if has_untracked:
             print("There are untracked files.")
-            answer_yes = get_answer_yes_or_no("Continue?", "y")
-            if not answer_yes:
-                print("Aborting.")
-                return 1
-            for untracked_file in untracked_files:
-                answer_yes = get_answer_yes_or_no(f"  Add {untracked_file}?", "y")
-                if answer_yes:
+            if args.no_interactive:
+                # In non-interactive mode, automatically add all untracked files
+                print("Non-interactive mode: automatically adding all untracked files.")
+                for untracked_file in untracked_files:
+                    print(f"  Adding {untracked_file}")
                     _exec(f"git add {untracked_file}", bash=False)
-                else:
-                    print(f"  Skipping {untracked_file}")
+            else:
+                answer_yes = get_answer_yes_or_no("Continue?", "y")
+                if not answer_yes:
+                    print("Aborting.")
+                    return 1
+                for untracked_file in untracked_files:
+                    answer_yes = get_answer_yes_or_no(f"  Add {untracked_file}?", "y")
+                    if answer_yes:
+                        _exec(f"git add {untracked_file}", bash=False)
+                    else:
+                        print(f"  Skipping {untracked_file}")
         if os.path.exists("./lint") and not args.no_lint:
             cmd = "./lint" + (" --verbose" if verbose else "")
             # rtn = _exec(cmd, bash=True, die=True)  # Come back to this
@@ -673,13 +687,19 @@ def main() -> int:
                 print("Error: Linting failed.")
                 if uv_resolved_dependencies:
                     sys.exit(1)
-                answer_yes = get_answer_yes_or_no(
-                    "'uv pip install -e . --refresh'?",
-                    "y",
-                )
-                if not answer_yes:
-                    print("Aborting.")
-                    sys.exit(1)
+                if args.no_interactive:
+                    print(
+                        "Non-interactive mode: automatically running 'uv pip install -e . --refresh'"
+                    )
+                    answer_yes = True
+                else:
+                    answer_yes = get_answer_yes_or_no(
+                        "'uv pip install -e . --refresh'?",
+                        "y",
+                    )
+                    if not answer_yes:
+                        print("Aborting.")
+                        sys.exit(1)
                 for _ in range(3):
                     refresh_rtn = _exec(
                         "uv pip install -e . --refresh", bash=True, die=False
@@ -693,7 +713,7 @@ def main() -> int:
             _exec("./test" + (" --verbose" if verbose else ""), bash=True)
         _exec("git add .", bash=False)
         _ai_commit_or_prompt_for_commit_message(
-            args.no_autoaccept, args.message, args.strict
+            args.no_autoaccept, args.message, args.no_interactive
         )
 
         if not args.no_push:
@@ -716,23 +736,38 @@ def main() -> int:
                         print(
                             f"Warning: Rebase onto origin/{main_branch} may have conflicts"
                         )
-                        proceed = get_answer_yes_or_no(
-                            f"Attempt rebase onto origin/{main_branch} anyway?", "n"
-                        )
-                        if not proceed:
+                        if args.no_interactive:
                             print(
-                                "Skipping rebase. You may need to resolve conflicts manually."
+                                "Non-interactive mode: skipping rebase due to potential conflicts"
                             )
-                            print(f"Try: git rebase origin/{main_branch}")
+                            print(
+                                f"You may need to resolve conflicts manually with: git rebase origin/{main_branch}"
+                            )
                             return 1
+                        else:
+                            proceed = get_answer_yes_or_no(
+                                f"Attempt rebase onto origin/{main_branch} anyway?", "n"
+                            )
+                            if not proceed:
+                                print(
+                                    "Skipping rebase. You may need to resolve conflicts manually."
+                                )
+                                print(f"Try: git rebase origin/{main_branch}")
+                                return 1
                     else:
                         print(f"Rebase onto origin/{main_branch} should be clean")
-                        proceed = get_answer_yes_or_no(
-                            f"Proceed with rebase onto origin/{main_branch}?", "y"
-                        )
-                        if not proceed:
-                            print("Skipping rebase.")
-                            return 1
+                        if args.no_interactive:
+                            print(
+                                f"Non-interactive mode: automatically proceeding with rebase onto origin/{main_branch}"
+                            )
+                            proceed = True
+                        else:
+                            proceed = get_answer_yes_or_no(
+                                f"Proceed with rebase onto origin/{main_branch}?", "y"
+                            )
+                            if not proceed:
+                                print("Skipping rebase.")
+                                return 1
 
                     # Perform the rebase
                     if not perform_rebase(main_branch):
