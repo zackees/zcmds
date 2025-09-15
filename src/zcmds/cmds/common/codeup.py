@@ -74,10 +74,54 @@ def _to_exec_str(cmd: str, bash: bool) -> str:
     return cmd
 
 
+def _safe_git_commit(message: str) -> int:
+    """Safely execute git commit with proper UTF-8 encoding."""
+    try:
+        print(f'Running: git commit -m "{message}"')
+        result = subprocess.run(
+            ["git", "commit", "-m", message],
+            encoding="utf-8",
+            errors="replace",
+            text=True,
+            capture_output=False,  # Let output go to console directly
+        )
+        if result.returncode != 0:
+            print(f"Error: git commit returned {result.returncode}")
+        return result.returncode
+    except KeyboardInterrupt:
+        logger.info("_safe_git_commit interrupted by user")
+        _thread.interrupt_main()
+        return 130
+    except Exception as e:
+        logger.error(f"Error in _safe_git_commit: {e}")
+        print(f"Error executing git commit: {e}", file=sys.stderr)
+        return 1
+
+
 def _exec(cmd: str, bash: bool, die=True) -> int:
     print(f"Running: {cmd}")
     cmd = _to_exec_str(cmd, bash)
-    rtn = os.system(cmd)
+
+    try:
+        # Use subprocess.run instead of os.system for better encoding control
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            encoding="utf-8",
+            errors="replace",
+            text=True,
+            capture_output=False,  # Let output go to console directly
+        )
+        rtn = result.returncode
+    except KeyboardInterrupt:
+        logger.info("_exec interrupted by user")
+        _thread.interrupt_main()
+        return 130
+    except Exception as e:
+        logger.error(f"Error in _exec: {e}")
+        print(f"Error executing command: {e}", file=sys.stderr)
+        rtn = 1
+
     if rtn != 0:
         print(f"Error: {cmd} returned {rtn}")
         if die:
@@ -141,7 +185,7 @@ def configure_logging(enable_file_logging: bool) -> None:
         handlers.append(logging.FileHandler("codeup.log"))
 
     logging.basicConfig(
-        level=logging.ERROR,
+        level=logging.INFO,  # Changed from ERROR to INFO for more detailed logging
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=handlers,
         force=True,  # Override any existing configuration
@@ -309,22 +353,31 @@ def _generate_ai_commit_message() -> str | None:
 
             config = create_or_load_config()
             api_key = None
+            key_source = None
 
             # Check config file first
             if "openai_key" in config and config["openai_key"]:
                 api_key = config["openai_key"]
+                key_source = "zcmds config"
+                logger.info(f"Using OpenAI API key from {key_source}")
             # Check keyring/keystore second
             elif _get_keyring_api_key():
                 api_key = _get_keyring_api_key()
+                key_source = "keyring"
+                logger.info(f"Using OpenAI API key from {key_source}")
             # Fall back to environment variable
             elif os.environ.get("OPENAI_API_KEY"):
                 api_key = os.environ.get("OPENAI_API_KEY")
+                key_source = "environment variable"
+                logger.info(f"Using OpenAI API key from {key_source}")
 
             if api_key:
                 # Set the API key for both openai and git-ai-commit
                 openai.api_key = api_key
                 os.environ["OPENAI_API_KEY"] = api_key
+                logger.info(f"API key configured from {key_source}, length: {len(api_key)}")
             else:
+                logger.warning("No OpenAI API key found in any source")
                 print(
                     "Warning: No OpenAI API key found in zcmds config, keyring, or OPENAI_API_KEY environment variable"
                 )
@@ -332,15 +385,18 @@ def _generate_ai_commit_message() -> str | None:
                     "Set key with: imgai --set-key YOUR_KEY or export OPENAI_API_KEY=your_key"
                 )
                 return None
-        except ImportError:
+        except ImportError as e:
+            logger.error(f"Import error in OpenAI config: {e}")
             print("Warning: OpenAI configuration not available")
             return None
 
         # Get staged diff using git-ai-commit's GitService
+        logger.info("Getting git diff for commit message generation")
         staged_diff = GitService.get_staged_diff()
 
         if not staged_diff.stdout.strip():
             # No staged changes, get regular diff
+            logger.info("No staged changes, getting regular diff")
             result = subprocess.run(
                 ["git", "diff"],
                 capture_output=True,
@@ -350,11 +406,14 @@ def _generate_ai_commit_message() -> str | None:
             )
             diff_text = result.stdout.strip()
             if not diff_text:
+                logger.warning("No changes found in git diff")
                 return None
         else:
             diff_text = staged_diff.stdout
+            logger.info(f"Got staged diff, length: {len(diff_text)}")
 
         # Generate commit message using git-ai-commit API
+        logger.info("Calling generate_commit_message from git-ai-commit")
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore", category=UserWarning, module="ai_commit_msg"
@@ -362,12 +421,15 @@ def _generate_ai_commit_message() -> str | None:
             commit_message = generate_commit_message(diff=diff_text, conventional=True)
 
         if commit_message is None:
+            logger.warning("AI commit message generation returned None")
             print("Warning: AI commit message generation returned None")
             return None
 
+        logger.info(f"Successfully generated commit message: {commit_message[:50]}...")
         return commit_message.strip()
 
-    except ImportError:
+    except ImportError as e:
+        logger.error(f"ImportError in _generate_ai_commit_message: {e}")
         print("Warning: git-ai-commit library not available for AI commit messages")
         print("Install with: pip install git-ai-commit")
         return None
@@ -377,11 +439,20 @@ def _generate_ai_commit_message() -> str | None:
         return None
     except Exception as e:
         logger.error(f"Failed to generate AI commit message: {e}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception args: {e.args}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+
         error_msg = str(e)
+        print(f"Error: AI commit message generation failed")
+        print(f"Exception: {type(e).__name__}: {error_msg}")
+        print("Full traceback:")
+        print(traceback.format_exc())
+
         if "OPENAI" in error_msg.upper():
-            print(f"Warning: OpenAI API error: {error_msg}")
-        else:
-            print(f"Warning: Failed to generate AI commit message: {error_msg}")
+            print(f"This appears to be an OpenAI API error.")
+
         return None
 
 
@@ -397,13 +468,13 @@ def _opencommit_or_prompt_for_commit_message(
 
         if auto_accept:
             # Use AI message without confirmation
-            _exec(f'git commit -m "{ai_message}"', bash=False)
+            _safe_git_commit(ai_message)
             return
         else:
             # Ask user to confirm AI message
             use_ai = input("Use this AI-generated message? [y/n]: ").lower().strip()
             if use_ai in ["y", "yes", ""]:
-                _exec(f'git commit -m "{ai_message}"', bash=False)
+                _safe_git_commit(ai_message)
                 return
     elif no_interactive:
         # In non-interactive mode, fail if AI commit generation fails
@@ -424,7 +495,7 @@ def _opencommit_or_prompt_for_commit_message(
 
     # Fall back to manual commit message
     msg = input("Commit message: ")
-    _exec(f'git commit -m "{msg}"', bash=False)
+    _safe_git_commit(msg)
 
 
 def _ai_commit_or_prompt_for_commit_message(
@@ -433,7 +504,7 @@ def _ai_commit_or_prompt_for_commit_message(
     """Generate commit message using AI or prompt for manual input."""
     if message:
         # Use provided commit message directly
-        _exec(f'git commit -m "{message}"', bash=False)
+        _safe_git_commit(message)
     else:
         # Use AI or interactive commit
         _opencommit_or_prompt_for_commit_message(
@@ -649,6 +720,11 @@ def safe_push() -> bool:
 def main() -> int:
     """Run git status, lint, test, add, and commit."""
 
+    # Force UTF-8 encoding for all subprocess operations on Windows
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    if sys.platform == "win32":
+        os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "0"
+
     args = _parse_args()
     configure_logging(args.log)
     verbose = args.verbose
@@ -662,7 +738,7 @@ def main() -> int:
             # Just run the AI commit workflow
             _exec("git add .", bash=False)
             _ai_commit_or_prompt_for_commit_message(
-                args.no_autoaccept, args.message, args.no_interactive
+                args.no_autoaccept, args.message, no_interactive=True
             )
             return 0
         except KeyboardInterrupt:
