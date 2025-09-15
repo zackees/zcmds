@@ -375,7 +375,9 @@ def _generate_ai_commit_message() -> str | None:
                 # Set the API key for both openai and git-ai-commit
                 openai.api_key = api_key
                 os.environ["OPENAI_API_KEY"] = api_key
-                logger.info(f"API key configured from {key_source}, length: {len(api_key)}")
+                logger.info(
+                    f"API key configured from {key_source}, length: {len(api_key)}"
+                )
             else:
                 logger.warning("No OpenAI API key found in any source")
                 print(
@@ -442,16 +444,17 @@ def _generate_ai_commit_message() -> str | None:
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Exception args: {e.args}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
 
         error_msg = str(e)
-        print(f"Error: AI commit message generation failed")
+        print("Error: AI commit message generation failed")
         print(f"Exception: {type(e).__name__}: {error_msg}")
         print("Full traceback:")
         print(traceback.format_exc())
 
         if "OPENAI" in error_msg.upper():
-            print(f"This appears to be an OpenAI API error.")
+            print("This appears to be an OpenAI API error.")
 
         return None
 
@@ -670,8 +673,53 @@ def perform_rebase(main_branch: str) -> bool:
         return False
 
 
+def safe_rebase_try() -> bool:
+    """Attempt a safe rebase if no conflicts would occur. Returns True if successful or no rebase needed."""
+    try:
+        # Get the main branch
+        main_branch = get_main_branch()
+        current_branch = get_current_branch()
+
+        # If we're on the main branch, no rebase needed
+        if current_branch == main_branch:
+            return True
+
+        # Check if rebase is needed
+        if not check_rebase_needed(main_branch):
+            print(f"Branch is already up to date with origin/{main_branch}")
+            return True
+
+        # Check for conflicts before attempting rebase
+        if check_rebase_conflicts(main_branch):
+            print(f"Cannot safely rebase: conflicts detected with origin/{main_branch}")
+            print(
+                "Remote repository has conflicting changes and must be manually rebased."
+            )
+            print(f"Run: git rebase origin/{main_branch}")
+            print("Then resolve any conflicts manually.")
+            return False
+
+        # Safe to rebase - no conflicts detected
+        print(f"Attempting safe rebase onto origin/{main_branch}...")
+        if perform_rebase(main_branch):
+            print(f"Successfully rebased onto origin/{main_branch}")
+            return True
+        else:
+            print("Rebase failed unexpectedly")
+            return False
+
+    except KeyboardInterrupt:
+        logger.info("safe_rebase_try interrupted by user")
+        _thread.interrupt_main()
+        return False
+    except Exception as e:
+        logger.error(f"Error in safe_rebase_try: {e}")
+        print(f"Error during safe rebase attempt: {e}")
+        return False
+
+
 def safe_push() -> bool:
-    """Attempt to push safely, never using force push operations."""
+    """Attempt to push safely, with automatic rebase if safe to do so."""
     try:
         # First, try a normal push
         print("Attempting to push to remote...")
@@ -696,13 +744,27 @@ def safe_push() -> bool:
             print(
                 "This indicates the remote branch has changes that need to be integrated."
             )
-            print(
-                "Please run 'git fetch' and 'git rebase origin/<branch>' to update your branch,"
-            )
-            print(
-                "then try pushing again. This ensures all changes are properly integrated."
-            )
-            return False
+
+            # Attempt safe rebase if possible
+            if safe_rebase_try():
+                # Rebase succeeded, try push again
+                print("Rebase successful, attempting push again...")
+                result = subprocess.run(
+                    ["git", "push"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+
+                if result.returncode == 0:
+                    print("Successfully pushed to remote after rebase")
+                    return True
+                else:
+                    print(f"Push failed after rebase: {result.stderr}")
+                    return False
+            else:
+                # Rebase failed or not safe, provide manual instructions
+                return False
         else:
             print(f"Push failed: {result.stderr}")
             return False

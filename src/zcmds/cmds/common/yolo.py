@@ -12,6 +12,7 @@ class Args:
     """Typed arguments for the yolo command."""
 
     prompt: str | None
+    message: str | None
     claude_args: List[str]
 
 
@@ -33,10 +34,19 @@ def parse_args() -> Args:
         help="Run Claude with this prompt and exit when complete",
     )
 
+    parser.add_argument(
+        "-m",
+        "--message",
+        type=str,
+        help="Send this message to Claude (strips the -m flag)",
+    )
+
     # Parse known args, allowing unknown args to be passed to Claude
     known_args, unknown_args = parser.parse_known_args()
 
-    return Args(prompt=known_args.prompt, claude_args=unknown_args)
+    return Args(
+        prompt=known_args.prompt, message=known_args.message, claude_args=unknown_args
+    )
 
 
 def main() -> int:
@@ -75,9 +85,13 @@ def main() -> int:
         # Build the command with all arguments passed through
         cmd = [claude_path, "--dangerously-skip-permissions"]
 
-        # If prompt is provided, add it to the command
+        # If prompt is provided, add it with -p flag
         if args.prompt:
-            cmd.extend([args.prompt])
+            cmd.extend(["-p", args.prompt])
+
+        # If message is provided, add it directly (no flag)
+        if args.message:
+            cmd.append(args.message)
 
         # Add any additional arguments
         cmd.extend(args.claude_args)
