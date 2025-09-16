@@ -45,6 +45,24 @@ wheels = [
 ]
 
 [[package]]
+name = "anthropic"
+version = "0.67.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/08/ee91464cd821e6fca52d9a23be44815c95edd3c1cf1e844b2c5e85f0d57f/anthropic-0.67.0.tar.gz", hash = "sha256:d1531b210ea300c73423141d29bcee20fcd24ef9f426f6437c0a5d93fc98fb8e", size = 441639, upload-time = "2025-09-10T14:47:18.137Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5c/9d/9adbda372710918cc8271d089a2ceae4d977a125f90bc3c4b456bca4f281/anthropic-0.67.0-py3-none-any.whl", hash = "sha256:f80a81ec1132c514215f33d25edeeab1c4691ad5361b391ebb70d528b0605b55", size = 317126, upload-time = "2025-09-10T14:47:16.351Z" },
+]
+
+[[package]]
 name = "anyio"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -389,6 +407,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593, upload-time = "2024-12-21T18:38:44.339Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7e/d4/7ebdbd03970677812aac39c869717059dbb71a4cfc033ca6e5221787892c/click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2", size = 98188, upload-time = "2024-12-21T18:38:41.666Z" },
+]
+
+[[package]]
+name = "codeup"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "appdirs" },
+    { name = "keyring" },
+    { name = "openai" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a8/7a/f237644689d7697eb192c26b729427173c20a20e1c833845aefa8d2209ab/codeup-1.0.1-py3-none-any.whl", hash = "sha256:1b5c89d906d68f232ae01f2a4d1c79634f52506f383d73146638fb07388ab251", size = 15844, upload-time = "2025-09-16T02:18:42.217Z" },
 ]
 
 [[package]]
@@ -2675,7 +2707,9 @@ source = { editable = "." }
 dependencies = [
     { name = "advanced-aicode" },
     { name = "advanced-askai" },
+    { name = "anthropic" },
     { name = "appdirs" },
+    { name = "codeup" },
     { name = "consolemd" },
     { name = "download" },
     { name = "ffmpeg-normalize" },
@@ -2718,7 +2752,9 @@ test = [
 requires-dist = [
     { name = "advanced-aicode", specifier = ">=1.1.0" },
     { name = "advanced-askai" },
+    { name = "anthropic", specifier = ">=0.21.0" },
     { name = "appdirs" },
+    { name = "codeup", specifier = ">=1.0.1" },
     { name = "consolemd" },
     { name = "download" },
     { name = "ffmpeg-normalize" },

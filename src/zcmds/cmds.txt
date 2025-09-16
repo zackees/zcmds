@@ -1,6 +1,5 @@
 archive = "zcmds.cmds.common.archive:main"
 audnorm = "zcmds.cmds.common.audnorm:main"
-codeup = "zcmds.cmds.common.codeup:main"
 comports = "zcmds.cmds.common.comports:main"
 diskaudit = "zcmds.cmds.common.diskaudit:main"
 docker_purge = "zcmds.cmds.common.docker_purge:main"

@@ -27,6 +27,8 @@ def get_console_scripts() -> list[str]:
     return cmds
 
 
+
+
 if __name__ == "__main__":
     setuptools.setup(
         maintainer="Zachary Vorhies",
