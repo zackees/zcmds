@@ -7,6 +7,7 @@ Update mechanism for darwin (MacOS)
 import os
 import sys
 
+
 SELF_DIR = os.path.dirname(__file__)
 
 # No longer generating MacOS commands, we use the console scripts instead.

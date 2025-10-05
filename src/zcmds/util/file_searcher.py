@@ -2,6 +2,7 @@
 """
 Module for doing file searching stuff.
 """
+
 import os
 
 from . import fileutils
@@ -18,14 +19,14 @@ def main() -> None:
     ):
         with open(file, encoding="utf-8") as fd:
             file_data = fd.read()
-        matches = []
+        matches: list[tuple[int, str]] = []
         for i, line in enumerate(file_data.splitlines()):
             if args.search_string in line:
                 matches.append((i, line))
         if len(matches):
             # print(f"Found {len(matches)} matches in {os.path.abspath(file)}:")
             for match in matches:
-                haystack = match[1].strip()
+                haystack: str = match[1].strip()
                 absfile = os.path.abspath(file)
                 print(f"{absfile}:{match[0]}:\n  {haystack}")
             print()

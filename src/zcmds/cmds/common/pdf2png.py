@@ -43,7 +43,7 @@ def main() -> None:
         infile, first_page=args.first_page, last_page=args.last_page, dpi=args.dpi
     )
     for i, image in enumerate(images):
-        output_png = os.path.join(save_dir, f"{i+args.first_page}.png")
+        output_png = os.path.join(save_dir, f"{i + args.first_page}.png")
         if os.path.isfile(output_png):
             os.remove(output_png)
         print(f"Writing: {output_png}")

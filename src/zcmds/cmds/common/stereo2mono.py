@@ -3,7 +3,7 @@ import os
 import sys
 
 
-def _apply_name_suffix(path, new_name_suffix):
+def _apply_name_suffix(path: str, new_name_suffix: str) -> str:
     """
     Adds a suffix to the name of a file.
     _add_name_suffix("/path/to/file.ext", "_left") -> "/path/to/file_left.ext"
@@ -12,7 +12,7 @@ def _apply_name_suffix(path, new_name_suffix):
     return f"{name}{new_name_suffix}{ext}"
 
 
-def _apply_ext(path, new_ext):
+def _apply_ext(path: str, new_ext: str) -> str:
     """
     Sets the extension of a file.
     _apply_ext("/path/to/file.ext", ".wav") -> "/path/to/file.wav"
@@ -21,14 +21,14 @@ def _apply_ext(path, new_ext):
     return f"{name}{new_ext}"
 
 
-def _print_file_exists(path):
+def _print_file_exists(path: str) -> None:
     if os.path.exists(path):
         print(f"Generated {path}")
     else:
         print(f"WARNING: failed to generate {path}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Print video durations\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,

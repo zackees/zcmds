@@ -53,7 +53,7 @@ def _convert_to_mp3(path: str, out: str) -> None:
     os.system(cmd)
 
 
-def _replace_audio(in_vid_mp4: str, in_mp3: str, out_mp3) -> None:
+def _replace_audio(in_vid_mp4: str, in_mp3: str, out_mp3: str) -> None:
     """
     Replaces the audio of a video file with an mp3 file.
     """

@@ -4,6 +4,7 @@ from datetime import datetime
 from os import path
 from typing import List, Tuple
 
+
 HOME_DIR = os.path.expanduser("~")
 PATH_DEFAULT_OBS = os.path.join(HOME_DIR, "Videos", "obs")
 DRY_RUN = False

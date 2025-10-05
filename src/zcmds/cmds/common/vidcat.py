@@ -9,6 +9,7 @@ import tempfile
 from dataclasses import dataclass
 from typing import Tuple
 
+
 _SAMPLE_RATE = 44100
 _CRF_DEFAULT = 18
 

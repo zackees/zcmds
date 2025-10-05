@@ -7,9 +7,10 @@ import fnmatch
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any
+from typing import Generator
 
 from zcmds.util.config import get_config, save_config
+
 
 CONFIG_NAME = "search_utils.json"
 
@@ -23,7 +24,7 @@ class SearchArgs:
     ignore_errors: bool
 
 
-def get_search_args(require_replace_args=False) -> SearchArgs:
+def get_search_args(require_replace_args: bool = False) -> SearchArgs:
     """Generates an ArgumentParser and returns the args."""
     parser = argparse.ArgumentParser()
     config = get_config(CONFIG_NAME)
@@ -45,6 +46,15 @@ def get_search_args(require_replace_args=False) -> SearchArgs:
     if args.file_pattern is None:
         args.file_pattern = input(f"File search pattern [{saved_file_pattern}]:")
         args.file_pattern = args.file_pattern.strip() or saved_file_pattern
+
+    # Ensure all required fields are not None
+    if args.search_string is None:
+        raise ValueError("search_string is required")
+    if args.replace_string is None:
+        args.replace_string = ""
+    if args.file_pattern is None:
+        raise ValueError("file_pattern is required")
+
     config["file_pattern"] = args.file_pattern
     config["search_string"] = args.search_string
     config["replace_string"] = args.replace_string
@@ -68,8 +78,11 @@ def match(file: str, file_patterns: list[str]) -> bool:
 
 
 def iter_matching_files(
-    cur_dir, file_patterns, text_search_string=None, ignore_errors=False
-) -> Any:
+    cur_dir: str,
+    file_patterns: list[str],
+    text_search_string: str | None = None,
+    ignore_errors: bool = False,
+) -> Generator[str, None, None]:
     """Generates an iterator for matching files."""
     for path, dirs, files in os.walk(cur_dir):  # pylint: disable=unused-variable
         if ".git" in path.split(os.sep):
@@ -80,9 +93,7 @@ def iter_matching_files(
                 if text_search_string is None:
                     yield full_path
                 else:
-                    with open(
-                        full_path, encoding="utf-8"
-                    ) as fd:  # pylint: disable=invalid-name
+                    with open(full_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
                         try:
                             file_data = fd.read()
                         except UnicodeDecodeError:
@@ -102,12 +113,10 @@ def iter_matching_files(
                         yield full_path
 
 
-def replace_in_file(file_path, search_text, replace_text) -> None:
+def replace_in_file(file_path: str, search_text: str, replace_text: str) -> None:
     """Replaces all occurences with replace_text."""
     with open(file_path, encoding="utf-8") as fd:  # pylint: disable=invalid-name
         file_data = fd.read()
     file_data = file_data.replace(search_text, replace_text)
-    with open(
-        file_path, encoding="utf-8", mode="w"
-    ) as fd:  # pylint: disable=invalid-name
+    with open(file_path, encoding="utf-8", mode="w") as fd:  # pylint: disable=invalid-name
         fd.write(file_data)

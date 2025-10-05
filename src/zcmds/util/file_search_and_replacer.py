@@ -10,7 +10,7 @@ from . import fileutils
 def main() -> None:
     """Main function for search and replace."""
     args: fileutils.SearchArgs = fileutils.get_search_args(require_replace_args=True)
-    files = []
+    files: list[str] = []
 
     for file in fileutils.iter_matching_files(
         cur_dir=args.cur_dir,
@@ -19,11 +19,9 @@ def main() -> None:
         ignore_errors=args.ignore_errors,
     ):
         files.append(file)
-        with open(
-            file, encoding="utf-8"
-        ) as fd:  # pylint: disable=invalid-name,duplicate-code
+        with open(file, encoding="utf-8") as fd:  # pylint: disable=invalid-name,duplicate-code
             file_data = fd.read()
-        matches = []
+        matches: list[tuple[int, str]] = []
         for i, line in enumerate(file_data.splitlines()):
             if args.search_string in line:
                 matches.append((i, line))
@@ -31,7 +29,7 @@ def main() -> None:
         print(f"Found {len(matches)} matches in {os.path.abspath(file)}:")
 
         for match in matches:
-            haystack = match[1].strip()
+            haystack: str = match[1].strip()
             # pos = haystack.find(match)
             # if len(haystack) > 60:
             #  haystack = haystack[0:60] + '...'

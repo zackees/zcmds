@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from typing import Tuple
+from typing import Callable
 
 
 def sanitize(s: str) -> str:
@@ -19,7 +19,7 @@ def stripext(s: str) -> str:
 _CRF_DEFAULT = 18
 
 
-def exec(cmd: str) -> Tuple[int, str, str]:
+def exec(cmd: str) -> tuple[int, str, str]:
     proc = subprocess.Popen(
         cmd,
         shell=True,
@@ -41,7 +41,13 @@ def get_next_path(path: str) -> str:
 
 
 def encode(
-    infile, height, crf, start_timestamp, end_timestamp, output_path, print_fcn
+    infile: str,
+    height: int | None,
+    crf: int,
+    start_timestamp: str | None,
+    end_timestamp: str | None,
+    output_path: str,
+    print_fcn: Callable[[str], None],
 ) -> bool:
     vf_scale_part = ""
     to_stmt = ""

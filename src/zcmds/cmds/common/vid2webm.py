@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+
 VERSION = "0.1.0"
 
 

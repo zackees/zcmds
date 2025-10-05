@@ -5,6 +5,7 @@ from pathlib import Path
 
 from download import download  # type: ignore
 
+
 HERE = Path(__file__).resolve().parent
 LOSSLESS_CUT_BINS = HERE / "losslesscut_bins"
 BASE_URL = "https://github.com/zackees/losslesscut-bins/raw/main/v3.54.0"
@@ -61,9 +62,9 @@ def main() -> int:
 
     if sys.platform == "win32":
         lossless_cut_exe = LOSSLESS_CUT_BINS / BIN_FOLDER / "LosslessCut.exe"
-        assert (
-            lossless_cut_exe.exists()
-        ), f"LosslessCut.exe not found at {lossless_cut_exe}"
+        assert lossless_cut_exe.exists(), (
+            f"LosslessCut.exe not found at {lossless_cut_exe}"
+        )
         lossless_cut_exe_str = unc_path_to_windows_path(lossless_cut_exe)
         cmd = [lossless_cut_exe_str]
         # Add any args that were passed in

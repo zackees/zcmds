@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 
+
 VERSION = "0.2.0"
 
 X264_PRESETS = [

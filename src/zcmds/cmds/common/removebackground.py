@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+
 # notes: https://github.com/danielgatis/rembg/issues/312
 ENABLE_GPU_INSTALL = False  # experimental, not recommended for now
 

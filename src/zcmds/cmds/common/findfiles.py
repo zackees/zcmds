@@ -6,10 +6,10 @@ import argparse
 import glob
 import os
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Callable
 
 
-def parse_size(size):
+def parse_size(size: str) -> int:
     units = {"b": 1, "k": 10**3, "m": 10**6, "g": 10**9}
     size = size.lower()
     if size[-1] in units:
@@ -19,7 +19,8 @@ def parse_size(size):
 
 
 def main(
-    sys_args: Optional[list] = None, _print: Optional[Callable[[str], None]] = None
+    sys_args: list[str] | None = None,
+    _print: Callable[[str], None] | None = None,
 ) -> int:
     _print = _print or print
     try:

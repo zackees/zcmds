@@ -12,7 +12,7 @@ from git import Repo
 
 class DiffTool(ABC):
     @abstractmethod
-    def diff(self, path1: Path, path2: Path):
+    def diff(self, path1: Path, path2: Path) -> int:
         pass
 
 
@@ -74,7 +74,7 @@ def run(args: argparse.Namespace) -> int:
                 if answer.lower() != "y":
                     branch = input("Enter the branch to diff against: ").strip()
                 else:
-                    branch = repo.active_branch
+                    branch = str(repo.active_branch)
             assert branch_exists(repo, branch), f"Branch {branch} does not exist."
             diff_tool = get_diff_tool()
             temp_dir = tempfile.mkdtemp()

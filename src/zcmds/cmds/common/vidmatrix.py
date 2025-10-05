@@ -5,6 +5,7 @@ import multiprocessing
 import os
 from typing import Optional
 
+
 CRF_START = 18
 CRF_END = 40
 CRF_STEP = 2

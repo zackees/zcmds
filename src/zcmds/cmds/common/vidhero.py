@@ -59,11 +59,11 @@ def main():
             "-vf "
             f'"scale=trunc(oh*a/2)*2:{height},'
             f"fade=t=in:st={start_seconds}:d=1,"
-            f'fade=t=out:st={end_seconds-1}:d=1"'
+            f'fade=t=out:st={end_seconds - 1}:d=1"'
         )
         audiofilter_stmt = (
             f'-af "afade=type=in:start_time={start_seconds}:duration=1,'
-            f'afade=type=out:start_time={end_seconds-1}:duration=1"'
+            f'afade=type=out:start_time={end_seconds - 1}:duration=1"'
         )
         cmd = (
             f'static_ffmpeg -y -hide_banner -v quiet -stats -i "{video_path}"'

@@ -1,5 +1,6 @@
 import os
 
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 EXTRA_COMMANDS = ["transcribe-anything", "aicode", "askai"]

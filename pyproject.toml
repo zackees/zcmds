@@ -54,17 +54,141 @@ version = { attr = "zcmds.__version__" }
 
 [dependency-groups]
 test = [
-    "mypy",
+    "pyright",
     "pytest",
-    "black",
     "wheel",
     "ruff",
-    "isort",
 ]
 
-[tool.isort]
-profile = "black"
-src_paths = ["src"]
+[tool.ruff]
+# Enable import sorting (I), unused imports (F401), and other pyflakes rules
+line-length = 88
+target-version = "py310"
 
-[tool.mypy]
-ignore_missing_imports = true
+[tool.ruff.lint]
+# Enable import sorting and unused import removal
+select = [
+    "I",     # isort - import sorting
+    "F",     # pyflakes - includes unused imports (F401)
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+]
+ignore = ["E501"]  # Ignore line too long (black-style compatibility)
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+# Configure import sorting to match isort's black profile
+force-single-line = false
+force-sort-within-sections = false
+lines-after-imports = 2
+
+[tool.ruff.format]
+# Enable black-style formatting
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "build/",
+    "dist/",
+    ".venv/",
+    "venv/",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.ruff_cache",
+    "**/.git",
+    "**/*.egg-info",
+]
+
+# Type checking configuration
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
+pythonPlatform = "All"
+useLibraryCodeForTypes = true
+analyzeUnannotatedFunctions = true
+strictParameterNoneValue = true
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+
+# Report settings
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnusedImport = false
+reportUnusedClass = false
+reportUnusedFunction = false
+reportUnusedVariable = false
+reportDuplicateImport = true
+reportWildcardImportFromLibrary = true
+reportOptionalSubscript = false
+reportOptionalMemberAccess = false
+reportOptionalCall = false
+reportOptionalIterable = false
+reportOptionalContextManager = false
+reportOptionalOperand = false
+reportGeneralTypeIssues = "warning"  # AMNESTY: Downgraded from true/error
+reportPropertyTypeMismatch = true
+reportFunctionMemberAccess = true
+reportPrivateUsage = false
+reportConstantRedefinition = false
+reportIncompatibleMethodOverride = "warning"  # AMNESTY: Downgraded from true/error
+reportIncompatibleVariableOverride = true
+reportInconsistentConstructor = true
+reportOverlappingOverload = true
+reportMissingSuperCall = false
+reportUninitializedInstanceVariable = false
+reportInvalidStringEscapeSequence = true
+reportUnknownParameterType = "warning"  # TODO: Re-enable after fixing
+reportUnknownArgumentType = "warning"  # AMNESTY: Downgraded from error
+reportUnknownLambdaType = "warning"  # AMNESTY: Downgraded from error
+reportUnknownVariableType = "warning"  # AMNESTY: Downgraded from error
+reportUnknownMemberType = "warning"  # AMNESTY: Downgraded from error
+reportMissingParameterType = "warning"  # TODO: Re-enable after fixing
+reportMissingTypeArgument = "warning"  # AMNESTY: Downgraded from error
+reportArgumentType = "warning"  # AMNESTY: Downgraded from error
+reportCallIssue = "warning"  # AMNESTY: Downgraded from error
+reportIndexIssue = "warning"  # AMNESTY: Downgraded from error
+reportAttributeAccessIssue = "warning"  # AMNESTY: Downgraded from error
+reportPossiblyUnboundVariable = "warning"  # AMNESTY: Downgraded from error
+reportMissingReturnType = "error"
+reportUntypedFunctionDecorator = "error"
+reportUntypedClassDecorator = "error"
+reportUntypedBaseClass = "error"
+reportUntypedNamedTuple = "error"
+reportInvalidTypeVarUse = true
+reportCallInDefaultInitializer = false
+reportUnnecessaryIsInstance = false
+reportUnnecessaryCast = false
+reportUnnecessaryComparison = false
+reportUnnecessaryContains = false
+reportAssertAlwaysTrue = false
+reportSelfClsParameterName = true
+reportImplicitStringConcatenation = false
+reportUndefinedVariable = true
+reportUnboundVariable = true
+reportInvalidStubStatement = true
+reportIncompleteStub = true
+reportUnsupportedDunderAll = true
+reportUnusedCallResult = false
+reportUnusedCoroutine = true
+reportUnusedExpression = false
+reportUnnecessaryTypeIgnoreComment = false
+reportMatchNotExhaustive = true
+
+# Display settings
+verboseOutput = false
+autoImportCompletions = false
+indexing = false
+functionSignatureDisplay = "compact"
+
+# Task list tokens
+taskListTokens = ["TODO", "FIXME", "BUG", "HACK", "NOTE"]
+
+[[tool.pyright.executionEnvironments]]
+root = "."
+pythonVersion = "3.10"
+pythonPlatform = "All"

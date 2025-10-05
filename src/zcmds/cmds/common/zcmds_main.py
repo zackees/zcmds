@@ -6,6 +6,7 @@ import sys
 
 from zcmds.get_cmds import get_cmds
 
+
 COMMON = get_cmds(just_names=True)
 
 WIN32 = [

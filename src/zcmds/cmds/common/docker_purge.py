@@ -7,6 +7,7 @@ are multiple versions of a program on the system.
 import os
 import sys
 
+
 CMD = "docker system prune -a --volumes -f"
 
 

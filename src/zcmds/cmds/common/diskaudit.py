@@ -14,7 +14,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from threading import Lock
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
+
 
 TOTAL_COUNT = 0
 TOTAL_COUNT_LOCK = Lock()
@@ -29,16 +30,16 @@ def increment_total_count() -> None:
 
 
 # signal handler for ctrl-c
-def handle_ctrlc(sig, frame):  # pylint: disable=unused-argument
+def handle_ctrlc(sig: int | None, frame: Any) -> None:  # pylint: disable=unused-argument
     print("Disk audit cancelled")
     sys.exit(0)
 
 
-def add_path(tree: dict, path_list: List[str], size: int) -> None:
-    curr_tree: dict = tree
+def add_path(tree: dict[str, Any], path_list: list[str], size: int) -> None:
+    curr_tree: dict[str, Any] = tree
     for p in path_list:
         curr_tree["size"] += size
-        subtree = curr_tree["children"].get(p, None)
+        subtree: dict[str, Any] | None = curr_tree["children"].get(p, None)
         if subtree is None:
             subtree = dict(name=p, size=size, children={})
             curr_tree["children"][p] = subtree
@@ -46,8 +47,8 @@ def add_path(tree: dict, path_list: List[str], size: int) -> None:
     curr_tree["size"] += size
 
 
-def split_paths(path: str) -> List[str]:
-    out: List = []
+def split_paths(path: str) -> list[str]:
+    out: list[str] = []
     curr_path = path
     while True:
         head, leaf = os.path.split(curr_path)
@@ -64,11 +65,11 @@ def fmt_num(num: int) -> str:
     return "{:,}".format(num)
 
 
-def get_size_runner(inqueue: Queue, outqueue: Queue) -> None:
+def get_size_runner(inqueue: Queue[str], outqueue: Queue[tuple[str, int]]) -> None:
     count = 0
     while not inqueue.empty():
         try:
-            fullpath = inqueue.get()
+            fullpath: str = inqueue.get()
             try:
                 size = os.path.getsize(fullpath)
             except FileNotFoundError:
@@ -103,7 +104,7 @@ def main() -> None:
     parser.add_argument("--filter", "-f", help="Filter by file extension", default="")
     args = parser.parse_args()
     # threading queue
-    inque: Queue = Queue()
+    inque: Queue[str] = Queue()
     scan_start_time = time.time()
     print("Scanning for files...")
     matcher_fn = make_filter(args.filter)
@@ -115,9 +116,9 @@ def main() -> None:
     print(f"  Found {fmt_num(inque.qsize())} files.")
     scan_diff = time.time() - scan_start_time
     size_start_time = time.time()
-    tree: Dict[str, Any] = dict(name="root", size=0, children={})
-    outque: Queue = Queue()
-    tasks = []
+    tree: dict[str, Any] = dict(name="root", size=0, children={})
+    outque: Queue[tuple[str, int]] = Queue()
+    tasks: list[Any] = []
     print("Collecting file sizes...")
     executor = ThreadPoolExecutor(max_workers=NUM_THREADS)
     for _ in range(NUM_THREADS):
@@ -134,17 +135,17 @@ def main() -> None:
         path_lst = split_paths(fullpath)
         add_path(tree, path_lst, size)
     size_diff = time.time() - size_start_time
-    top: dict = {}
+    top: dict[str, Any] = {}
     if "." in tree["children"]:
         top = tree["children"]["."]
         # ... rest of the code that uses `top`
     else:
         print("No matching files found in the current directory.")
         return
-    top_sizes = []
-    total_size = 0
+    top_sizes: list[tuple[int, str]] = []
+    total_size: int = 0
     for _, node in top["children"].items():
-        n = node["size"]
+        n: int = node["size"]
         total_size += n
         top_sizes.append((n, node["name"]))
     top_sizes.sort()
@@ -155,11 +156,11 @@ def main() -> None:
             max_nm_len = len(name)
 
     # lines.append(f"Number of files: {fmt_num(TOTAL_COUNT)}:")
-    lines = [
+    lines: list[str] = [
         f"Total size: {fmt_num(total_size)}, number of files: {fmt_num(TOTAL_COUNT)}:"
     ]
     for size, name in top_sizes:
-        nm = name + ": ".ljust(max_nm_len + 2 - len(name), " ")
+        nm: str = name + ": ".ljust(max_nm_len + 2 - len(name), " ")
         perc_num = "{:.1%}".format(size / total_size)
         if os.path.isfile(name):
             nm = "F " + nm

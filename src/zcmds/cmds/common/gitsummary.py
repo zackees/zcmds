@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 
 from zcmds.util.config import get_config, save_config
 
+
 CONFIG_NAME = "gitsummary.json"
 
 

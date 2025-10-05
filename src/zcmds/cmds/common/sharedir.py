@@ -2,14 +2,15 @@ import argparse
 import os
 import subprocess
 import sys
-from typing import Optional
+from typing import Callable
 
 import requests  # type: ignore
+
 
 PORT = 6789
 
 
-def get_public_ip4() -> Optional[str]:
+def get_public_ip4() -> str | None:
     urls = ["https://api.ipify.org", "https://ipv4.icanhazip.com/"]
     for i, url in enumerate(urls):
         try:
@@ -30,7 +31,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     os.chdir(args.dir)
-    cleanup = []
+    cleanup: list[Callable[[], None]] = []
     if args.use_local_tunnel:
         my_ip4 = get_public_ip4()
         http_proc = subprocess.Popen([sys.executable, "-m", "http.server", str(PORT)])

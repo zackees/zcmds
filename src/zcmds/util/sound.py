@@ -2,6 +2,7 @@
 
 import warnings
 
+
 # Suppress pygame pkg_resources warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=UserWarning, module="pygame")
