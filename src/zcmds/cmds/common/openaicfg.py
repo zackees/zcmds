@@ -2,17 +2,19 @@ import argparse
 import json
 import os
 import sys
+from typing import Any, cast
 
 from appdirs import user_config_dir  # type: ignore
 
 
 def get_config_path() -> str:
-    env_path = user_config_dir("zcmds", "zcmds", roaming=True)
+    env_path = cast(str, user_config_dir("zcmds", "zcmds", roaming=True))
+    assert isinstance(env_path, str), "Expected string from user_config_dir"
     config_file = os.path.join(env_path, "openai.json")
     return config_file
 
 
-def save_config(config: dict) -> None:
+def save_config(config: dict[str, Any]) -> None:
     config_file = get_config_path()
     # make all subdirs of config_file
     os.makedirs(os.path.dirname(config_file), exist_ok=True)
@@ -20,11 +22,11 @@ def save_config(config: dict) -> None:
         json.dump(config, f)
 
 
-def create_or_load_config() -> dict:
+def create_or_load_config() -> dict[str, Any]:
     config_file = get_config_path()
     try:
         with open(config_file) as f:
-            config = json.loads(f.read())
+            config: dict[str, Any] = json.loads(f.read())
         return config
     except OSError:
         save_config({})

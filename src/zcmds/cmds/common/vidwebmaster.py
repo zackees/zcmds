@@ -95,8 +95,8 @@ class MainWidget(QMainWindow):
             event.ignore()
 
     def dropEvent(self, event):
-        files = [u.toLocalFile() for u in event.mimeData().urls()]
-        for f in files:
+        files = [u.toLocalFile() for u in event.mimeData().urls()]  # type: ignore
+        for f in files:  # type: ignore
             self.on_drop_callback(f)
 
 
@@ -112,8 +112,8 @@ def open_folder(path):
 def run_gui(vidinfos: list[VidInfo]) -> None:
     app = QApplication(sys.argv)
 
-    def callback(videofile):
-        path, _ = os.path.splitext(videofile)
+    def callback(videofile: str) -> None:
+        path, _ = os.path.splitext(videofile)  # type: ignore
         os.makedirs(path, exist_ok=True)
         open_folder(path)
 
@@ -130,7 +130,7 @@ def run_gui(vidinfos: list[VidInfo]) -> None:
 
 
 def parse_vidinfos(vidinfos_str: str, fast_start: bool) -> list[VidInfo]:
-    vidinfos = []
+    vidinfos: list[VidInfo] = []
     for vidinfo_str in vidinfos_str.split(","):
         height, bitrate = vidinfo_str.split(":")
         vidinfos.append(

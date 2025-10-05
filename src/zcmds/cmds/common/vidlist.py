@@ -35,7 +35,7 @@ def main():
                 file_path = os.path.join(root, file)
                 vidfiles.append(file_path)
 
-    for vid in vidfiles:
+    for vid in vidfiles:  # type: ignore
         print_file(vid)
 
 

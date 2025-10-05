@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from PIL import Image  # type: ignore
-from pillow_heif import register_heif_opener
+from pillow_heif import register_heif_opener  # type: ignore
 
 
 register_heif_opener()
@@ -152,14 +152,14 @@ def main() -> int:
         os.makedirs(outdir)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Process each file
-        png_conversion_tasks = []
+        png_conversion_tasks: list[concurrent.futures.Future[ImageResult]] = []
         for file in input_files:
-            base_dir = outdir or os.path.dirname(file)
+            base_dir: str = outdir or os.path.dirname(file)
             filename, _ = os.path.splitext(os.path.basename(file))
-            out_webp = os.path.join(base_dir, filename + f".{format}")
+            out_webp: str = os.path.join(base_dir, filename + f".{format}")
             if os.path.abspath(file) == os.path.abspath(out_webp):
                 out_webp = os.path.join(base_dir, filename + f".1.{format}")
-            task = executor.submit(
+            task: concurrent.futures.Future[ImageResult] = executor.submit(
                 convert_img_to_format,
                 file=file,
                 out_file=out_webp,
@@ -169,12 +169,15 @@ def main() -> int:
         # Wait for all png conversions to complete
         success = True
         for task in png_conversion_tasks:
-            result = task.result()
+            result: ImageResult = task.result()
             if not result.success:
                 success = False
             else:
-                original_size, webp_size = result.original_size, result.webp_size
-                shrinkage_percentage = 100 * (original_size - webp_size) / original_size
+                original_size: int = result.original_size
+                webp_size: int = result.webp_size
+                shrinkage_percentage: float = (
+                    100 * (original_size - webp_size) / original_size
+                )
                 print(f"Shrinkage: {shrinkage_percentage:.2f}%")
                 print(f"    Input image size: {original_size:,} bytes")
                 print(f"    Output image size: {webp_size:,} bytes")

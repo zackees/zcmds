@@ -4,13 +4,13 @@ import sys
 import time
 
 
-def timecode_to_seconds(timecode):
+def timecode_to_seconds(timecode: str) -> int:
     """
     Converts a timecode to seconds
     """
-    time_parts = [t for t in timecode.split(":") if t]
+    time_parts: list[str] = [t for t in timecode.split(":") if t]
     time_parts = time_parts[::-1]
-    seconds = int(time_parts[0])
+    seconds = int(time_parts[0])  # type: ignore
     if len(time_parts) > 1:
         seconds += int(time_parts[1]) * 60
     if len(time_parts) > 2:

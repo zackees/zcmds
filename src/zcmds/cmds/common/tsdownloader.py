@@ -68,7 +68,7 @@ def main() -> int:
     # Print all errors at the end
     if ERRORS:
         print("\nEncountered Errors:")
-        for error in ERRORS:
+        for error in ERRORS:  # type: ignore
             print(error)
         return 1
     return 0

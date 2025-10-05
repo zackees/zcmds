@@ -10,15 +10,17 @@ import subprocess
 import sys
 
 
-def get_files(path):
+def get_files(path: str) -> list[str]:
     """Returns a list of files in a directory sorted by name."""
-    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    files: list[str] = [
+        f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
+    ]
     files.sort()
     files = [os.path.join(path, f) for f in files]
     return files
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser(
         description="Concats a bunch of images to get together in an video.\n",
@@ -32,16 +34,16 @@ def main():
     if not os.path.exists(infile):
         print(f"{infile} does not exist")
         sys.exit(1)
-    files = get_files(infile)
+    files: list[str] = get_files(infile)
     infiles_stmt = ""
     for f in files:
         infiles_stmt += f' -i "{f}"'
     time_per_frame = 1.0 / args.fps
     concat_file_str = ""
     temp_concat_file = ".concat.txt"
-    for f in files:
-        f = f.replace("\\", "/")
-        concat_file_str += f"file {f}\n"
+    for file in files:
+        file_path: str = file.replace("\\", "/")
+        concat_file_str += f"file {file_path}\n"
         concat_file_str += f"duration {time_per_frame}\n"
     with open(temp_concat_file, "w") as f:
         f.write(concat_file_str)

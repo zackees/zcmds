@@ -11,7 +11,7 @@ import warnings
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 
 # notes: https://github.com/danielgatis/rembg/issues/312
@@ -137,7 +137,7 @@ def _exec(cmd: str) -> None:
         raise OSError(f"Error running command: {cmd}, return code: {rtn}")
 
 
-def chunkify(data_list: list, num_chunks: int) -> list:
+def chunkify(data_list: list[Any], num_chunks: int) -> list[list[Any]]:
     chunk_size = (len(data_list) + num_chunks - 1) // num_chunks
     return [data_list[i : i + chunk_size] for i in range(0, len(data_list), chunk_size)]
 
@@ -195,18 +195,18 @@ def video_remove_background(
         img_files.sort()
         img_chunks = chunkify(img_files, num_jobs)
 
-        def process_chunk(chunk, gpu_id, job_id):
+        def process_chunk(chunk: list, gpu_id: int, job_id: int) -> None:
             chunk_dir = output_dir / str(job_id)
             chunk_dir.mkdir(parents=True, exist_ok=True)
-            for img in chunk:
-                shutil.move(str(img), str(chunk_dir / img.name))
+            for img in chunk:  # type: ignore
+                shutil.move(str(img), str(chunk_dir / img.name))  # type: ignore
 
             final_output_dir = chunk_dir / "video"
             final_output_dir.mkdir(parents=True, exist_ok=True)
-            env = {}
+            env: dict[str, str] = {}
             env["NVIDIA_VISIBLE_DEVICES"] = str(gpu_id)
             env["CUDA_VISIBLE_DEVICES"] = "0"
-            new_env = env.copy()
+            new_env: dict[str, str] = env.copy()
             env.update(os.environ)
             cmd = f'rembg p -a -ae 15 --post-process-mask -m {model} "{chunk_dir}" "{final_output_dir}"'
             print(f"Running: {cmd}, with updated environment: {new_env}")
@@ -219,11 +219,11 @@ def video_remove_background(
             futures = [
                 executor.submit(
                     process_chunk,
-                    chunk,
+                    chunk,  # type: ignore
                     _exposed_gpus[job_id % len(_exposed_gpus)],
                     job_id,
                 )
-                for job_id, chunk in enumerate(img_chunks)
+                for job_id, chunk in enumerate(img_chunks)  # type: ignore
             ]
             concurrent.futures.wait(futures)
 

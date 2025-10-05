@@ -7,7 +7,7 @@ import argparse
 import sys
 import time
 import webbrowser
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import openai  # pylint: disable=import-error  # type: ignore
 from inputimeout import TimeoutOccurred, inputimeout
@@ -115,7 +115,7 @@ def cli() -> int:
             config["openai_key"] = key
             save_config(config)
     else:
-        key = config["openai_key"]
+        key: str = config["openai_key"]
     prompt = args.prompt or prompt_input()
 
     # wow this makes all the difference with this ai
@@ -123,8 +123,9 @@ def cli() -> int:
     prompt += f"\n{stop}\nHere's my response:\n"
     openai.api_key = key
 
-    response = openai.Image.create(prompt=prompt, n=1, size="1024x1024")
-    image_url = response["data"][0]["url"]
+    response: Any = openai.Image.create(prompt=prompt, n=1, size="1024x1024")  # type: ignore
+    image_url = response["data"][0]["url"]  # type: ignore
+    assert isinstance(image_url, str), "Expected string from response"
     print(f"Image URL: {image_url}")
     # open a webbrowser to the image
     webbrowser.open(image_url)

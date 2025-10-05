@@ -4,7 +4,7 @@ import argparse
 import os
 import subprocess
 import sys
-from typing import Tuple
+from typing import Any, Tuple, cast
 
 import json5 as json
 
@@ -40,7 +40,7 @@ def get_format_json(vidfile: str) -> str:
     """Returns the format json of the given video file."""
     cmd = f'static_ffprobe -v quiet -print_format json -show_format -show_streams "{vidfile}"'
     json_str = subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
-    json_data = json.loads(json_str)
+    json_data = cast(Any, json.loads(json_str))
     json_str = json.dumps(json_data, indent=4)
     return json_str
 
@@ -49,7 +49,7 @@ def get_format_per_frame(vidfile: str) -> str:
     """Returns the format per frame of the given video file."""
     cmd = f'static_ffprobe -v quiet -print_format json -show_frames "{vidfile}"'
     json_str = subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
-    json_data = json.loads(json_str)
+    json_data = cast(Any, json.loads(json_str))
     json_str = json.dumps(json_data, indent=4)
     return json_str
 
@@ -63,7 +63,7 @@ def get_videostream_info(videstream: dict) -> str:
     )
 
     def get_duration_str() -> str:
-        dur = videstream.get("duration")
+        dur = cast(Any, videstream.get("duration"))
         if not dur:
             return "N/A"
         duration = float(dur)
@@ -72,7 +72,7 @@ def get_videostream_info(videstream: dict) -> str:
     duration_string = get_duration_str()
 
     # pix format
-    pix_fmt = videstream["pix_fmt"]
+    pix_fmt = videstream["pix_fmt"]  # type: ignore
     lines.append(f"    Pixel format: {pix_fmt}")
     has_bframes = int(videstream.get("has_b_frames", "0"))
     if has_bframes:
@@ -81,13 +81,13 @@ def get_videostream_info(videstream: dict) -> str:
     lines.append(f"    Width: {videstream['width']}")
     lines.append(f"    Duration: {duration_string}")
     # video_bitrate = videstream["bit_rate"]
-    video_bitrate = videstream.get("bit_rate", "N/A")
+    video_bitrate = videstream.get("bit_rate", "N/A")  # type: ignore
     if video_bitrate.isdigit():
         video_bitrate = int(video_bitrate)
         video_bitrate_str = f"{video_bitrate / 1000000:.2f} Mbps"
     else:
         video_bitrate_str = "N/A"
-    nb_frames_str = videstream.get("nb_frames", "N/A")
+    nb_frames_str = videstream.get("nb_frames", "N/A")  # type: ignore
     lines.append(f"    Bitrate: {video_bitrate_str}")
     lines.append(f"    Frame count: {nb_frames_str}")
     fr_num = int(videstream["r_frame_rate"].split("/")[0])
@@ -106,7 +106,7 @@ def get_audiostream_info(audiostream: dict) -> str:
     )
 
     def get_duration_str() -> str:
-        dur = audiostream.get("duration")
+        dur = cast(Any, audiostream.get("duration"))
         if not dur:
             return "N/A"
         duration = float(dur)
@@ -117,7 +117,7 @@ def get_audiostream_info(audiostream: dict) -> str:
     lines.append(f"    Duration: {duration_str}")
     lines.append(f"    Sample rate: {audiostream['sample_rate']}")
     # audio_bitrate = audiostream["bit_rate"]
-    audio_bitrate = audiostream.get("bit_rate", "N/A")
+    audio_bitrate = audiostream.get("bit_rate", "N/A")  # type: ignore
     if audio_bitrate.isdigit():
         audio_bitrate = int(audio_bitrate)
         audio_bitrate_str = f"{audio_bitrate / 1000:.2f} kbps"
@@ -133,11 +133,11 @@ def print_short_info(vidfile: str) -> None:
     filesize_str = f"{filesize / 1000000:.2f} MB"
     print(f"File: {vidfile}")
     print(f"  Size: {filesize_str}")
-    vidinfo_data = json.loads(get_format_json(vidfile))
-    streams = vidinfo_data.get("streams", [])
+    vidinfo_data = cast(Any, json.loads(get_format_json(vidfile)))
+    streams = cast(Any, vidinfo_data.get("streams", []))
     has_video_stream = False
     has_audio_stream = False
-    for i, stream in enumerate(streams):
+    for i, stream in enumerate(streams):  # type: ignore
         print(f"Track {i}:")
         if stream["codec_type"] == "video":
             has_video_stream = True
@@ -177,12 +177,12 @@ def main():
 
     if args.full:
         json_str = get_format_json(infile)
-        json_data = json.loads(json_str)
+        json_data = cast(Any, json.loads(json_str))
         if args.per_frame:
             # Merge frame info
             json_frane_str = get_format_per_frame(infile)
-            json_frame_data = json.loads(json_frane_str)
-            for key in json_frame_data:
+            json_frame_data = cast(Any, json.loads(json_frane_str))
+            for key in json_frame_data:  # type: ignore
                 if key not in json_data:
                     json_data[key] = json_frame_data[key]
         json_str = json.dumps(json_data, indent=4)

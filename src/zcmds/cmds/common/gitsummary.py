@@ -6,9 +6,10 @@ import json
 import os
 import subprocess
 import sys
-from argparse import Action, ArgumentParser
+from argparse import Action, ArgumentParser, Namespace
 from collections import OrderedDict
 from datetime import datetime, timedelta
+from typing import Any
 
 from zcmds.util.config import get_config, save_config
 
@@ -17,7 +18,13 @@ CONFIG_NAME = "gitsummary.json"
 
 
 class OutputAction(Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: Any,
+        option_string: str | None = None,
+    ) -> None:
         if values is None and option_string is None:
             setattr(namespace, self.dest, None)
         elif values is None:
@@ -49,7 +56,7 @@ def check_date(date: str) -> bool:
 
 def get_repo_url() -> str:
     # git config --get remote.origin.url
-    cp: subprocess.CompletedProcess = subprocess.run(
+    cp: subprocess.CompletedProcess[str] = subprocess.run(
         "git config --get remote.origin.url",
         shell=True,
         check=True,
@@ -61,7 +68,7 @@ def get_repo_url() -> str:
 
 def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
     lines = output.strip().splitlines()
-    out = []
+    out: list[str] = []
     for line in lines:
         (month, day, _time, year) = line.split(" ", 6)[2:6]
         dtime: datetime = datetime.strptime(
@@ -74,9 +81,9 @@ def constrain(output: str, start_date: datetime, end_date: datetime) -> str:
 
 def parse_to_json_data(
     repo_url: str, start_date: datetime, end_date: datetime, lines: list[str]
-) -> OrderedDict:
-    out = OrderedDict()
-    data: list[OrderedDict] = []
+) -> OrderedDict[str, Any]:
+    out: OrderedDict[str, Any] = OrderedDict()
+    data: list[OrderedDict[str, Any]] = []
     # subtract one second
     end_date = end_date - timedelta(seconds=1)
     header = {
@@ -88,17 +95,17 @@ def parse_to_json_data(
     out["header"] = header
     for line in lines:
         (hash, _, month, day, _time, year, *rest) = line.split(" ")
-        rest = " ".join(rest)  # type: ignore
+        rest_str: str = " ".join(rest)
         # print(rest)
         dtime: datetime = datetime.strptime(
             f"{month} {day} {year} {_time}", "%b %d %Y %H:%M:%S"
         )
-        item = OrderedDict()
+        item: OrderedDict[str, Any] = OrderedDict()
         item["commit"] = hash
         item["date_time"] = dtime.isoformat()
-        item["message"] = rest  # type: ignore
+        item["message"] = rest_str
         data.append(item)
-    out["data"] = data  # type: ignore
+    out["data"] = data
     return out
 
 
@@ -171,10 +178,10 @@ def main() -> int:
     repo = ""
     cmd = create_cmd(start_date_dt - timedelta(days=1), end_date_dt + timedelta(days=1))
     sys.stderr.write(f"Running: {cmd}\n")
-    cp: subprocess.CompletedProcess = subprocess.run(
+    cp: subprocess.CompletedProcess[str] = subprocess.run(
         cmd, shell=True, check=True, capture_output=True, universal_newlines=True
     )
-    stdout = cp.stdout.strip()
+    stdout: str = cp.stdout.strip()
     stdout = constrain(stdout, start_date_dt, end_date_dt)
     repo_url = get_repo_url()
     nlines = len(stdout.splitlines())

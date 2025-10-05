@@ -8,15 +8,15 @@ import os
 import sys
 
 
-def which_all(progname: str, filter_package_exes=False) -> list:
+def which_all(progname: str, filter_package_exes: bool = False) -> list[str]:
     """Returns all the paths where the program name could be found."""
     # filter_package_exes filters out paths that are in the python directory.
     if os.name == "nt":
-        paths = _which_all_win32(progname)
+        paths: list[str] = _which_all_win32(progname)
     else:
         paths = _which_all_unix(progname)
         # Remove adjacent duplicates
-    out = []
+    out: list[str] = []
     for i, elem in enumerate(paths):
         if i < len(paths) - 1:
             if elem != paths[i + 1]:
@@ -53,9 +53,9 @@ def _is_in_python_dir(path: str) -> bool:  # pylint: disable=too-many-return-sta
     return False
 
 
-def _which_all_win32(progname: str) -> list:
+def _which_all_win32(progname: str) -> list[str]:
     paths = os.environ.get("PATH", "").split(os.pathsep)
-    found_executables = []
+    found_executables: list[str] = []
     pname, ext = os.path.splitext(progname)
     extra_paths = [".exe", ".bat", ".cmd"]
     if ext:
@@ -75,9 +75,9 @@ def _which_all_win32(progname: str) -> list:
     return found_executables
 
 
-def _which_all_unix(progname: str) -> list:
+def _which_all_unix(progname: str) -> list[str]:
     paths = os.environ.get("PATH", "").split(os.pathsep)
-    found_executables = []
+    found_executables: list[str] = []
     # We are doing an exact match, so don't add any extensions
     for path in paths:
         full_path = os.path.join(path, progname)
@@ -92,7 +92,7 @@ def main() -> None:
         print("Usage: whichall <progname>")
         sys.exit(1)
     progname = sys.argv[1]
-    paths = which_all(progname)
+    paths: list[str] = which_all(progname)
     for path in paths:
         print(path)
     sys.exit(0)

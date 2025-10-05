@@ -77,7 +77,7 @@ def concatenate_videos(
 
         # Create the input file list for concatenation
         with open("input.txt", "w") as f:
-            for scaled_video in scaled_videos:
+            for scaled_video in scaled_videos:  # type: ignore
                 f.write(f"file '{scaled_video}'\n")
         # Concatenate the videos
         cmd = f'static_ffmpeg -f concat -safe 0 -i input.txt -c copy "{os.path.abspath(outname)}"'

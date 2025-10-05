@@ -6,7 +6,7 @@ import shutil
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Generator, List, Tuple
+from typing import Any, Dict, Generator, List, Tuple, cast
 
 import json5 as json  # type: ignore
 
@@ -49,7 +49,7 @@ class Config:
 
     def to_json(self) -> Dict[str, Any]:
         # recursively convert to json
-        out = {}
+        out: Dict[str, Any] = {}
         out["dates"] = [date.to_json() for date in self.dates]
         out["repos"] = self.repos  # type: ignore
         return out
@@ -60,9 +60,10 @@ class Config:
 
     @staticmethod
     def from_json(json_str: str) -> "Config":
-        data = json.loads(json_str)
-        dates = [DateRange.from_json(date) for date in data["dates"]]
-        repos = data["repos"]
+        data = cast(dict[str, Any], json.loads(json_str))
+        assert isinstance(data, dict), "Expected dict from json.loads"
+        dates: List[DateRange] = [DateRange.from_json(date) for date in data["dates"]]  # type: ignore
+        repos: List[str] = data["repos"]  # type: ignore
         return Config(dates=dates, repos=repos)
 
     def save(self, filename: str) -> None:
@@ -75,7 +76,7 @@ class Config:
 
 def find_folders_with_git_repos(cur_dir: str) -> list[str]:
     """Returns a list of folders that contain git repos."""
-    folders = []
+    folders: list[str] = []
     depth = 2
     for root, dirs, _ in os.walk(cur_dir):
         if ".git" in dirs:
@@ -168,8 +169,9 @@ def main() -> None:
                 os.system(cmd)
             try:
                 with open(json_file, encoding="utf-8", mode="r") as f:
-                    json_data = json.loads(f.read())
-                commit_count += json_data["header"]["num_commits"]
+                    json_data = cast(dict[str, Any], json.loads(f.read()))
+                assert isinstance(json_data, dict), "Expected dict from json.loads"
+                commit_count += json_data["header"]["num_commits"]  # type: ignore
                 content_text.append(read_utf8(txt_file))
             except Exception as err:
                 print(f"Error: {err}")
