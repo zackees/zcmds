@@ -17,7 +17,7 @@ ENCODING_PRESET = "veryslow"
 # static_ffmpeg -y -hide_banner -i input.mp4 -ss 2:04 -to 03:08 -vf "fade=t=in:st=124:d=1,fade=t=out:st=187:d=1" -crf 36 -movflags +faststart -tune film -preset veryslow out.mp4
 
 
-def get_height(filename):
+def get_height(filename: str) -> int:
     cmd = f'ffprobe -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1 "{filename}"'
     return int(os.popen(cmd).read())
 
@@ -49,7 +49,7 @@ def main():
     cpu_count = multiprocessing.cpu_count()
     print(f"Detected {cpu_count} cpus")
     thread_count = cpu_count if cpu_count < 2 else cpu_count + 1
-    failed = []
+    failed: list[str] = []
     dirname = os.path.splitext(os.path.basename(args.input))[0]
     os.makedirs(dirname, exist_ok=True)
     ENCODER = "libx264"  # Warning libx265 has poor support still.

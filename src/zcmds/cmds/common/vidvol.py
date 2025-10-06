@@ -44,7 +44,8 @@ def main():
     if args.out is None and args.volume is None:
         ffmpeg_print_volume_detect(vidfile)
         return
-    vol = args.volume or input("volume: ")
+    vol_str = args.volume or input("volume: ")
+    vol = float(vol_str)
     out = args.out or input("out vid file: ")
     if len(os.path.dirname(vidfile)):
         os.makedirs(os.path.dirname(out), exist_ok=True)

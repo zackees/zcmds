@@ -25,7 +25,7 @@ def _is_movie(filename: str) -> bool:
     return ext in [".mp4", ".mkv", ".avi", ".mov"]
 
 
-def _get_movie_files(start_dir="."):
+def _get_movie_files(start_dir: str = "."):
     """
     Recursively get all files in a directory
     """

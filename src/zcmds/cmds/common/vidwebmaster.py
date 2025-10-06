@@ -10,8 +10,10 @@ import tempfile
 # import dataclass
 from dataclasses import dataclass
 from threading import Thread
+from typing import Callable
 
 from PyQt6 import QtCore  # type: ignore
+from PyQt6.QtGui import QDragEnterEvent, QDropEvent  # type: ignore
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow  # type: ignore
 
 from zcmds.util.say import say
@@ -75,7 +77,7 @@ def encode(videopath: str, vidinfos: list[VidInfo]) -> None:
 
 
 class MainWidget(QMainWindow):
-    def __init__(self, on_drop_callback):
+    def __init__(self, on_drop_callback: Callable[[str], None]) -> None:
         super().__init__()
         self.setWindowTitle("Vidwebmaster")
         self.resize(720, 480)
@@ -88,21 +90,21 @@ class MainWidget(QMainWindow):
         self.label.adjustSize()
         self.on_drop_callback = on_drop_callback
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.accept()
+    def dragEnterEvent(self, a0: QDragEnterEvent) -> None:  # type: ignore[reportIncompatibleMethodOverride]
+        if a0.mimeData().hasUrls():  # type: ignore[reportUnknownMemberType]
+            a0.accept()  # type: ignore[reportUnknownMemberType]
         else:
-            event.ignore()
+            a0.ignore()  # type: ignore[reportUnknownMemberType]
 
-    def dropEvent(self, event):
-        files = [u.toLocalFile() for u in event.mimeData().urls()]  # type: ignore
-        for f in files:  # type: ignore
+    def dropEvent(self, a0: QDropEvent) -> None:  # type: ignore[reportIncompatibleMethodOverride]
+        files: list[str] = [u.toLocalFile() for u in a0.mimeData().urls()]  # type: ignore[reportUnknownMemberType,reportUnknownArgumentType]
+        for f in files:
             self.on_drop_callback(f)
 
 
-def open_folder(path):
+def open_folder(path: str) -> None:
     if platform.system() == "Windows":
-        os.startfile(path)
+        os.startfile(path)  # type: ignore[reportUnknownArgumentType]
     elif platform.system() == "Darwin":
         subprocess.Popen(["open", path])
     else:

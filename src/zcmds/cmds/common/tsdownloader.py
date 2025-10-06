@@ -12,7 +12,7 @@ BASE_URL = "https://www-senate-gov-media-srs.akamaized.net/hls/live/2036788/judi
 START_NUM = 1
 MAX_WORKERS = 8
 DEST_FOLDER = "out"
-ERRORS = []
+ERRORS: list[str] = []
 
 # Create the destination folder if it doesn't exist
 if not os.path.exists(DEST_FOLDER):

@@ -21,7 +21,7 @@ def read_console(
     start_time = time.time()
     end_time = 0.0
     try:
-        out = inputimeout(prompt=prompt, timeout=timeout)
+        out = inputimeout(prompt=prompt or "", timeout=timeout)
         end_time = time.time()
         return (True, out, end_time - start_time)
     except TimeoutOccurred:

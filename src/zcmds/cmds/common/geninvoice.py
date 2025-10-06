@@ -56,7 +56,7 @@ class Config:
 
     def to_json_str(self) -> str:
         data = self.to_json()
-        return json.dumps(data, indent=4)
+        return json.dumps(data, indent=4)  # type: ignore[reportUnknownMemberType]
 
     @staticmethod
     def from_json(json_str: str) -> "Config":

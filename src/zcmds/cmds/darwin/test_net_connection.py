@@ -3,6 +3,7 @@
 import shlex
 import subprocess
 import sys
+from typing import Optional
 
 
 DNS_BACKBONE = "8.8.8.8"
@@ -40,6 +41,7 @@ def GetTraceRoute(dest_ip: str) -> list[tuple[str, str]]:
     """Returns a list of routes to 8.8.8.8 in [(name, ip), ...] form."""
     trace_route: list[tuple[str, str]] = []
     cmd = "traceroute " + dest_ip
+    p: Optional[subprocess.Popen[str]] = None
     try:
         p = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
@@ -57,7 +59,8 @@ def GetTraceRoute(dest_ip: str) -> list[tuple[str, str]]:
             except IndexError:
                 print(f"Error tokenizing {line}, skipping")
     finally:
-        p.kill()
+        if p is not None:
+            p.kill()
     return trace_route
 
 

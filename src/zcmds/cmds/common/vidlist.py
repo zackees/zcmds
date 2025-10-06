@@ -3,13 +3,13 @@ import os
 import subprocess
 
 
-def duration_to_timestamp(duration):
+def duration_to_timestamp(duration: float) -> datetime.timedelta:
     # duration is in seconds float, convert to timestamp
     timestamp = datetime.timedelta(seconds=duration)
     return timestamp
 
 
-def print_file(file):
+def print_file(file: str) -> None:
     stdout = "ERROR"
     try:
         stdout = subprocess.check_output(
@@ -24,9 +24,9 @@ def print_file(file):
         print(f"ERROR: {file}: {e.output}")
 
 
-def main():
+def main() -> None:
     # Walk the current directory and find all the video files with *.mp4 or *.webm
-    vidfiles = []
+    vidfiles: list[str] = []
     for root, dirs, files in os.walk("."):
         for file in files:
             # get the extension of the file

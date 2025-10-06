@@ -195,7 +195,7 @@ def video_remove_background(
         img_files.sort()
         img_chunks = chunkify(img_files, num_jobs)
 
-        def process_chunk(chunk: list, gpu_id: int, job_id: int) -> None:
+        def process_chunk(chunk: list[Path], gpu_id: int, job_id: int) -> None:
             chunk_dir = output_dir / str(job_id)
             chunk_dir.mkdir(parents=True, exist_ok=True)
             for img in chunk:  # type: ignore

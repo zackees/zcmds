@@ -4,7 +4,7 @@ import argparse
 import os
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Callable
 
 
@@ -103,7 +103,7 @@ def main():
     ext = os.path.splitext(infile)[1]
     count = 0
     executor = ThreadPoolExecutor(max_workers=1)
-    futures = []
+    futures: list[Future[bool]] = []
 
     while True:
         start_timestamp = args.start_timestamp or input("start_timestamp: ")
@@ -131,7 +131,7 @@ def main():
             print(f"{infile} does not exist")
             sys.exit(1)
 
-        def print_fcn(s):
+        def print_fcn(s: str) -> None:
             print(s)
 
         def task() -> bool:

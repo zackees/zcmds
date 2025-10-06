@@ -66,7 +66,7 @@ def concatenate_videos(
     # Scale and re-encode the input videos
     infiles = [os.path.abspath(infile) for infile in infiles]
     with tempfile.TemporaryDirectory() as tmpdir:
-        scaled_videos = []
+        scaled_videos: list[str] = []
         for i, infile in enumerate(infiles):
             scaled_video = os.path.join(tmpdir, f"_scaled_video_{i}.mp4")
             cmd = f'static_ffmpeg -i "{infile}" -vf "scale={resolution.width}:{resolution.height}" -c:v libx264 -crf {crf} -c:a aac -b:a 128k -ac 2 -ar {_SAMPLE_RATE} "{scaled_video}"'

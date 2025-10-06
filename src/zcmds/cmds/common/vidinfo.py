@@ -41,7 +41,7 @@ def get_format_json(vidfile: str) -> str:
     cmd = f'static_ffprobe -v quiet -print_format json -show_format -show_streams "{vidfile}"'
     json_str = subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
     json_data = cast(Any, json.loads(json_str))
-    json_str = json.dumps(json_data, indent=4)
+    json_str = json.dumps(json_data, indent=4)  # type: ignore[reportUnknownMemberType]
     return json_str
 
 
@@ -50,13 +50,13 @@ def get_format_per_frame(vidfile: str) -> str:
     cmd = f'static_ffprobe -v quiet -print_format json -show_frames "{vidfile}"'
     json_str = subprocess.check_output(cmd, shell=True, universal_newlines=True).strip()
     json_data = cast(Any, json.loads(json_str))
-    json_str = json.dumps(json_data, indent=4)
+    json_str = json.dumps(json_data, indent=4)  # type: ignore[reportUnknownMemberType]
     return json_str
 
 
-def get_videostream_info(videstream: dict) -> str:
+def get_videostream_info(videstream: dict[str, Any]) -> str:
     """Returns a string representation of the given video stream."""
-    lines = []
+    lines: list[str] = []
     lines.append("  Video:")
     lines.append(
         f"    Encoder: {videstream['codec_long_name']}, {videstream['codec_tag_string']}"
@@ -97,9 +97,9 @@ def get_videostream_info(videstream: dict) -> str:
     return "\n".join(lines)
 
 
-def get_audiostream_info(audiostream: dict) -> str:
+def get_audiostream_info(audiostream: dict[str, Any]) -> str:
     """Returns a string representation of the given audio stream."""
-    lines = []
+    lines: list[str] = []
     lines.append("  Audio:")
     lines.append(
         f"    Encoder: {audiostream['codec_long_name']}, {audiostream['codec_tag_string']}"
@@ -185,7 +185,7 @@ def main():
             for key in json_frame_data:  # type: ignore
                 if key not in json_data:
                     json_data[key] = json_frame_data[key]
-        json_str = json.dumps(json_data, indent=4)
+        json_str = json.dumps(json_data, indent=4)  # type: ignore[reportUnknownMemberType]
         print(json_str)
 
 
