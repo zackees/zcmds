@@ -68,17 +68,26 @@ class LineNumberedText(tk.Frame):
             background="#f0f0f0",
             state="disabled",
             wrap="none",
+            yscrollcommand=self._on_scrollbar_set,  # type: ignore[arg-type]
         )
         self.line_numbers.pack(side="left", fill="y")
 
         # Create main text widget
-        self.text = tk.Text(self, **kwargs)
-        self.text.pack(side="right", fill="both", expand=True)
+        self.text = tk.Text(self, **kwargs, yscrollcommand=self._on_scrollbar_set)  # type: ignore[arg-type]
+        self.text.pack(side="left", fill="both", expand=True)
+
+        # Create scrollbar that controls both widgets
+        self.scrollbar = tk.Scrollbar(self, command=self._on_scroll)
+        self.scrollbar.pack(side="right", fill="y")
 
         # Bind events for line number updates
         self.text.bind("<<Change>>", self._on_change)
         self.text.bind("<Configure>", self._on_configure)
         self.text.bind("<KeyRelease>", self._on_change)
+
+        # Bind mouse wheel events for synchronized scrolling
+        self.text.bind("<MouseWheel>", self._on_mousewheel)
+        self.line_numbers.bind("<MouseWheel>", self._on_mousewheel)
 
         # Initial update
         self._update_line_numbers()
@@ -109,6 +118,33 @@ class LineNumberedText(tk.Frame):
         self.line_numbers.delete("1.0", "end")
         self.line_numbers.insert("1.0", line_numbers_content)
         self.line_numbers.config(state="disabled")
+
+    def _on_scroll(self, *args: Any) -> None:
+        """Handle scrollbar movement - update both text widgets."""
+        self.text.yview(*args)  # type: ignore[no-untyped-call]
+        self.line_numbers.yview(*args)  # type: ignore[no-untyped-call]
+
+    def _on_scrollbar_set(self, first: str, last: str) -> None:
+        """Update scrollbar and synchronize both widgets."""
+        # Update scrollbar
+        self.scrollbar.set(first, last)  # type: ignore[arg-type]
+
+        # Synchronize line numbers with text widget
+        self.line_numbers.yview_moveto(float(first))  # type: ignore[no-untyped-call]
+
+    def _on_mousewheel(self, event: tk.Event) -> str:
+        """Handle mouse wheel scrolling for synchronized movement."""
+        # Calculate scroll amount (Windows uses delta/120, others use delta)
+        if sys.platform == "win32":
+            delta = -1 * (event.delta // 120)
+        else:
+            delta = -1 * event.delta
+
+        # Scroll both widgets
+        self.text.yview_scroll(delta, "units")
+        self.line_numbers.yview_scroll(delta, "units")
+
+        return "break"
 
 
 class TaskEditor:
