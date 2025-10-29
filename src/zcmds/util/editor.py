@@ -80,7 +80,18 @@ class LineNumberedText(tk.Frame):
     """
 
     def __init__(self, parent: tk.Widget | tk.Tk, **kwargs: Any) -> None:
-        tk.Frame.__init__(self, parent)
+        # Dark Theme Color Palette
+        # ------------------------
+        # Consistent dark color scheme for professional code editor look
+        self.bg_dark = "#1e1e1e"  # Main background (VS Code dark)
+        self.bg_darker = "#252526"  # Line numbers background (slightly darker)
+        self.fg_light = "#d4d4d4"  # Main text color (light gray)
+        self.fg_dim = "#858585"  # Line numbers color (dimmed)
+        self.selection_bg = "#264f78"  # Selection background (blue-gray)
+        self.cursor_color = "#aeafad"  # Cursor color (light gray)
+
+        # Initialize frame with dark background
+        tk.Frame.__init__(self, parent, bg=self.bg_dark)
         self.parent = parent
 
         # Debouncing for resize events to prevent excessive redraw during window resize
@@ -91,7 +102,7 @@ class LineNumberedText(tk.Frame):
         # If fonts differ even slightly, line numbers will misalign with text
         text_font = kwargs.get("font", ("Courier", 14))
 
-        # Create line number widget
+        # Create line number widget with dark theme colors
         # IMPORTANT: No yscrollcommand set here - this widget is a "follower"
         # It receives scroll commands but doesn't report its scroll position
         # This prevents circular dependencies and keeps scrolling predictable
@@ -101,19 +112,46 @@ class LineNumberedText(tk.Frame):
             padx=4,
             takefocus=0,  # Don't steal focus from main text
             border=0,
-            background="#f0f0f0",  # Light gray to distinguish from text
+            background=self.bg_darker,  # Darker shade for line numbers
+            foreground=self.fg_dim,  # Dimmed text for line numbers
             state="disabled",  # Read-only - prevents user editing
             wrap="none",  # Line numbers never wrap
             font=text_font,  # MUST match main text font for alignment
         )
         self.line_numbers.pack(side="left", fill="y")
 
-        # Create main text widget
+        # Create main text widget with dark theme
         # This is the "master" widget that drives all scrolling behavior
         # yscrollcommand=_on_scrollbar_set is the KEY to synchronization:
         # - Every time this widget scrolls (by ANY means), it calls _on_scrollbar_set
         # - _on_scrollbar_set then synchronizes the line numbers to match
-        self.text = tk.Text(self, **kwargs, yscrollcommand=self._on_scrollbar_set)  # type: ignore[arg-type]
+
+        # Remove background and foreground from kwargs if present (we'll set our own)
+        text_kwargs = {
+            k: v
+            for k, v in kwargs.items()
+            if k
+            not in [
+                "background",
+                "foreground",
+                "bg",
+                "fg",
+                "insertbackground",
+                "selectbackground",
+                "selectforeground",
+            ]
+        }
+
+        self.text = tk.Text(
+            self,
+            **text_kwargs,
+            yscrollcommand=self._on_scrollbar_set,  # type: ignore[arg-type]
+            background=self.bg_dark,  # Dark background
+            foreground=self.fg_light,  # Light text
+            insertbackground=self.cursor_color,  # Cursor color
+            selectbackground=self.selection_bg,  # Selection background
+            selectforeground=self.fg_light,  # Selection text color
+        )
         self.text.pack(side="left", fill="both", expand=True)
 
         # Create scrollbar that controls both widgets
@@ -369,10 +407,23 @@ class Editor:
         self.file_path = file_path
         self.root = tk.Tk()
 
+        # Dark Theme Color Palette
+        # ------------------------
+        # Consistent dark color scheme matching the text editor
+        self.bg_dark = "#1e1e1e"  # Main background
+        self.bg_darker = "#252526"  # Darker elements
+        self.fg_light = "#d4d4d4"  # Light text
+        self.fg_dim = "#858585"  # Dimmed text
+        self.status_bg = "#007acc"  # Status bar background (VS Code blue)
+        self.status_fg = "#ffffff"  # Status bar text (white)
+
         # Set up DPI scaling for HiDPI displays
         self._setup_dpi_scaling()
 
         self.root.title(f"Editor - {file_path}")
+
+        # Apply dark theme to root window
+        self.root.configure(bg=self.bg_dark)
 
         # Center window on mouse cursor location
         window_width = 800
@@ -604,27 +655,52 @@ class Editor:
         # Track text changes
         self.text_frame.text.bind("<<Modified>>", self._on_text_modified)
 
-        # Status bar
+        # Status bar with dark theme
+        # Using ttk.Label with custom style for dark theme
+        style = ttk.Style()
+        style.configure(
+            "Dark.TLabel",
+            background=self.status_bg,
+            foreground=self.status_fg,
+            relief=tk.FLAT,
+            padding=(5, 2),
+        )
         self.status_bar = ttk.Label(
             self.root,
             text="Ready",
-            relief=tk.SUNKEN,
+            style="Dark.TLabel",
             anchor="w",
         )
         self.status_bar.pack(side="bottom", fill="x")
 
     def _create_menu_bar(self) -> None:
-        """Create the menu bar with options."""
+        """Create the menu bar with options (dark themed)."""
         try:
             # Use system default fonts - Tk will scale them based on DPI
             # Explicitly set Segoe UI for consistency on Windows
             menu_font = tkfont.Font(family="Segoe UI", size=9)
 
-            menubar = tk.Menu(self.root, font=menu_font)
+            # Create menu bar with dark theme
+            menubar = tk.Menu(
+                self.root,
+                font=menu_font,
+                bg=self.bg_darker,
+                fg=self.fg_light,
+                activebackground=self.status_bg,
+                activeforeground=self.status_fg,
+            )
             self.root.config(menu=menubar)
 
-            # File menu
-            file_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
+            # File menu with dark theme
+            file_menu = tk.Menu(
+                menubar,
+                tearoff=0,
+                font=menu_font,
+                bg=self.bg_darker,
+                fg=self.fg_light,
+                activebackground=self.status_bg,
+                activeforeground=self.status_fg,
+            )
             menubar.add_cascade(label="File", menu=file_menu)
             file_menu.add_command(
                 label="Save", command=self._save_file, accelerator="Ctrl+S"
@@ -634,8 +710,16 @@ class Editor:
                 label="Exit", command=self._on_closing, accelerator="Ctrl+Q"
             )
 
-            # View menu
-            view_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
+            # View menu with dark theme
+            view_menu = tk.Menu(
+                menubar,
+                tearoff=0,
+                font=menu_font,
+                bg=self.bg_darker,
+                fg=self.fg_light,
+                activebackground=self.status_bg,
+                activeforeground=self.status_fg,
+            )
             menubar.add_cascade(label="View", menu=view_menu)
 
             # Word wrap submenu
