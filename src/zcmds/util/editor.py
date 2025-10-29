@@ -13,6 +13,9 @@ from tkinter import font as tkfont
 from tkinter import ttk
 from typing import Any, Optional
 
+import markdown
+from tkinterweb import HtmlFrame
+
 
 class ErrorFileHandler(logging.Handler):
     """Handler that only creates a log file when an error is logged."""
@@ -442,6 +445,10 @@ class Editor:
         # Track file modification time for external change detection
         self.last_mtime: Optional[float] = None
 
+        # Track preview mode
+        self.preview_mode = False
+        self.current_markdown_content = ""  # Store markdown for preview refresh
+
         # Font settings - use base font size (Tk auto-scales based on DPI)
         # Display Normalization: Font Management
         # ---------------------------------------
@@ -655,6 +662,15 @@ class Editor:
         # Track text changes
         self.text_frame.text.bind("<<Modified>>", self._on_text_modified)
 
+        # Create HTML preview widget (initially hidden)
+        # tkinterweb HtmlFrame provides full HTML/CSS rendering
+        self.preview_widget = HtmlFrame(self.root)
+        # Bind Ctrl+MouseWheel for font size control in preview mode
+        self.preview_widget.bind(  # type: ignore[reportUnknownMemberType]
+            "<Control-MouseWheel>", self._on_preview_ctrl_mousewheel
+        )
+        # Don't pack it yet - it will be shown when preview mode is toggled
+
         # Status bar with dark theme
         # Using ttk.Label with custom style for dark theme
         style = ttk.Style()
@@ -744,6 +760,15 @@ class Editor:
                 accelerator="Ctrl+W",
             )
 
+            # Preview mode submenu
+            self.preview_mode_var = tk.BooleanVar(value=False)
+            view_menu.add_checkbutton(
+                label="Preview Mode",
+                variable=self.preview_mode_var,
+                command=self._toggle_preview_menu,
+                accelerator="Ctrl+P",
+            )
+
             view_menu.add_separator()
 
             # Font size controls via menu items and keyboard shortcuts
@@ -783,6 +808,16 @@ class Editor:
         except Exception as e:
             logger.error(f"Error toggling wrap: {e}")
 
+    def _toggle_preview_menu(self) -> None:
+        """Toggle preview mode from menu."""
+        try:
+            self._toggle_preview()
+        except KeyboardInterrupt:
+            logger.info("_toggle_preview_menu interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error toggling preview from menu: {e}")
+
     def _bind_shortcuts(self) -> None:
         """Bind keyboard shortcuts."""
         # Save shortcut
@@ -804,6 +839,9 @@ class Editor:
 
         # Toggle line wrapping
         self.root.bind("<Control-w>", lambda e: self._toggle_wrap())
+
+        # Toggle markdown preview
+        self.root.bind("<Control-p>", lambda e: self._toggle_preview())
 
         # Undo/Redo are built into the Text widget
         # Ctrl+Z for undo, Ctrl+Y for redo work automatically
@@ -948,6 +986,49 @@ class Editor:
         # Return "break" to prevent default scrolling behavior
         return "break"
 
+    def _on_preview_ctrl_mousewheel(self, event: tk.Event) -> str:
+        """
+        Handle Ctrl+MouseWheel events in preview mode to change font size.
+
+        Called when: User scrolls mouse wheel while holding Ctrl key in preview mode
+
+        This updates the font size and regenerates the preview with the new size:
+        - Ctrl+MouseWheel Up: Increase font size
+        - Ctrl+MouseWheel Down: Decrease font size
+
+        Args:
+            event: Mouse wheel event with delta information
+
+        Returns:
+            "break" to prevent event propagation
+        """
+        try:
+            # Calculate delta direction (positive = wheel up = increase font)
+            if sys.platform == "win32":
+                delta = 1 if event.delta > 0 else -1
+            else:
+                delta = 1 if event.delta > 0 else -1
+
+            # Update font size (within bounds)
+            self.current_font_size += delta
+            self.current_font_size = max(8, min(32, self.current_font_size))
+
+            # If in preview mode, regenerate the preview with new font size
+            if self.preview_mode and self.current_markdown_content:
+                styled_html = self._generate_preview_html(self.current_markdown_content)
+                self.preview_widget.load_html(styled_html)  # type: ignore[reportUnknownMemberType]
+
+            self.status_bar.config(text=f"Font size: {self.current_font_size}")
+
+        except KeyboardInterrupt:
+            logger.info("_on_preview_ctrl_mousewheel interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error handling Ctrl+MouseWheel in preview: {e}")
+
+        # Return "break" to prevent default scrolling behavior
+        return "break"
+
     def _toggle_wrap(self) -> None:
         """Toggle line wrapping mode."""
         try:
@@ -969,6 +1050,141 @@ class Editor:
             _thread.interrupt_main()
         except Exception as e:
             logger.error(f"Error toggling wrap: {e}")
+
+    def _generate_preview_html(self, markdown_content: str) -> str:
+        """Generate styled HTML from markdown content using current font size."""
+        # Convert markdown to HTML with GitHub-flavored extensions
+        html_content = markdown.markdown(
+            markdown_content,
+            extensions=[
+                "extra",  # Tables, fenced code blocks, etc.
+                "nl2br",  # Newline to <br>
+                "sane_lists",  # Better list handling
+                "codehilite",  # Syntax highlighting for code blocks
+                "toc",  # Table of contents support
+            ],
+        )
+
+        # Apply dark theme CSS styling with dynamic font size
+        styled_html = f"""
+        <html>
+        <head>
+        <style>
+            body {{
+                background-color: {self.bg_dark};
+                color: {self.fg_light};
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: {self.current_font_size}px;
+                line-height: 1.6;
+                padding: 20px;
+                margin: 0;
+            }}
+            h1, h2, h3, h4, h5, h6 {{
+                color: {self.fg_light};
+                border-bottom: 1px solid {self.fg_dim};
+                padding-bottom: 5px;
+                margin-top: 20px;
+            }}
+            code {{
+                background-color: {self.bg_darker};
+                color: {self.fg_light};
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: 'Consolas', 'Courier New', monospace;
+            }}
+            pre {{
+                background-color: {self.bg_darker};
+                color: {self.fg_light};
+                padding: 12px;
+                border-radius: 5px;
+                overflow-x: auto;
+                border-left: 3px solid {self.status_bg};
+            }}
+            pre code {{
+                background-color: transparent;
+                padding: 0;
+            }}
+            a {{
+                color: {self.status_bg};
+                text-decoration: none;
+            }}
+            a:hover {{
+                text-decoration: underline;
+            }}
+            blockquote {{
+                border-left: 4px solid {self.fg_dim};
+                padding-left: 15px;
+                color: {self.fg_dim};
+                margin: 10px 0;
+            }}
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 15px 0;
+            }}
+            th, td {{
+                border: 1px solid {self.fg_dim};
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: {self.bg_darker};
+                font-weight: bold;
+            }}
+            ul, ol {{
+                padding-left: 30px;
+            }}
+            hr {{
+                border: none;
+                border-top: 1px solid {self.fg_dim};
+                margin: 20px 0;
+            }}
+        </style>
+        </head>
+        <body>
+        {html_content}
+        </body>
+        </html>
+        """
+        return styled_html
+
+    def _toggle_preview(self) -> None:
+        """Toggle between edit mode and markdown preview mode."""
+        try:
+            if self.preview_mode:
+                # Switch from preview mode to edit mode
+                self.preview_widget.pack_forget()
+                self.text_frame.pack(fill="both", expand=True, padx=5, pady=5)
+                self.preview_mode = False
+                self.preview_mode_var.set(False)
+                self.status_bar.config(text="Edit mode")
+            else:
+                # Switch from edit mode to preview mode
+                # Get markdown content and store it
+                self.current_markdown_content = self.text_frame.text.get(
+                    "1.0", "end-1c"
+                )
+
+                # Generate HTML
+                styled_html = self._generate_preview_html(self.current_markdown_content)
+
+                # Update preview widget
+                # tkinterweb's HtmlFrame.load_html() renders full HTML with CSS
+                self.preview_widget.load_html(styled_html)  # type: ignore[reportUnknownMemberType]
+
+                # Show preview, hide editor
+                self.text_frame.pack_forget()
+                self.preview_widget.pack(fill="both", expand=True, padx=5, pady=5)
+                self.preview_mode = True
+                self.preview_mode_var.set(True)
+                self.status_bar.config(text="Preview mode (Ctrl+P to edit)")
+
+        except KeyboardInterrupt:
+            logger.info("_toggle_preview interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error toggling preview: {e}")
+            self.status_bar.config(text=f"Error rendering preview: {e}")
 
     def _check_file_changes(self) -> None:
         """Check if the file has been modified externally."""
