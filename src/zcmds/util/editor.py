@@ -676,11 +676,12 @@ class Editor:
     def _create_menu_bar(self) -> None:
         """Create the menu bar with options (dark themed)."""
         try:
-            # Use system default fonts - Tk will scale them based on DPI
-            # Explicitly set Segoe UI for consistency on Windows
-            menu_font = tkfont.Font(family="Segoe UI", size=9)
+            # Use readable font size for menus (scaled by DPI)
+            # Increased from 9 to 11 for better readability
+            menu_font = tkfont.Font(family="Segoe UI", size=11)
 
             # Create menu bar with dark theme
+            # Note: Add relief and borderwidth for better dark mode appearance
             menubar = tk.Menu(
                 self.root,
                 font=menu_font,
@@ -688,10 +689,13 @@ class Editor:
                 fg=self.fg_light,
                 activebackground=self.status_bg,
                 activeforeground=self.status_fg,
+                borderwidth=0,
+                relief=tk.FLAT,
             )
             self.root.config(menu=menubar)
 
             # File menu with dark theme
+            # Include all color properties for complete dark mode coverage
             file_menu = tk.Menu(
                 menubar,
                 tearoff=0,
@@ -700,6 +704,10 @@ class Editor:
                 fg=self.fg_light,
                 activebackground=self.status_bg,
                 activeforeground=self.status_fg,
+                selectcolor=self.fg_light,  # Checkmark color
+                disabledforeground=self.fg_dim,  # Disabled items
+                borderwidth=1,
+                relief=tk.FLAT,
             )
             menubar.add_cascade(label="File", menu=file_menu)
             file_menu.add_command(
@@ -711,6 +719,7 @@ class Editor:
             )
 
             # View menu with dark theme
+            # Include all color properties for complete dark mode coverage
             view_menu = tk.Menu(
                 menubar,
                 tearoff=0,
@@ -719,6 +728,10 @@ class Editor:
                 fg=self.fg_light,
                 activebackground=self.status_bg,
                 activeforeground=self.status_fg,
+                selectcolor=self.fg_light,  # Checkmark color
+                disabledforeground=self.fg_dim,  # Disabled items
+                borderwidth=1,
+                relief=tk.FLAT,
             )
             menubar.add_cascade(label="View", menu=view_menu)
 
@@ -733,26 +746,7 @@ class Editor:
 
             view_menu.add_separator()
 
-            # Font size controls
-            font_frame = tk.Frame(view_menu)
-            font_label = tk.Label(font_frame, text="Font Size: ")
-            font_label.pack(side="left", padx=5)
-
-            # Font size spinbox
-            self.font_size_var = tk.IntVar(value=self.current_font_size)
-            font_spinbox = tk.Spinbox(
-                font_frame,
-                from_=8,
-                to=32,
-                width=5,
-                textvariable=self.font_size_var,
-                command=self._on_font_size_change,
-            )
-            font_spinbox.pack(side="left")
-
-            # Bind Enter key to apply font size
-            font_spinbox.bind("<Return>", lambda e: self._on_font_size_change())
-
+            # Font size controls via menu items and keyboard shortcuts
             view_menu.add_command(
                 label="Increase Font",
                 command=lambda: self._change_font_size(1),
@@ -788,52 +782,6 @@ class Editor:
             _thread.interrupt_main()
         except Exception as e:
             logger.error(f"Error toggling wrap: {e}")
-
-    def _on_font_size_change(self) -> None:
-        """
-        Handle font size change from spinbox.
-
-        Font Normalization Strategy:
-        ----------------------------
-        Both text widget and line numbers widget MUST use identical fonts.
-        If fonts differ even slightly:
-        - Line heights will mismatch
-        - Line numbers will drift relative to text lines
-        - Display will look broken
-
-        Process:
-        1. Read new size from spinbox, clamp to valid range (8-32)
-        2. Create new Font object with updated size
-        3. Apply SAME font to BOTH widgets simultaneously
-        4. Result: Perfect line alignment maintained
-
-        This is called when user changes font size via menu spinbox.
-        """
-        try:
-            new_size = self.font_size_var.get()
-            new_size = max(8, min(32, new_size))  # Clamp between 8-32
-
-            self.current_font_size = new_size
-            self.font_size_var.set(new_size)
-
-            # Create new font with updated size
-            new_font = tkfont.Font(family=self.font_family, size=self.current_font_size)
-
-            # CRITICAL: Update BOTH widgets with the SAME font
-            # This maintains line alignment between text and line numbers
-            self.text_frame.text.config(font=new_font)
-            self.text_frame.line_numbers.config(font=new_font)
-
-            self.status_bar.config(text=f"Font size: {self.current_font_size}")
-
-        except KeyboardInterrupt:
-            logger.info("_on_font_size_change interrupted by user")
-            _thread.interrupt_main()
-        except (ValueError, tk.TclError):
-            # Invalid input, reset to current size
-            self.font_size_var.set(self.current_font_size)
-        except Exception as e:
-            logger.error(f"Error changing font size: {e}")
 
     def _bind_shortcuts(self) -> None:
         """Bind keyboard shortcuts."""
