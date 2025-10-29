@@ -3,7 +3,6 @@
 import _thread
 import ctypes
 import logging
-import os
 import signal
 import sys
 import tkinter as tk
@@ -160,7 +159,16 @@ class Editor:
         self._setup_dpi_scaling()
 
         self.root.title(f"Editor - {file_path}")
-        self.root.geometry("800x600")
+
+        # Center window on mouse cursor location
+        window_width = 800
+        window_height = 600
+        mouse_x = self.root.winfo_pointerx()
+        mouse_y = self.root.winfo_pointery()
+        # Position window so mouse is at center
+        x = mouse_x - window_width // 2
+        y = mouse_y - window_height // 2
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
         # Track unsaved changes
         self.dirty = False
@@ -169,8 +177,8 @@ class Editor:
         # Track file modification time for external change detection
         self.last_mtime: Optional[float] = None
 
-        # Font settings
-        self.current_font_size = 11
+        # Font settings - use base font size (Tk auto-scales based on DPI)
+        self.current_font_size = 14
         self.font_family = "Consolas" if sys.platform == "win32" else "Courier"
 
         # Determine wrap mode based on file type
@@ -193,15 +201,31 @@ class Editor:
         """
         Configure DPI scaling for HiDPI displays across all platforms.
 
-        This improves text and widget rendering on high-resolution displays
-        (4K, Retina, etc.) by making the application DPI-aware.
+        The key insight: Once we set DPI awareness, Tk automatically calculates
+        the correct scaling factor based on the monitor's DPI. We should NOT
+        manually override this with tk.call("tk", "scaling", ...) or manually
+        scale font sizes, as this causes double-scaling.
+
+        How it works:
+        1. Call SetProcessDpiAwareness(2) on Windows (per-monitor DPI aware)
+        2. Tk detects the DPI and automatically sets scaling (e.g., 2.33× at 168 DPI)
+        3. Use base font sizes (e.g., 14pt) - Tk scales them automatically
+        4. Result: 14pt × 2.33 = 33 pixels (perfect for 175% Windows scaling)
+
+        For multi-monitor setups with different DPI (225%, 150%, 175%), mode 2
+        ensures the app re-scales when moved between monitors.
+
+        We keep self.dpi_scale = 1.0 (no manual scaling) since Tk handles it all.
         """
+        # No manual scaling needed - Tk handles it automatically once DPI-aware
+        self.dpi_scale = 1.0
+
         try:
             if sys.platform == "win32":
-                # Windows: Set process DPI awareness
-                # Try the newer API first (Windows 8.1+)
+                # Windows: Set per-monitor DPI awareness (mode 2)
+                # Mode 0 = Unaware, Mode 1 = System aware, Mode 2 = Per-monitor aware
                 try:
-                    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+                    ctypes.windll.shcore.SetProcessDpiAwareness(2)
                 except Exception:
                     # Fall back to older API (Windows Vista+)
                     try:
@@ -209,46 +233,18 @@ class Editor:
                     except Exception:
                         pass
 
-                # Adjust Tk scaling for Windows
-                # Get the DPI scaling factor
-                try:
-                    dpi = self.root.winfo_fpixels("1i")
-                    scaling = dpi / 96.0  # 96 DPI is the baseline
-                    if scaling > 1.0:
-                        self.root.tk.call("tk", "scaling", scaling)
-                except Exception:
-                    # Default scaling if we can't determine DPI
-                    self.root.tk.call("tk", "scaling", 1.25)
+                # That's it! Tk will automatically detect DPI and scale everything.
+                # No need to manually call tk.call("tk", "scaling", ...)
 
             elif sys.platform == "darwin":
-                # macOS: Modern Python builds from Homebrew should handle this automatically
-                # But we can still adjust scaling if needed
-                try:
-                    # Query the current scaling
-                    current_scaling = float(self.root.tk.call("tk", "scaling"))
-                    # On Retina displays, scaling is usually 2.0
-                    # We can verify and adjust if needed
-                    if current_scaling < 1.5:
-                        # Not on a Retina display or scaling not set
-                        # Try to detect and set appropriate scaling
-                        self.root.tk.call("tk", "scaling", 2.0)
-                except Exception:
-                    pass
+                # macOS: Tk handles Retina displays automatically
+                # No manual intervention needed
+                pass
 
             else:
-                # Linux: Respect GDK_SCALE and GDK_DPI_SCALE environment variables
-                # Or set a reasonable default
-                try:
-                    gdk_scale = os.environ.get("GDK_SCALE", "1")
-                    try:
-                        scale_factor = float(gdk_scale)
-                        if scale_factor > 1.0:
-                            self.root.tk.call("tk", "scaling", scale_factor)
-                    except ValueError:
-                        # If GDK_SCALE is not a valid number, use default
-                        pass
-                except Exception:
-                    pass
+                # Linux: Tk should respect the system DPI settings
+                # If not working, users can set GDK_SCALE environment variable
+                pass
 
         except KeyboardInterrupt:
             logger.info("_setup_dpi_scaling interrupted by user")
@@ -256,6 +252,7 @@ class Editor:
         except Exception as e:
             # Don't let DPI scaling errors prevent the editor from starting
             logger.error(f"Error setting up DPI scaling: {e}")
+            self.dpi_scale = 1.0
 
     def _determine_wrap_mode(self, file_path: Path) -> str:
         """
@@ -385,11 +382,15 @@ class Editor:
     def _create_menu_bar(self) -> None:
         """Create the menu bar with options."""
         try:
-            menubar = tk.Menu(self.root)
+            # Use system default fonts - Tk will scale them based on DPI
+            # Explicitly set Segoe UI for consistency on Windows
+            menu_font = tkfont.Font(family="Segoe UI", size=9)
+
+            menubar = tk.Menu(self.root, font=menu_font)
             self.root.config(menu=menubar)
 
             # File menu
-            file_menu = tk.Menu(menubar, tearoff=0)
+            file_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
             menubar.add_cascade(label="File", menu=file_menu)
             file_menu.add_command(
                 label="Save", command=self._save_file, accelerator="Ctrl+S"
@@ -400,7 +401,7 @@ class Editor:
             )
 
             # View menu
-            view_menu = tk.Menu(menubar, tearoff=0)
+            view_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
             menubar.add_cascade(label="View", menu=view_menu)
 
             # Word wrap submenu
