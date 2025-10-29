@@ -796,6 +796,12 @@ class Editor:
         self.root.bind("<Control-equal>", lambda e: self._change_font_size(1))
         self.root.bind("<Control-minus>", lambda e: self._change_font_size(-1))
 
+        # Ctrl+MouseWheel for font size control
+        self.text_frame.text.bind("<Control-MouseWheel>", self._on_ctrl_mousewheel)
+        self.text_frame.line_numbers.bind(
+            "<Control-MouseWheel>", self._on_ctrl_mousewheel
+        )
+
         # Toggle line wrapping
         self.root.bind("<Control-w>", lambda e: self._toggle_wrap())
 
@@ -902,6 +908,45 @@ class Editor:
             _thread.interrupt_main()
         except Exception as e:
             logger.error(f"Error changing font size: {e}")
+
+    def _on_ctrl_mousewheel(self, event: tk.Event) -> str:
+        """
+        Handle Ctrl+MouseWheel events to change font size.
+
+        Called when: User scrolls mouse wheel while holding Ctrl key
+
+        This provides a smooth way to adjust font size using the mouse wheel:
+        - Ctrl+MouseWheel Up: Increase font size
+        - Ctrl+MouseWheel Down: Decrease font size
+
+        Platform differences:
+        - Windows: event.delta is in multiples of 120 (one "click" = 120)
+        - macOS/Linux: event.delta is typically ±1
+
+        Args:
+            event: Mouse wheel event with delta information
+
+        Returns:
+            "break" to prevent event propagation
+        """
+        try:
+            # Calculate delta direction (positive = wheel up = increase font)
+            if sys.platform == "win32":
+                delta = 1 if event.delta > 0 else -1
+            else:
+                delta = 1 if event.delta > 0 else -1
+
+            # Change font size
+            self._change_font_size(delta)
+
+        except KeyboardInterrupt:
+            logger.info("_on_ctrl_mousewheel interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error handling Ctrl+MouseWheel: {e}")
+
+        # Return "break" to prevent default scrolling behavior
+        return "break"
 
     def _toggle_wrap(self) -> None:
         """Toggle line wrapping mode."""
