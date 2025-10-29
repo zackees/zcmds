@@ -50,128 +50,320 @@ logger.addHandler(error_file_handler)
 
 
 class LineNumberedText(tk.Frame):
-    """Text widget with line numbers."""
+    """
+    Text widget with synchronized line numbers.
+
+    Display Normalization Strategy:
+    ================================
+    The key challenge is keeping line numbers perfectly synchronized with the text
+    widget across all scroll events (mouse wheel, keyboard, scrollbar, text insertion).
+
+    Architecture:
+    ------------
+    1. SINGLE SOURCE OF TRUTH: Only the main text widget has yscrollcommand
+       - The text widget is the "master" that drives all scrolling
+       - Line numbers widget is a "slave" that follows the text widget
+       - This prevents feedback loops and ensures consistent behavior
+
+    2. SCROLLBAR AS INTERMEDIARY: The scrollbar connects both widgets
+       - Text widget reports scroll position → _on_scrollbar_set()
+       - _on_scrollbar_set() updates scrollbar AND synchronizes line numbers
+       - When user drags scrollbar → _on_scroll() moves both widgets together
+
+    3. FONT MATCHING: Both widgets use identical fonts
+       - Ensures line numbers align perfectly with text lines
+       - Font size changes update both widgets simultaneously
+       - Same font metrics = same line height = perfect alignment
+
+    This architecture eliminates scroll desynchronization issues that plagued
+    earlier versions where line numbers would "drift" or lag behind the text.
+    """
 
     def __init__(self, parent: tk.Widget | tk.Tk, **kwargs: Any) -> None:
         tk.Frame.__init__(self, parent)
         self.parent = parent
 
-        # Debouncing for resize events
+        # Debouncing for resize events to prevent excessive redraw during window resize
         self._resize_timer: Optional[str] = None
 
         # Extract font from kwargs to use for line numbers
-        # This ensures line numbers match the main text font size
+        # CRITICAL: Both widgets MUST use the same font for proper line alignment
+        # If fonts differ even slightly, line numbers will misalign with text
         text_font = kwargs.get("font", ("Courier", 14))
 
         # Create line number widget
-        # Note: No yscrollcommand - line numbers follow the main text widget
+        # IMPORTANT: No yscrollcommand set here - this widget is a "follower"
+        # It receives scroll commands but doesn't report its scroll position
+        # This prevents circular dependencies and keeps scrolling predictable
         self.line_numbers = tk.Text(
             self,
-            width=4,
+            width=4,  # Wide enough for 4-digit line numbers
             padx=4,
-            takefocus=0,
+            takefocus=0,  # Don't steal focus from main text
             border=0,
-            background="#f0f0f0",
-            state="disabled",
-            wrap="none",
-            font=text_font,
+            background="#f0f0f0",  # Light gray to distinguish from text
+            state="disabled",  # Read-only - prevents user editing
+            wrap="none",  # Line numbers never wrap
+            font=text_font,  # MUST match main text font for alignment
         )
         self.line_numbers.pack(side="left", fill="y")
 
         # Create main text widget
-        # Only the main text widget reports scrolling to update scrollbar/line numbers
+        # This is the "master" widget that drives all scrolling behavior
+        # yscrollcommand=_on_scrollbar_set is the KEY to synchronization:
+        # - Every time this widget scrolls (by ANY means), it calls _on_scrollbar_set
+        # - _on_scrollbar_set then synchronizes the line numbers to match
         self.text = tk.Text(self, **kwargs, yscrollcommand=self._on_scrollbar_set)  # type: ignore[arg-type]
         self.text.pack(side="left", fill="both", expand=True)
 
         # Create scrollbar that controls both widgets
+        # command=_on_scroll ensures user dragging scrollbar moves both widgets
         self.scrollbar = tk.Scrollbar(self, command=self._on_scroll)
         self.scrollbar.pack(side="right", fill="y")
 
         # Bind events for line number updates
-        self.text.bind("<<Change>>", self._on_change)
-        self.text.bind("<Configure>", self._on_configure)
-        self.text.bind("<KeyRelease>", self._on_change)
+        # These ensure line number count updates when text is added/removed
+        self.text.bind(
+            "<<Change>>", self._on_change
+        )  # Virtual event for content changes
+        self.text.bind("<Configure>", self._on_configure)  # Window resize events
+        self.text.bind("<KeyRelease>", self._on_change)  # After typing
 
         # Bind mouse wheel events for synchronized scrolling
+        # Why bind to both widgets? So scrolling works when hovering over either one
+        # Both handlers call the same method to ensure identical behavior
         self.text.bind("<MouseWheel>", self._on_mousewheel)
         self.line_numbers.bind("<MouseWheel>", self._on_mousewheel)
 
-        # Bind additional scrolling events to ensure line numbers sync
-        self.text.bind("<KeyPress>", self._on_text_scroll, add=True)
-        self.text.bind("<Button-1>", self._on_text_scroll, add=True)
+        # Bind additional scrolling events to ensure line numbers stay synchronized
+        # These catch edge cases where yscrollcommand might not fire immediately
+        # add=True preserves existing bindings (doesn't replace them)
+        self.text.bind(
+            "<KeyPress>", self._on_text_scroll, add=True
+        )  # Arrow keys, Page Up/Down
+        self.text.bind(
+            "<Button-1>", self._on_text_scroll, add=True
+        )  # Mouse click (may scroll to cursor)
 
-        # Initial update
+        # Initial update to populate line numbers on startup
         self._update_line_numbers()
 
     def _on_change(self, event: Optional[tk.Event] = None) -> str:
-        """Handle text changes to update line numbers."""
+        """
+        Handle text changes to update line numbers.
+
+        Called when: User types, deletes, or modifies text content
+
+        Updates line number count when lines are added/removed.
+        Returns "break" to prevent event propagation.
+        """
         self._update_line_numbers()
         return "break"
 
     def _on_configure(self, event: Optional[tk.Event] = None) -> str:
-        """Handle configure events (including resize) with debouncing."""
-        # Cancel previous scheduled update
+        """
+        Handle configure events (including resize) with debouncing.
+
+        Called when: Window is resized, moved, or reconfigured
+
+        Debouncing strategy:
+        - Window resize can fire MANY configure events rapidly
+        - We don't want to redraw line numbers hundreds of times per second
+        - Instead: cancel pending update, schedule new one 100ms later
+        - Result: Only redraw once after resize settles
+
+        This prevents performance issues during window resize operations.
+        """
+        # Cancel previous scheduled update (if any)
         if self._resize_timer is not None:
             self.after_cancel(self._resize_timer)
 
         # Schedule update after 100ms of inactivity
+        # If another configure event fires within 100ms, we'll cancel and reschedule
         self._resize_timer = self.after(100, self._update_line_numbers)
         return "break"
 
     def _update_line_numbers(self) -> None:
-        """Update the line numbers display."""
+        """
+        Update the line numbers display to match current text content.
+
+        Called by:
+        - _on_change: when text content changes
+        - _on_configure: when window is resized (debounced)
+        - __init__: initial population
+
+        Process:
+        1. Calculate total number of lines in text widget
+        2. Generate string "1\n2\n3\n..." up to line count
+        3. Replace entire line number widget content
+
+        Note: Line numbers widget is normally disabled (read-only).
+        We temporarily enable it to update content, then disable again.
+        """
         self._resize_timer = None
+
+        # Get total line count from text widget
+        # text.index("end-1c") returns position of last character
+        # Format is "line.column", we extract the line number
         line_numbers_content = "\n".join(
             str(i) for i in range(1, int(self.text.index("end-1c").split(".")[0]) + 1)
         )
 
-        self.line_numbers.config(state="normal")
-        self.line_numbers.delete("1.0", "end")
-        self.line_numbers.insert("1.0", line_numbers_content)
-        self.line_numbers.config(state="disabled")
+        # Update line numbers (must enable, edit, then disable again)
+        self.line_numbers.config(state="normal")  # Enable editing
+        self.line_numbers.delete("1.0", "end")  # Clear existing content
+        self.line_numbers.insert("1.0", line_numbers_content)  # Insert new numbers
+        self.line_numbers.config(state="disabled")  # Disable editing (read-only)
 
     def _on_scroll(self, *args: Any) -> None:
-        """Handle scrollbar movement - update both text widgets."""
+        """
+        Handle scrollbar drag events - update both text widgets.
+
+        Called when: User drags the scrollbar thumb
+
+        Flow:
+        1. User drags scrollbar
+        2. Scrollbar calls this method with scroll command (e.g., "moveto", 0.5)
+        3. We apply the command to BOTH text and line_numbers widgets
+        4. Both widgets scroll in perfect sync
+
+        Note: We must update both explicitly because line_numbers has no yscrollcommand
+        """
         self.text.yview(*args)  # type: ignore[no-untyped-call]
         self.line_numbers.yview(*args)  # type: ignore[no-untyped-call]
 
     def _on_scrollbar_set(self, first: str, last: str) -> None:
-        """Update scrollbar and synchronize both widgets."""
-        # Update scrollbar
+        """
+        Update scrollbar and synchronize line numbers with text widget.
+
+        Called when: Text widget scrolls (by ANY means: typing, arrow keys, mouse wheel, etc.)
+
+        This is the HEART of the synchronization system:
+        - The text widget has yscrollcommand=self._on_scrollbar_set
+        - Every time text scrolls, Tk calls this with the new visible range
+        - first: fraction of document visible at top (0.0 = start, 1.0 = end)
+        - last: fraction of document visible at bottom
+
+        Flow:
+        1. Text widget scrolls (user types, presses arrow key, uses mouse wheel, etc.)
+        2. Tk automatically calls _on_scrollbar_set with new position
+        3. We update scrollbar thumb to reflect new position
+        4. We synchronize line numbers to match text position
+
+        Why this works:
+        - Text widget is the single source of truth
+        - Line numbers are always kept in sync with text
+        - No circular dependencies (line_numbers doesn't have yscrollcommand)
+        """
+        # Update scrollbar position
         self.scrollbar.set(first, last)  # type: ignore[arg-type]
 
-        # Synchronize line numbers with text widget
+        # Synchronize line numbers with text widget position
+        # Use yview_moveto to set absolute position (not relative scroll)
         self.line_numbers.yview_moveto(float(first))  # type: ignore[no-untyped-call]
 
     def _on_text_scroll(self, event: Optional[tk.Event] = None) -> None:
-        """Ensure line numbers stay synchronized after any text widget scroll."""
+        """
+        Ensure line numbers stay synchronized after any text widget scroll.
+
+        Called when: Keyboard navigation or mouse clicks in text widget
+
+        Why needed: Some scroll events (arrow keys, Page Up/Down, mouse clicks)
+        might not immediately trigger yscrollcommand. We schedule a sync to catch
+        these edge cases.
+
+        The 1ms delay ensures the text widget has finished its internal scroll
+        operations before we read its position.
+        """
         # Schedule sync after a short delay to let the text widget finish scrolling
         self.after(1, self._sync_line_numbers_scroll)
 
     def _sync_line_numbers_scroll(self) -> None:
-        """Synchronize line numbers with current text widget scroll position."""
+        """
+        Synchronize line numbers with current text widget scroll position.
+
+        Called by: _on_text_scroll (after 1ms delay)
+
+        This is a "catch-all" synchronization that reads the text widget's current
+        scroll position and forces line numbers to match it. Used for edge cases
+        where the normal yscrollcommand path might not have fired yet.
+        """
         # Get current scroll position of text widget
+        # yview() returns tuple: (top_fraction, bottom_fraction)
         yview = self.text.yview()  # type: ignore[no-untyped-call]
-        # Update line numbers to match
+        # Update line numbers to match - use first element (top position)
         self.line_numbers.yview_moveto(yview[0])  # type: ignore[no-untyped-call]
 
     def _on_mousewheel(self, event: tk.Event) -> str:
-        """Handle mouse wheel scrolling for synchronized movement."""
+        """
+        Handle mouse wheel scrolling for synchronized movement.
+
+        Called when: User scrolls mouse wheel over text OR line numbers
+
+        Why needed: Mouse wheel events need special handling:
+        1. They might not trigger yscrollcommand immediately
+        2. We want consistent behavior regardless of which widget is hovered
+        3. Different platforms report delta differently
+
+        Platform differences:
+        - Windows: event.delta is in multiples of 120 (one "click" = 120)
+        - macOS/Linux: event.delta is typically ±1
+
+        We manually scroll both widgets to ensure perfect synchronization.
+        """
         # Calculate scroll amount (Windows uses delta/120, others use delta)
         if sys.platform == "win32":
             delta = -1 * (event.delta // 120)
         else:
             delta = -1 * event.delta
 
-        # Scroll both widgets
+        # Scroll both widgets by the same amount
+        # Using yview_scroll with "units" scrolls by lines
         self.text.yview_scroll(delta, "units")
         self.line_numbers.yview_scroll(delta, "units")
 
+        # Return "break" to prevent event propagation (stops default behavior)
         return "break"
 
 
 class Editor:
-    """Main editor application for text files."""
+    """
+    Main editor application for text files.
+
+    Display Normalization Architecture:
+    ===================================
+    This editor achieves proper display across different DPI settings and ensures
+    perfect synchronization between text content and line numbers.
+
+    Three Key Components:
+    ---------------------
+
+    1. DPI SCALING (_setup_dpi_scaling):
+       - Sets Windows process as DPI-aware (per-monitor mode)
+       - Tk automatically detects monitor DPI and calculates scaling
+       - We use base font sizes (14pt) - Tk scales them automatically
+       - No manual scaling needed - prevents double-scaling issues
+       - Works across multi-monitor setups with different DPI
+
+    2. FONT SYNCHRONIZATION (_create_widgets, _change_font_size):
+       - Both text widget and line numbers use IDENTICAL fonts
+       - Same font family, same size, same metrics = perfect line alignment
+       - Font changes update BOTH widgets simultaneously
+       - This prevents line number "drift" or misalignment
+
+    3. SCROLL SYNCHRONIZATION (LineNumberedText class):
+       - Text widget is the "master" with yscrollcommand
+       - Line numbers widget is the "slave" that follows
+       - _on_scrollbar_set intercepts all scroll events and syncs line numbers
+       - Multiple event handlers catch edge cases (mouse wheel, keyboard, etc.)
+       - Result: Line numbers stay perfectly aligned regardless of scroll method
+
+    Together, these systems ensure:
+    - Crisp, properly sized text on HiDPI displays
+    - Perfect line number alignment at all font sizes
+    - Synchronized scrolling in all scenarios
+    - Consistent behavior across platforms
+    """
 
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
@@ -200,6 +392,12 @@ class Editor:
         self.last_mtime: Optional[float] = None
 
         # Font settings - use base font size (Tk auto-scales based on DPI)
+        # Display Normalization: Font Management
+        # ---------------------------------------
+        # We store a base font size (e.g., 14pt) that Tk automatically scales
+        # based on the monitor's DPI. On a 175% scaled display (168 DPI),
+        # Tk's scaling factor is ~2.33×, so 14pt becomes 33 pixels.
+        # Both text widget and line numbers use this SAME font to maintain alignment.
         self.current_font_size = 14
         self.font_family = "Consolas" if sys.platform == "win32" else "Courier"
 
@@ -375,17 +573,31 @@ class Editor:
         return "word"
 
     def _create_widgets(self) -> None:
-        """Create all GUI widgets."""
+        """
+        Create all GUI widgets.
+
+        Display Normalization: Widget Creation
+        ---------------------------------------
+        The font parameter passed to LineNumberedText is CRITICAL:
+        - LineNumberedText extracts this font in __init__
+        - It applies the SAME font to both text and line_numbers widgets
+        - This ensures identical line heights and perfect alignment
+        - Any font size changes must update BOTH widgets (see _change_font_size)
+        """
         # Create menu bar
         self._create_menu_bar()
 
         # Create text editor with line numbers
+        # The font parameter is extracted by LineNumberedText and used for both widgets
         self.text_frame = LineNumberedText(
             self.root,
             wrap=self.wrap_mode,
             undo=True,
             maxundo=-1,
-            font=(self.font_family, self.current_font_size),
+            font=(
+                self.font_family,
+                self.current_font_size,
+            ),  # Shared font for both widgets
         )
         self.text_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -494,7 +706,25 @@ class Editor:
             logger.error(f"Error toggling wrap: {e}")
 
     def _on_font_size_change(self) -> None:
-        """Handle font size change from spinbox."""
+        """
+        Handle font size change from spinbox.
+
+        Font Normalization Strategy:
+        ----------------------------
+        Both text widget and line numbers widget MUST use identical fonts.
+        If fonts differ even slightly:
+        - Line heights will mismatch
+        - Line numbers will drift relative to text lines
+        - Display will look broken
+
+        Process:
+        1. Read new size from spinbox, clamp to valid range (8-32)
+        2. Create new Font object with updated size
+        3. Apply SAME font to BOTH widgets simultaneously
+        4. Result: Perfect line alignment maintained
+
+        This is called when user changes font size via menu spinbox.
+        """
         try:
             new_size = self.font_size_var.get()
             new_size = max(8, min(32, new_size))  # Clamp between 8-32
@@ -502,8 +732,11 @@ class Editor:
             self.current_font_size = new_size
             self.font_size_var.set(new_size)
 
+            # Create new font with updated size
             new_font = tkfont.Font(family=self.font_family, size=self.current_font_size)
-            # Update both main text and line numbers
+
+            # CRITICAL: Update BOTH widgets with the SAME font
+            # This maintains line alignment between text and line numbers
             self.text_frame.text.config(font=new_font)
             self.text_frame.line_numbers.config(font=new_font)
 
@@ -606,13 +839,27 @@ class Editor:
             self.status_bar.config(text=f"Error loading: {e}")
 
     def _change_font_size(self, delta: int) -> None:
-        """Change the font size."""
+        """
+        Change the font size by a delta amount.
+
+        Called by: Keyboard shortcuts (Ctrl+Plus/Ctrl+Minus) and menu items
+
+        Font Normalization:
+        ------------------
+        Same principle as _on_font_size_change: both widgets must share the same font.
+        Delta changes (increment/decrement by 1) are applied to current size.
+
+        Args:
+            delta: Amount to change font size (+1 to increase, -1 to decrease)
+        """
         try:
             self.current_font_size += delta
             self.current_font_size = max(8, min(32, self.current_font_size))
 
             new_font = tkfont.Font(family=self.font_family, size=self.current_font_size)
-            # Update both main text and line numbers
+
+            # Update both main text and line numbers with identical font
+            # This ensures line numbers stay perfectly aligned with text
             self.text_frame.text.config(font=new_font)
             self.text_frame.line_numbers.config(font=new_font)
 
