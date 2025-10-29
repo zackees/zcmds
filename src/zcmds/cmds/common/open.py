@@ -221,11 +221,11 @@ def open_file_with_default_app(file_path: Path) -> None:
         subprocess.CalledProcessError: If the open command fails
         OSError: If the file cannot be opened
     """
-    # Check if this is a text file - if so, use our task editor
+    # Check if this is a text file - if so, use our editor
     if is_text_file(file_path):
-        from zcmds.cmds.common.task import TaskEditor
+        from zcmds.util.editor import Editor
 
-        editor = TaskEditor(file_path)
+        editor = Editor(file_path)
         editor.run()
         return
 
