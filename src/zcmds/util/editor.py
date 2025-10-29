@@ -1,7 +1,9 @@
 """Text editor with line numbers, syntax-aware wrapping, and auto-save."""
 
 import _thread
+import ctypes
 import logging
+import os
 import signal
 import sys
 import tkinter as tk
@@ -153,6 +155,10 @@ class Editor:
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
         self.root = tk.Tk()
+
+        # Set up DPI scaling for HiDPI displays
+        self._setup_dpi_scaling()
+
         self.root.title(f"Editor - {file_path}")
         self.root.geometry("800x600")
 
@@ -182,6 +188,74 @@ class Editor:
 
         # Start file monitoring
         self._schedule_file_check()
+
+    def _setup_dpi_scaling(self) -> None:
+        """
+        Configure DPI scaling for HiDPI displays across all platforms.
+
+        This improves text and widget rendering on high-resolution displays
+        (4K, Retina, etc.) by making the application DPI-aware.
+        """
+        try:
+            if sys.platform == "win32":
+                # Windows: Set process DPI awareness
+                # Try the newer API first (Windows 8.1+)
+                try:
+                    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+                except Exception:
+                    # Fall back to older API (Windows Vista+)
+                    try:
+                        ctypes.windll.user32.SetProcessDPIAware()
+                    except Exception:
+                        pass
+
+                # Adjust Tk scaling for Windows
+                # Get the DPI scaling factor
+                try:
+                    dpi = self.root.winfo_fpixels("1i")
+                    scaling = dpi / 96.0  # 96 DPI is the baseline
+                    if scaling > 1.0:
+                        self.root.tk.call("tk", "scaling", scaling)
+                except Exception:
+                    # Default scaling if we can't determine DPI
+                    self.root.tk.call("tk", "scaling", 1.25)
+
+            elif sys.platform == "darwin":
+                # macOS: Modern Python builds from Homebrew should handle this automatically
+                # But we can still adjust scaling if needed
+                try:
+                    # Query the current scaling
+                    current_scaling = float(self.root.tk.call("tk", "scaling"))
+                    # On Retina displays, scaling is usually 2.0
+                    # We can verify and adjust if needed
+                    if current_scaling < 1.5:
+                        # Not on a Retina display or scaling not set
+                        # Try to detect and set appropriate scaling
+                        self.root.tk.call("tk", "scaling", 2.0)
+                except Exception:
+                    pass
+
+            else:
+                # Linux: Respect GDK_SCALE and GDK_DPI_SCALE environment variables
+                # Or set a reasonable default
+                try:
+                    gdk_scale = os.environ.get("GDK_SCALE", "1")
+                    try:
+                        scale_factor = float(gdk_scale)
+                        if scale_factor > 1.0:
+                            self.root.tk.call("tk", "scaling", scale_factor)
+                    except ValueError:
+                        # If GDK_SCALE is not a valid number, use default
+                        pass
+                except Exception:
+                    pass
+
+        except KeyboardInterrupt:
+            logger.info("_setup_dpi_scaling interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            # Don't let DPI scaling errors prevent the editor from starting
+            logger.error(f"Error setting up DPI scaling: {e}")
 
     def _determine_wrap_mode(self, file_path: Path) -> str:
         """
