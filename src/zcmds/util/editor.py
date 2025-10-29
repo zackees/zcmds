@@ -59,7 +59,12 @@ class LineNumberedText(tk.Frame):
         # Debouncing for resize events
         self._resize_timer: Optional[str] = None
 
+        # Extract font from kwargs to use for line numbers
+        # This ensures line numbers match the main text font size
+        text_font = kwargs.get("font", ("Courier", 14))
+
         # Create line number widget
+        # Note: No yscrollcommand - line numbers follow the main text widget
         self.line_numbers = tk.Text(
             self,
             width=4,
@@ -69,11 +74,12 @@ class LineNumberedText(tk.Frame):
             background="#f0f0f0",
             state="disabled",
             wrap="none",
-            yscrollcommand=self._on_scrollbar_set,  # type: ignore[arg-type]
+            font=text_font,
         )
         self.line_numbers.pack(side="left", fill="y")
 
         # Create main text widget
+        # Only the main text widget reports scrolling to update scrollbar/line numbers
         self.text = tk.Text(self, **kwargs, yscrollcommand=self._on_scrollbar_set)  # type: ignore[arg-type]
         self.text.pack(side="left", fill="both", expand=True)
 
@@ -89,6 +95,10 @@ class LineNumberedText(tk.Frame):
         # Bind mouse wheel events for synchronized scrolling
         self.text.bind("<MouseWheel>", self._on_mousewheel)
         self.line_numbers.bind("<MouseWheel>", self._on_mousewheel)
+
+        # Bind additional scrolling events to ensure line numbers sync
+        self.text.bind("<KeyPress>", self._on_text_scroll, add=True)
+        self.text.bind("<Button-1>", self._on_text_scroll, add=True)
 
         # Initial update
         self._update_line_numbers()
@@ -132,6 +142,18 @@ class LineNumberedText(tk.Frame):
 
         # Synchronize line numbers with text widget
         self.line_numbers.yview_moveto(float(first))  # type: ignore[no-untyped-call]
+
+    def _on_text_scroll(self, event: Optional[tk.Event] = None) -> None:
+        """Ensure line numbers stay synchronized after any text widget scroll."""
+        # Schedule sync after a short delay to let the text widget finish scrolling
+        self.after(1, self._sync_line_numbers_scroll)
+
+    def _sync_line_numbers_scroll(self) -> None:
+        """Synchronize line numbers with current text widget scroll position."""
+        # Get current scroll position of text widget
+        yview = self.text.yview()  # type: ignore[no-untyped-call]
+        # Update line numbers to match
+        self.line_numbers.yview_moveto(yview[0])  # type: ignore[no-untyped-call]
 
     def _on_mousewheel(self, event: tk.Event) -> str:
         """Handle mouse wheel scrolling for synchronized movement."""
@@ -481,7 +503,9 @@ class Editor:
             self.font_size_var.set(new_size)
 
             new_font = tkfont.Font(family=self.font_family, size=self.current_font_size)
+            # Update both main text and line numbers
             self.text_frame.text.config(font=new_font)
+            self.text_frame.line_numbers.config(font=new_font)
 
             self.status_bar.config(text=f"Font size: {self.current_font_size}")
 
@@ -588,7 +612,9 @@ class Editor:
             self.current_font_size = max(8, min(32, self.current_font_size))
 
             new_font = tkfont.Font(family=self.font_family, size=self.current_font_size)
+            # Update both main text and line numbers
             self.text_frame.text.config(font=new_font)
+            self.text_frame.line_numbers.config(font=new_font)
 
             self.status_bar.config(text=f"Font size: {self.current_font_size}")
 
