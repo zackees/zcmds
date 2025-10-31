@@ -449,6 +449,9 @@ class Editor:
         self.preview_mode = False
         self.current_markdown_content = ""  # Store markdown for preview refresh
 
+        # Track always on top state
+        self.always_on_top = False
+
         # Font settings - use base font size (Tk auto-scales based on DPI)
         # Display Normalization: Font Management
         # ---------------------------------------
@@ -769,6 +772,15 @@ class Editor:
                 accelerator="Ctrl+P",
             )
 
+            # Always on top submenu
+            self.always_on_top_var = tk.BooleanVar(value=False)
+            view_menu.add_checkbutton(
+                label="Always on Top",
+                variable=self.always_on_top_var,
+                command=self._toggle_always_on_top_menu,
+                accelerator="Ctrl+T",
+            )
+
             view_menu.add_separator()
 
             # Font size controls via menu items and keyboard shortcuts
@@ -818,6 +830,16 @@ class Editor:
         except Exception as e:
             logger.error(f"Error toggling preview from menu: {e}")
 
+    def _toggle_always_on_top_menu(self) -> None:
+        """Toggle always on top from menu."""
+        try:
+            self._toggle_always_on_top()
+        except KeyboardInterrupt:
+            logger.info("_toggle_always_on_top_menu interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error toggling always on top from menu: {e}")
+
     def _bind_shortcuts(self) -> None:
         """Bind keyboard shortcuts."""
         # Save shortcut
@@ -842,6 +864,9 @@ class Editor:
 
         # Toggle markdown preview
         self.root.bind("<Control-p>", lambda e: self._toggle_preview())
+
+        # Toggle always on top
+        self.root.bind("<Control-t>", lambda e: self._toggle_always_on_top())
 
         # Undo/Redo are built into the Text widget
         # Ctrl+Z for undo, Ctrl+Y for redo work automatically
@@ -1185,6 +1210,29 @@ class Editor:
         except Exception as e:
             logger.error(f"Error toggling preview: {e}")
             self.status_bar.config(text=f"Error rendering preview: {e}")
+
+    def _toggle_always_on_top(self) -> None:
+        """Toggle the always-on-top window attribute."""
+        try:
+            # Toggle the state
+            self.always_on_top = not self.always_on_top
+
+            # Update the window attribute
+            self.root.attributes("-topmost", self.always_on_top)  # type: ignore[reportUnknownMemberType]
+
+            # Update the menu checkbox
+            self.always_on_top_var.set(self.always_on_top)
+
+            # Update status bar
+            status = "enabled" if self.always_on_top else "disabled"
+            self.status_bar.config(text=f"Always on top {status}")
+
+        except KeyboardInterrupt:
+            logger.info("_toggle_always_on_top interrupted by user")
+            _thread.interrupt_main()
+        except Exception as e:
+            logger.error(f"Error toggling always on top: {e}")
+            self.status_bar.config(text=f"Error toggling always on top: {e}")
 
     def _check_file_changes(self) -> None:
         """Check if the file has been modified externally."""
