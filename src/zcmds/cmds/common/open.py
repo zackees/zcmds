@@ -209,18 +209,84 @@ def open_directory(dir_path: Path) -> None:
         subprocess.run(["xdg-open", abs_path], check=True)
 
 
-def open_file_with_default_app(file_path: Path) -> None:
+def open_with_sublime(file_path: Path) -> None:
+    """
+    Open a file with Sublime Text editor on Windows.
+
+    Args:
+        file_path: Path object pointing to the file to open
+
+    Raises:
+        FileNotFoundError: If Sublime Text is not found
+        subprocess.CalledProcessError: If the open command fails
+    """
+    if sys.platform != "win32":
+        raise OSError("Sublime Text integration is only supported on Windows")
+
+    # Common installation paths for Sublime Text
+    sublime_paths = [
+        Path(os.environ.get("ProgramFiles", "C:\\Program Files"))
+        / "Sublime Text"
+        / "sublime_text.exe",
+        Path(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"))
+        / "Sublime Text"
+        / "sublime_text.exe",
+        Path.home()
+        / "AppData"
+        / "Local"
+        / "Programs"
+        / "Sublime Text"
+        / "sublime_text.exe",
+    ]
+
+    # Try to find Sublime Text in the common paths
+    sublime_exe = None
+    for path in sublime_paths:
+        if path.exists():
+            sublime_exe = path
+            break
+
+    # If not found in common paths, try to find it via 'where' command
+    if sublime_exe is None:
+        try:
+            result = subprocess.run(
+                ["where", "subl"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            sublime_exe = Path(result.stdout.strip().split("\n")[0])
+        except subprocess.CalledProcessError:
+            pass
+
+    if sublime_exe is None or not sublime_exe.exists():
+        raise FileNotFoundError(
+            "Sublime Text not found. Please install it or ensure it's in your PATH."
+        )
+
+    # Launch Sublime Text with the file
+    abs_path = str(file_path.resolve())
+    subprocess.run([str(sublime_exe), abs_path], check=True)
+
+
+def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> None:
     """
     Open a file with the system's default application.
     For text files, uses the built-in task editor instead of the OS default.
 
     Args:
         file_path: Path object pointing to the file to open
+        use_sublime: If True, open with Sublime Text on Windows (overrides default behavior)
 
     Raises:
         subprocess.CalledProcessError: If the open command fails
         OSError: If the file cannot be opened
     """
+    # If Sublime flag is set and on Windows, use Sublime Text
+    if use_sublime and sys.platform == "win32":
+        open_with_sublime(file_path)
+        return
+
     # Check if this is a text file - if so, use our editor
     if is_text_file(file_path):
         from zcmds.util.editor import Editor
@@ -301,6 +367,7 @@ class OpenArgs:
 
     path: Path
     create: bool = True
+    use_sublime: bool = False
 
 
 def parse_args() -> OpenArgs:
@@ -320,6 +387,8 @@ Examples:
   open ~/Documents           Open a directory in file manager
   open .                     Open current directory
   open --no-create new.txt   Don't prompt to create if file doesn't exist
+  open --sublime code.py     Open code.py in Sublime Text (Windows only)
+  open --subl script.js      Open script.js in Sublime Text (Windows only)
 
 Keyboard shortcuts in task editor:
   Ctrl+S        Save
@@ -345,12 +414,22 @@ Keyboard shortcuts in task editor:
         help="Don't prompt to create file if it doesn't exist",
     )
 
+    parser.add_argument(
+        "--sublime",
+        "--subl",
+        dest="use_sublime",
+        action="store_true",
+        help="Open file in Sublime Text editor (Windows only)",
+    )
+
     args = parser.parse_args()
 
     # Normalize the path
     normalized_path = normalize_path(args.path)
 
-    return OpenArgs(path=normalized_path, create=args.create)
+    return OpenArgs(
+        path=normalized_path, create=args.create, use_sublime=args.use_sublime
+    )
 
 
 def main() -> int:
@@ -402,9 +481,14 @@ def main() -> int:
 
         # Handle directories and files differently
         if args.path.is_dir():
+            if args.use_sublime:
+                print(
+                    "Warning: --sublime flag is ignored for directories",
+                    file=sys.stderr,
+                )
             open_directory(args.path)
         else:
-            open_file_with_default_app(args.path)
+            open_file_with_default_app(args.path, use_sublime=args.use_sublime)
 
         return 0
 

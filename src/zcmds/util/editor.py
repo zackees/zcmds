@@ -667,7 +667,7 @@ class Editor:
 
         # Create HTML preview widget (initially hidden)
         # tkinterweb HtmlFrame provides full HTML/CSS rendering
-        self.preview_widget = HtmlFrame(self.root)
+        self.preview_widget = HtmlFrame(self.root, messages_enabled=False)
         # Bind Ctrl+MouseWheel for font size control in preview mode
         self.preview_widget.bind(  # type: ignore[reportUnknownMemberType]
             "<Control-MouseWheel>", self._on_preview_ctrl_mousewheel
