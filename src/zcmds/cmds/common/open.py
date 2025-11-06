@@ -9,6 +9,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from zcmds.util.process import launch_detached
+
 
 class ErrorFileHandler(logging.Handler):
     """Handler that only creates a log file when an error is logged."""
@@ -271,70 +273,65 @@ def open_with_sublime(file_path: Path) -> None:
             "Sublime Text not found. Please install it or ensure it's in your PATH."
         )
 
-    # Launch Sublime Text with the file
+    # Launch Sublime Text with the file in a detached process
     # Use --new-window flag to open in a new window, which helps with multi-monitor setups
-    abs_path = str(file_path.resolve())
-    subprocess.run([str(sublime_exe), "--new-window", abs_path], check=True)
+    abs_path = file_path.resolve()
+
+    # Use launch_detached to avoid blocking the terminal
+    # This allows the terminal to respond immediately without waiting for Sublime to close
+    launch_detached([sublime_exe, "--new-window", abs_path])
 
 
 def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> None:
     """
-    Open a file with the system's default application.
+    Open a file with the appropriate application.
+
+    On Windows:
+    - Text files (detected by extension): Opens with Sublime Text
+    - Other files: Opens with system default application
+
+    On macOS/Linux:
+    - Uses system default application (open/xdg-open)
 
     Args:
         file_path: Path object pointing to the file to open
-        use_sublime: If True, open with Sublime Text on Windows (overrides default behavior)
+        use_sublime: If True, force open with Sublime Text on Windows (overrides default behavior)
 
     Raises:
         subprocess.CalledProcessError: If the open command fails
         OSError: If the file cannot be opened
     """
-    # If Sublime flag is set and on Windows, use Sublime Text
-    if use_sublime and sys.platform == "win32":
-        open_with_sublime(file_path)
-        return
-
     # Get absolute path
     abs_path = str(file_path.resolve())
 
     if sys.platform == "win32":
-        # Try multiple methods on Windows for best compatibility
-        import ctypes
+        # On Windows, check if it's a text file or if --sublime flag is set
+        if use_sublime or is_text_file(file_path):
+            open_with_sublime(file_path)
+        else:
+            # For non-text files, use Windows shell to open with default app
+            import ctypes
 
-        # Method 1: Try ShellExecuteW first (works for most file types)
-        result = ctypes.windll.shell32.ShellExecuteW(
-            None,  # hwnd (no parent window)
-            "open",  # operation
-            abs_path,  # file to open
-            None,  # parameters
-            None,  # directory
-            1,  # SW_SHOWNORMAL
-        )
+            result = ctypes.windll.shell32.ShellExecuteW(
+                None,  # hwnd (no parent window)
+                "open",  # operation
+                abs_path,  # file to open
+                None,  # parameters
+                None,  # directory
+                1,  # SW_SHOWNORMAL
+            )
 
-        # ShellExecuteW returns a value > 32 on success, <= 32 on error
-        if result > 32:
-            return  # Success!
-
-        # Method 2: If ShellExecuteW fails, try os.startfile as fallback
-        try:
-            import os
-
-            os.startfile(abs_path)
-            return  # Success!
-        except OSError as e:
-            # Both methods failed - provide helpful error message
-            error_codes = {
-                2: "File not found",
-                3: "Path not found",
-                5: "Access denied - check file permissions or default application",
-                8: "Not enough memory",
-                31: "No application associated with this file type",
-            }
-            error_msg = error_codes.get(result, f"Unknown error (code: {result})")
-            raise OSError(
-                f"Failed to open '{abs_path}': {error_msg}. "
-                f"Original os.startfile error: {e}"
-            ) from e
+            # ShellExecuteW returns a value > 32 on success, <= 32 on error
+            if result <= 32:
+                error_codes = {
+                    2: "File not found",
+                    3: "Path not found",
+                    5: "Access denied - check file permissions or default application",
+                    8: "Not enough memory",
+                    31: "No application associated with this file type",
+                }
+                error_msg = error_codes.get(result, f"Unknown error (code: {result})")
+                raise OSError(f"Failed to open '{abs_path}': {error_msg}")
     elif sys.platform == "darwin":
         subprocess.run(["open", abs_path], check=True)
     else:  # Linux and other Unix-like systems
