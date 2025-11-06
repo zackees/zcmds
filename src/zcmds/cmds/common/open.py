@@ -211,7 +211,14 @@ def open_directory(dir_path: Path) -> None:
 
 def open_with_sublime(file_path: Path) -> None:
     """
-    Open a file with Sublime Text editor on Windows.
+    Open a file with Sublime Text editor on Windows in a new window.
+
+    Uses the --new-window flag to ensure each file opens in a separate Sublime window,
+    which helps prevent the jarring experience of windows being grouped on different monitors.
+
+    Note: Windows still groups all Sublime instances under one taskbar icon by default.
+    To completely prevent taskbar grouping, you would need to modify Sublime's shortcut
+    properties or use third-party taskbar management tools.
 
     Args:
         file_path: Path object pointing to the file to open
@@ -265,14 +272,14 @@ def open_with_sublime(file_path: Path) -> None:
         )
 
     # Launch Sublime Text with the file
+    # Use --new-window flag to open in a new window, which helps with multi-monitor setups
     abs_path = str(file_path.resolve())
-    subprocess.run([str(sublime_exe), abs_path], check=True)
+    subprocess.run([str(sublime_exe), "--new-window", abs_path], check=True)
 
 
 def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> None:
     """
     Open a file with the system's default application.
-    For text files, uses the built-in task editor instead of the OS default.
 
     Args:
         file_path: Path object pointing to the file to open
@@ -287,15 +294,7 @@ def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> No
         open_with_sublime(file_path)
         return
 
-    # Check if this is a text file - if so, use our editor
-    if is_text_file(file_path):
-        from zcmds.util.editor import Editor
-
-        editor = Editor(file_path)
-        editor.run()
-        return
-
-    # Get absolute path for non-text files
+    # Get absolute path
     abs_path = str(file_path.resolve())
 
     if sys.platform == "win32":
@@ -447,11 +446,9 @@ def main() -> int:
     - Opens in Finder (macOS)
     - Opens in default file manager (Linux)
 
-    For text files:
-    - Opens in built-in task editor with automatic line wrapping detection
-
-    For other files:
+    For files:
     - Opens with system default application
+    - Use --sublime flag to open with Sublime Text (Windows only)
     """
     try:
         # Parse command-line arguments
