@@ -1,19 +1,5 @@
-import _thread
-import logging
 import subprocess
 import sys
-
-
-# Configure logging
-logging.basicConfig(
-    level=logging.ERROR,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("grh.log"),
-        logging.StreamHandler(sys.stderr),
-    ],
-)
-logger = logging.getLogger(__name__)
 
 
 def main() -> int:
@@ -65,12 +51,9 @@ def main() -> int:
         return 0
 
     except KeyboardInterrupt:
-        logger.info("grh interrupted by user")
-        _thread.interrupt_main()
         print("\nOperation cancelled by user", file=sys.stderr)
         return 130
     except Exception as e:
-        logger.error(f"Error in grh: {e}")
         print(f"Error: {e}", file=sys.stderr)
         return 1
 

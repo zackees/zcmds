@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -144,6 +145,27 @@ def is_text_file(file_path: Path) -> bool:
             pass
 
     return False
+
+
+def is_url(path_str: str) -> bool:
+    """
+    Check if a string is a URL.
+
+    Args:
+        path_str: String to check
+
+    Returns:
+        True if the string is a URL, False otherwise
+    """
+    # Common URL schemes
+    url_pattern = re.compile(
+        r"^(https?|ftp|ftps|file|mailto|tel|ssh|git)://"
+        r"(\w+([.-]\w+)*\.\w+|localhost|[\d.]+)"  # domain or localhost or IP
+        r"(:\d+)?"  # optional port
+        r"(/.*)?$",  # optional path
+        re.IGNORECASE,
+    )
+    return bool(url_pattern.match(path_str))
 
 
 def normalize_path(path_str: str) -> Path:
@@ -374,10 +396,11 @@ def parse_args() -> OpenArgs:
         OpenArgs dataclass with parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Open a file or directory with the system's default application.",
+        description="Open a file, directory, or URL with the system's default application.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  open https://example.com   Open a URL in default browser
   open file.txt              Open a text file in the task editor
   open /c/Users/name/doc.pdf Open a PDF with Git Bash style path
   open ~/Documents           Open a directory in file manager
@@ -400,7 +423,7 @@ Keyboard shortcuts in task editor:
     parser.add_argument(
         "path",
         type=str,
-        help="File or directory to open (supports Unix paths, tilde, Git Bash paths)",
+        help="File, directory, or URL to open (supports URLs, Unix paths, tilde, Git Bash paths)",
     )
 
     parser.add_argument(
@@ -430,13 +453,17 @@ Keyboard shortcuts in task editor:
 
 def main() -> int:
     """
-    Open a file or directory with the system's default application.
+    Open a file, directory, or URL with the system's default application.
     If a file doesn't exist, prompts the user to create it (unless --no-create is specified).
 
-    Supports various path formats:
+    Supports various formats:
+    - URLs (http://, https://, ftp://, etc.)
     - Unix-style tilde (~)
     - Forward and backward slashes
     - Git Bash style paths (/c/Users/...)
+
+    For URLs:
+    - Opens in default web browser
 
     For directories:
     - Opens in Windows Explorer (Windows)
@@ -448,6 +475,20 @@ def main() -> int:
     - Use --sublime flag to open with Sublime Text (Windows only)
     """
     try:
+        # Get the raw path argument before parsing (to check for URLs)
+        raw_path = sys.argv[1] if len(sys.argv) > 1 else None
+
+        # Check if the argument is a URL
+        if raw_path and is_url(raw_path):
+            # Open URL in default browser in a new window
+            try:
+                webbrowser.open(raw_path, new=1)  # new=1 forces a new window
+                return 0
+            except Exception as e:
+                logger.error(f"Error opening URL in browser: {e}")
+                print(f"Error opening URL: {e}", file=sys.stderr)
+                return 1
+
         # Parse command-line arguments
         args = parse_args()
 

@@ -43,6 +43,10 @@ dependencies = [
     "advanced-askai",
     "pywinpty; platform_system=='Windows'",
     "codeup>=1.0.1",
+    "psutil",
+    "prompt_toolkit",
+    "markdown",
+    "tkinterweb",
 ]
 
 
