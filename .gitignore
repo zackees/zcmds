@@ -144,3 +144,4 @@ src/zcmds/cmds/common/losslesscut_bins/**
 tests/test_data/rembg-nobackground.webm
 
 activate
+out/
