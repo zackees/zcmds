@@ -40,7 +40,7 @@ def main():
     parser.add_argument(
         "--preset",
         help="Preset for the output video",
-        default="veryslow",
+        default=None,
         choices=ALL_PRESETS,
     )
     parser.add_argument(
@@ -70,7 +70,28 @@ def main():
         )
 
     codec = "h264_nvenc" if args.nvenc else "libx264"
-    preset = args.preset or "hq" if args.nvenc else "veryslow"
+
+    # Set preset based on encoder if not explicitly provided
+    if args.preset:
+        preset = args.preset
+        # Validate preset matches encoder
+        if args.nvenc and preset in X264_PRESETS and preset not in NVENC_PRESETS:
+            print(
+                f"Error: Preset '{preset}' is not valid for NVENC encoder.",
+                file=sys.stderr,
+            )
+            print(f"Valid NVENC presets: {', '.join(NVENC_PRESETS)}", file=sys.stderr)
+            sys.exit(1)
+        elif not args.nvenc and preset in NVENC_PRESETS and preset not in X264_PRESETS:
+            print(
+                f"Warning: Preset '{preset}' is NVENC-specific. Using with x264.",
+                file=sys.stderr,
+            )
+    elif args.nvenc:
+        preset = "slow"  # Default NVENC preset
+    else:
+        preset = "veryslow"  # Default x264 preset
+
     scale_cmd = f'-vf scale="trunc(oh*a/2)*2:{args.height}"' if args.height else ""
 
     if args.rencode:
