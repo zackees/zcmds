@@ -1,33 +1,39 @@
 name: Linting
 
-on: [push]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: [3.11.3]
-        os: [ubuntu-latest]
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      PYGAME_HIDE_SUPPORT_PROMPT: "1"
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
-    - uses: actions/cache@v3
-      name: Configure pip caching
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        python-version: "3.11"
+        cache: pip
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libasound2-dev
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        sudo apt-get install libasound2-dev
-        python -m pip install .
-        python -m pip install -r requirements.testing.txt
-    - name: Run Linting
+        python -m pip install uv
+    - name: Check formatting
       run: |
-        ./lint
+        uv run --frozen --group test ruff format --check src
+    - name: Run ruff
+      run: |
+        uv run --frozen --group test ruff check src
+    - name: Run pyright
+      run: |
+        uv run --frozen --group test pyright src

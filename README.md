@@ -1,11 +1,11 @@
 # zcmds
 Cross platform(ish) productivity commands written in python. Tools for doing media manipulation through ffmpeg and AI. On Windows ls, rm and other common unix file commands are installed. Whenever there is something that doesn't work on Windows but does on Mac/Linux, I will apply a tool to make it work here. This toolset is ever-evolving and it's going to get insane in 2024 with all the AI that I'm now integrating.
 
-[![MacOS_Tests](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
-[![Win_Tests](https://github.com/zackees/zcmds/actions/workflows/push_win.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_win.yml)
-[![Ubuntu_Tests](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
+[![MacOS_Tests](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml/badge.svg?branch=master)](https://github.com/zackees/zcmds/actions/workflows/push_macos.yml)
+[![Win_Tests](https://github.com/zackees/zcmds/actions/workflows/push_win.yml/badge.svg?branch=master)](https://github.com/zackees/zcmds/actions/workflows/push_win.yml)
+[![Ubuntu_Tests](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml/badge.svg?branch=master)](https://github.com/zackees/zcmds/actions/workflows/push_ubuntu.yml)
 
-[![Linting](https://github.com/zackees/zcmds/actions/workflows/lint.yml/badge.svg)](https://github.com/zackees/zcmds/actions/workflows/lint.yml)
+[![Linting](https://github.com/zackees/zcmds/actions/workflows/lint.yml/badge.svg?branch=master)](https://github.com/zackees/zcmds/actions/workflows/lint.yml)
 
 # Install
 
