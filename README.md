@@ -9,10 +9,29 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
 
 # Install
 
+`pipx` is the recommended install path. This is especially important on
+Debian/Ubuntu systems that enforce PEP 668 and block global `pip install`
+inside the externally managed system Python.
+
 ```bash
-> pip install zcmds
-> zcmds  # shows all commands
-> diskaudit  # audits the disk usage from the current directory.
+pipx install zcmds
+zcmds  # shows all commands
+diskaudit  # audits the disk usage from the current directory.
+```
+
+If `pipx` is not installed:
+
+```bash
+sudo apt install pipx
+pipx ensurepath
+```
+
+For a local virtual environment instead of `pipx`:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install zcmds
 ```
 
 # Commands
@@ -125,7 +144,7 @@ Cross platform(ish) productivity commands written in python. Tools for doing med
 
   * `git clone https://github.com/zackees/zcmds`
   * `cd zcmds`
-  * `python -pip install -e .`
+  * `python -m pip install -e .`
   * Test by typing in `zcmds`
 
 # How to Add a New Command
