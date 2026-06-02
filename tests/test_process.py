@@ -78,7 +78,10 @@ class TestLaunchDetached(unittest.TestCase):
 
     def test_absolute_path_executable_not_exists_raises_error(self) -> None:
         """Test that FileNotFoundError is raised for non-existent absolute path."""
-        test_path = Path("C:\\NonexistentPath\\app.exe")
+        if sys.platform == "win32":
+            test_path = Path("C:\\NonexistentPath\\app.exe")
+        else:
+            test_path = Path("/tmp/nonexistent-zcmds-app")
 
         with self.assertRaises(FileNotFoundError) as context:
             launch_detached([test_path, "arg1"])
