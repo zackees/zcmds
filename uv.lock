@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "advanced-askai"
-version = "1.0.2"
+version = "1.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -30,9 +30,8 @@ dependencies = [
     { name = "openai" },
     { name = "tiktoken" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/33/a6/20995e581059e3a625e5862c89a6a3acb035b247d47061e59f966278dc41/advanced_askai-1.0.2.tar.gz", hash = "sha256:d7bad46b978dc0fe85ec7e5fd9b5a9c8a12bca5a832b2d4caf5ff48c7c9baed1", size = 21624, upload-time = "2024-12-29T01:08:50.362Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/b2/683dde82ee3bcd4e7ac2d8a42407bea74ebe454edaad475e4dfe59b7fc26/advanced_askai-1.0.2-py2.py3-none-any.whl", hash = "sha256:4812c808a6ded9fed755a1eaf6ba78025551edeea5b69efc098495603323d706", size = 15708, upload-time = "2024-12-29T01:08:49.075Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/14/f93c882a5a9c9cff0e0db12d37c3c40579c42567ef9599a0f936ab976a44/advanced_askai-1.0.3-py3-none-any.whl", hash = "sha256:211222b147d6126798e784019f1c2370cba478dffd692b404a8319c6decd2c2b", size = 15762, upload-time = "2026-06-02T19:25:07.421Z" },
 ]
 
 [[package]]
@@ -2301,7 +2300,7 @@ wheels = [
 
 [[package]]
 name = "static-ffmpeg"
-version = "2.13"
+version = "3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -2310,7 +2309,7 @@ dependencies = [
     { name = "twine" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/39/1a5d0603280dd681ec52a2a6717c05dab530190dff7887b7603740a1741b/static_ffmpeg-2.13-py3-none-any.whl", hash = "sha256:3bed55a7979f9de9d1eec1126b98774a1d41c2e323811f59973d54b9c94d6dac", size = 7586, upload-time = "2025-03-30T23:34:20.646Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/d3/c238124fbf2dbe5eda203f0a1c4cd6c210e27993ed9780c4c1bf2ab0efbe/static_ffmpeg-3.0-py3-none-any.whl", hash = "sha256:79d9067264cefbb05e6b847be7d6cb7410b7b25adce40178a787f0137567c89f", size = 7927, upload-time = "2026-01-16T21:17:10.643Z" },
 ]
 
 [[package]]
@@ -2479,7 +2478,7 @@ wheels = [
 
 [[package]]
 name = "transcribe-anything"
-version = "3.0.11"
+version = "3.2.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -2492,7 +2491,7 @@ dependencies = [
     { name = "yt-dlp" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/1c/cd212638928ba55bd356a8fa829d93b755fe40e36ba4870965fa884de68b/transcribe_anything-3.0.11-py3-none-any.whl", hash = "sha256:ee9b8cd54662b60db036ce72a643ebdc23618103415f14ceaf10b7192d2ea497", size = 192657, upload-time = "2025-04-29T22:34:37.181Z" },
+    { url = "https://files.pythonhosted.org/packages/23/a8/7145e097b5b7dd297d46e35340267d51158366846a95ea122d8879b6fe2f/transcribe_anything-3.2.10-py3-none-any.whl", hash = "sha256:8a917bef585fab23517f196dded51be9b4012d154991b2114efcfb9c2e1b7658", size = 207210, upload-time = "2026-05-30T23:49:31.212Z" },
 ]
 
 [[package]]
@@ -2633,14 +2632,15 @@ wheels = [
 
 [[package]]
 name = "uv-iso-env"
-version = "1.0.43"
+version = "1.0.44"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "filelock" },
     { name = "twine" },
     { name = "uv" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/3c/763a485473cb9a2f8eb24b1a953c41cb7f804557c3c3d0e47d0b3e29a5c6/uv_iso_env-1.0.43-py3-none-any.whl", hash = "sha256:6f0ae4a7c67cacff215348018c571bddf1d266618ef94debd8cab23f2af96704", size = 8936, upload-time = "2025-04-28T23:08:32.302Z" },
+    { url = "https://files.pythonhosted.org/packages/75/03/e4746d0751e9c89ad6fe68a8cb4fef2d90d8b3067bc2ae98746118dba7ef/uv_iso_env-1.0.44-py3-none-any.whl", hash = "sha256:0f902b477d96280aec72ef8de00bcf2226feb8d686a473ed911d6a8be6f915eb", size = 9580, upload-time = "2026-05-30T19:01:55.667Z" },
 ]
 
 [[package]]
@@ -2771,7 +2771,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "advanced-aicode", specifier = ">=1.1.0" },
-    { name = "advanced-askai" },
+    { name = "advanced-askai", specifier = ">=1.0.3" },
     { name = "anthropic", specifier = ">=0.21.0" },
     { name = "appdirs" },
     { name = "codeup", specifier = ">=1.0.1" },
@@ -2802,7 +2802,7 @@ requires-dist = [
     { name = "static-ffmpeg", specifier = ">=2.5" },
     { name = "static-sox" },
     { name = "tkinterweb" },
-    { name = "transcribe-anything", specifier = ">=2.7.27" },
+    { name = "transcribe-anything", specifier = ">=3.0.11" },
     { name = "wormhole-tx" },
     { name = "ytclip" },
     { name = "zcmds-win32", marker = "sys_platform == 'win32'", specifier = ">=1.2.12" },

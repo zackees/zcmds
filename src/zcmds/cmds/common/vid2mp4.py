@@ -2,8 +2,10 @@
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
+from typing import Sequence
 
 
 VERSION = "0.2.0"
@@ -32,7 +34,34 @@ NVENC_PRESETS = [
 ALL_PRESETS = X264_PRESETS + NVENC_PRESETS
 
 
-def main():
+def build_ffmpeg_command(
+    filename: str,
+    out_path: Path,
+    *,
+    rencode: bool,
+    codec: str,
+    preset: str,
+    crf: int,
+    height: int | None,
+) -> list[str]:
+    if not rencode:
+        return ["ffmpeg", "-i", filename, "-c", "copy", str(out_path)]
+
+    command = ["static_ffmpeg", "-hide_banner", "-i", filename]
+    if height:
+        command.extend(["-vf", f"scale=trunc(oh*a/2)*2:{height}"])
+
+    command.extend(["-vcodec", codec, "-preset", preset])
+    if codec == "h264_nvenc":
+        command.extend(["-rc", "constqp", "-qp", str(crf or 23)])
+    else:
+        command.extend(["-crf", str(crf or 23)])
+
+    command.extend(["-c:a", "copy", "-y", str(out_path)])
+    return command
+
+
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Convert video to mp4")
     parser.add_argument("filename", help="Path to video file", nargs="?")
     parser.add_argument("--rencode", help="Rencode the video", action="store_true")
@@ -51,15 +80,17 @@ def main():
     )
     parser.add_argument("--height", help="Output video height.", type=int, default=None)
     parser.add_argument("--version", help="Print version and exit", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.version:
         print(VERSION)
-        sys.exit(0)
-    args.rencode = args.rencode or args.nvenc or args.crf or args.height
+        return 0
+    if not args.filename:
+        parser.error("filename is required")
+    should_rencode = bool(args.rencode or args.nvenc or args.crf or args.height)
     filename = args.filename
     if not os.path.exists(filename):
-        print(f"{filename} does not exist")
-        sys.exit(1)
+        print(f"{filename} does not exist", file=sys.stderr)
+        return 1
     out_path = Path(filename).with_suffix(".mp4")
     if out_path.exists():
         # Remove suffix from file name and add _converted.mp4
@@ -81,7 +112,7 @@ def main():
                 file=sys.stderr,
             )
             print(f"Valid NVENC presets: {', '.join(NVENC_PRESETS)}", file=sys.stderr)
-            sys.exit(1)
+            return 1
         elif not args.nvenc and preset in NVENC_PRESETS and preset not in X264_PRESETS:
             print(
                 f"Warning: Preset '{preset}' is NVENC-specific. Using with x264.",
@@ -92,19 +123,23 @@ def main():
     else:
         preset = "veryslow"  # Default x264 preset
 
-    scale_cmd = f'-vf scale="trunc(oh*a/2)*2:{args.height}"' if args.height else ""
-
-    if args.rencode:
-        quality_stmt = f"-crf {args.crf}" if args.crf else "-b:v 0 -crf 23"
-        if codec == "h264_nvenc":
-            quality_stmt = f"-cq {args.crf}" if args.crf else "-cq 23"
-        cmd = f'static_ffmpeg -hide_banner -i "{filename}" {scale_cmd} -vcodec {codec} -preset {preset} {quality_stmt} -c:a copy -y "{out_path}"'
-    else:
-        cmd = f'ffmpeg -i "{filename}" -c copy "{out_path}"'
-    print(f"Running:\n  {cmd}")
-    os.system(cmd)
+    cmd = build_ffmpeg_command(
+        filename,
+        out_path,
+        rencode=should_rencode,
+        codec=codec,
+        preset=preset,
+        crf=args.crf,
+        height=args.height,
+    )
+    print(f"Running:\n  {subprocess.list2cmdline(cmd)}")
+    result = subprocess.run(cmd, check=False)
+    if result.returncode != 0:
+        print(f"ffmpeg failed with exit code {result.returncode}", file=sys.stderr)
+        return result.returncode
     print(f"Generated {out_path}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
