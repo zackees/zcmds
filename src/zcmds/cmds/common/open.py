@@ -4,6 +4,7 @@ import logging
 import mimetypes
 import os
 import re
+import shutil
 import subprocess
 import sys
 import webbrowser
@@ -233,9 +234,67 @@ def open_directory(dir_path: Path) -> None:
         subprocess.run(["xdg-open", abs_path], check=True)
 
 
-def open_with_sublime(file_path: Path) -> None:
+SUBLIME_NOT_FOUND_MESSAGE = (
+    "Sublime Text not found. Please install it or ensure it's in your PATH."
+)
+
+
+def _sublime_candidates() -> list[Path]:
     """
-    Open a file with Sublime Text editor on Windows in a new window.
+    Return platform-specific Sublime Text install locations to check.
+
+    Returns:
+        List of candidate executable paths for the current platform
+    """
+    if sys.platform == "win32":
+        return [
+            Path(os.environ.get("ProgramFiles", "C:\\Program Files"))
+            / "Sublime Text"
+            / "sublime_text.exe",
+            Path(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"))
+            / "Sublime Text"
+            / "sublime_text.exe",
+            Path.home()
+            / "AppData"
+            / "Local"
+            / "Programs"
+            / "Sublime Text"
+            / "sublime_text.exe",
+        ]
+    if sys.platform == "darwin":
+        bundle_subl = Path("Sublime Text.app") / "Contents" / "SharedSupport" / "bin"
+        return [
+            Path("/Applications") / bundle_subl / "subl",
+            Path.home() / "Applications" / bundle_subl / "subl",
+        ]
+    return []
+
+
+def find_sublime() -> Path | None:
+    """
+    Locate the Sublime Text executable on any platform.
+
+    Checks PATH for `subl` and `sublime_text` first, then common install locations
+    (Program Files / AppData on Windows, the app bundle on macOS).
+
+    Returns:
+        Path to the Sublime Text executable, or None if it is not installed
+    """
+    for name in ("subl", "sublime_text"):
+        found = shutil.which(name)
+        if found:
+            return Path(found)
+
+    for candidate in _sublime_candidates():
+        if candidate.exists():
+            return candidate
+
+    return None
+
+
+def open_with_sublime(file_path: Path, sublime_exe: Path | None = None) -> None:
+    """
+    Open a file with Sublime Text editor in a new window.
 
     Uses the --new-window flag to ensure each file opens in a separate Sublime window,
     which helps prevent the jarring experience of windows being grouped on different monitors.
@@ -246,114 +305,74 @@ def open_with_sublime(file_path: Path) -> None:
 
     Args:
         file_path: Path object pointing to the file to open
+        sublime_exe: Sublime Text executable to use; discovered if not given
 
     Raises:
         FileNotFoundError: If Sublime Text is not found
-        subprocess.CalledProcessError: If the open command fails
     """
-    if sys.platform != "win32":
-        raise OSError("Sublime Text integration is only supported on Windows")
-
-    # Common installation paths for Sublime Text
-    sublime_paths = [
-        Path(os.environ.get("ProgramFiles", "C:\\Program Files"))
-        / "Sublime Text"
-        / "sublime_text.exe",
-        Path(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"))
-        / "Sublime Text"
-        / "sublime_text.exe",
-        Path.home()
-        / "AppData"
-        / "Local"
-        / "Programs"
-        / "Sublime Text"
-        / "sublime_text.exe",
-    ]
-
-    # Try to find Sublime Text in the common paths
-    sublime_exe = None
-    for path in sublime_paths:
-        if path.exists():
-            sublime_exe = path
-            break
-
-    # If not found in common paths, try to find it via 'where' command
     if sublime_exe is None:
-        try:
-            result = subprocess.run(
-                ["where", "subl"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            sublime_exe = Path(result.stdout.strip().split("\n")[0])
-        except subprocess.CalledProcessError:
-            pass
-
-    if sublime_exe is None or not sublime_exe.exists():
-        raise FileNotFoundError(
-            "Sublime Text not found. Please install it or ensure it's in your PATH."
-        )
-
-    # Launch Sublime Text with the file in a detached process
-    # Use --new-window flag to open in a new window, which helps with multi-monitor setups
-    abs_path = file_path.resolve()
+        sublime_exe = find_sublime()
+    if sublime_exe is None:
+        raise FileNotFoundError(SUBLIME_NOT_FOUND_MESSAGE)
 
     # Use launch_detached to avoid blocking the terminal
     # This allows the terminal to respond immediately without waiting for Sublime to close
-    launch_detached([sublime_exe, "--new-window", abs_path])
+    launch_detached([sublime_exe, "--new-window", file_path.resolve()])
 
 
 def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> None:
     """
     Open a file with the appropriate application.
 
-    On Windows:
-    - Text files (detected by extension): Opens with Sublime Text
-    - Other files: Opens with system default application
-
-    On macOS/Linux:
-    - Uses system default application (open/xdg-open)
+    On all platforms:
+    - Text files (detected by extension/content): Opens with Sublime Text if installed
+    - Other files, or text files without Sublime: Opens with system default application
+      (ShellExecute on Windows, open on macOS, xdg-open on Linux)
 
     Args:
         file_path: Path object pointing to the file to open
-        use_sublime: If True, force open with Sublime Text on Windows (overrides default behavior)
+        use_sublime: If True, force open with Sublime Text (errors if not installed)
 
     Raises:
+        FileNotFoundError: If use_sublime is set and Sublime Text is not found
         subprocess.CalledProcessError: If the open command fails
         OSError: If the file cannot be opened
     """
+    if use_sublime or is_text_file(file_path):
+        sublime_exe = find_sublime()
+        if sublime_exe is not None:
+            open_with_sublime(file_path, sublime_exe)
+            return
+        if use_sublime:
+            raise FileNotFoundError(SUBLIME_NOT_FOUND_MESSAGE)
+
     # Get absolute path
     abs_path = str(file_path.resolve())
 
     if sys.platform == "win32":
-        # On Windows, check if it's a text file or if --sublime flag is set
-        if use_sublime or is_text_file(file_path):
-            open_with_sublime(file_path)
-        else:
-            # For non-text files, use Windows shell to open with default app
-            import ctypes
+        # Use Windows shell to open with default app
+        import ctypes
 
-            result = ctypes.windll.shell32.ShellExecuteW(
-                None,  # hwnd (no parent window)
-                "open",  # operation
-                abs_path,  # file to open
-                None,  # parameters
-                None,  # directory
-                1,  # SW_SHOWNORMAL
-            )
+        result = ctypes.windll.shell32.ShellExecuteW(
+            None,  # hwnd (no parent window)
+            "open",  # operation
+            abs_path,  # file to open
+            None,  # parameters
+            None,  # directory
+            1,  # SW_SHOWNORMAL
+        )
 
-            # ShellExecuteW returns a value > 32 on success, <= 32 on error
-            if result <= 32:
-                error_codes = {
-                    2: "File not found",
-                    3: "Path not found",
-                    5: "Access denied - check file permissions or default application",
-                    8: "Not enough memory",
-                    31: "No application associated with this file type",
-                }
-                error_msg = error_codes.get(result, f"Unknown error (code: {result})")
-                raise OSError(f"Failed to open '{abs_path}': {error_msg}")
+        # ShellExecuteW returns a value > 32 on success, <= 32 on error
+        if result <= 32:
+            error_codes = {
+                2: "File not found",
+                3: "Path not found",
+                5: "Access denied - check file permissions or default application",
+                8: "Not enough memory",
+                31: "No application associated with this file type",
+            }
+            error_msg = error_codes.get(result, f"Unknown error (code: {result})")
+            raise OSError(f"Failed to open '{abs_path}': {error_msg}")
     elif sys.platform == "darwin":
         subprocess.run(["open", abs_path], check=True)
     else:  # Linux and other Unix-like systems
@@ -401,22 +420,13 @@ def parse_args() -> OpenArgs:
         epilog="""
 Examples:
   open https://example.com   Open a URL in default browser
-  open file.txt              Open a text file in the task editor
+  open file.txt              Open a text file in Sublime Text (or the default app)
   open /c/Users/name/doc.pdf Open a PDF with Git Bash style path
   open ~/Documents           Open a directory in file manager
   open .                     Open current directory
   open --no-create new.txt   Don't prompt to create if file doesn't exist
-  open --sublime code.py     Open code.py in Sublime Text (Windows only)
-  open --subl script.js      Open script.js in Sublime Text (Windows only)
-
-Keyboard shortcuts in task editor:
-  Ctrl+S        Save
-  Ctrl+Q        Quit
-  Ctrl+W        Toggle line wrapping
-  Ctrl++        Increase font size
-  Ctrl+-        Decrease font size
-  Ctrl+Z        Undo
-  Ctrl+Y        Redo
+  open --sublime notes.log   Force opening in Sublime Text
+  open --subl script.js      Force opening in Sublime Text
         """,
     )
 
@@ -438,7 +448,7 @@ Keyboard shortcuts in task editor:
         "--subl",
         dest="use_sublime",
         action="store_true",
-        help="Open file in Sublime Text editor (Windows only)",
+        help="Open file in Sublime Text editor (error if it is not installed)",
     )
 
     args = parser.parse_args()
@@ -471,8 +481,9 @@ def main() -> int:
     - Opens in default file manager (Linux)
 
     For files:
-    - Opens with system default application
-    - Use --sublime flag to open with Sublime Text (Windows only)
+    - Text files open in Sublime Text when it is installed
+    - Other files open with the system default application
+    - Use --sublime flag to force Sublime Text
     """
     try:
         # Get the raw path argument before parsing (to check for URLs)
