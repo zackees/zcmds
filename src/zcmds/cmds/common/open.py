@@ -428,6 +428,7 @@ Examples:
   open /c/Users/name/doc.pdf Open a PDF with Git Bash style path
   open ~/Documents           Open a directory in file manager
   open .                     Open current directory
+  open                       Open current directory (same as `open .`)
   open --no-create new.txt   Don't prompt to create if file doesn't exist
   open --sublime notes.log   Force opening in Sublime Text
   open --subl script.js      Force opening in Sublime Text
@@ -437,7 +438,9 @@ Examples:
     parser.add_argument(
         "path",
         type=str,
-        help="File, directory, or URL to open (supports URLs, Unix paths, tilde, Git Bash paths)",
+        nargs="?",
+        default=".",
+        help="File, directory, or URL to open (supports URLs, Unix paths, tilde, Git Bash paths). Defaults to the current directory.",
     )
 
     parser.add_argument(

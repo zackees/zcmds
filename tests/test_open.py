@@ -178,5 +178,20 @@ class TestFindSublime(unittest.TestCase):
             self.assertIsNone(open_cmd.find_sublime())
 
 
+class TestOpenNoArgs(unittest.TestCase):
+    """`open` with no arguments opens the current directory."""
+
+    def test_no_args_opens_current_directory(self) -> None:
+        with (
+            patch.object(sys, "argv", ["open"]),
+            patch.object(open_cmd, "open_directory") as mock_open_directory,
+            patch.object(open_cmd.error_file_handler, "emit"),
+        ):
+            result = open_cmd.main()
+
+        self.assertEqual(result, 0)
+        mock_open_directory.assert_called_once_with(Path("."))
+
+
 if __name__ == "__main__":
     unittest.main()

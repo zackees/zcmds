@@ -74,8 +74,10 @@ python -m pip install zcmds
     * Merges a clean git repo (no untracked files) to the target branch, pushes that target branch, then switches back to the original branch.
   * new
     * Opens a new terminal command window from the current terminal command window.
-  * printenv
+  * printenv (win32 only, provided by `zcmds_win32`)
     * prints the current environment variables, including path. Everything is sorted
+  * runtest
+    * Finds the nearest `./test` script in the current or parent directories and runs it with bash. Formerly named `test`.
   * pdf2png
     * Converts a pdf to a series of images
   * pdf2txt
@@ -279,6 +281,7 @@ TODO: Add a cleanup function to undo this.
 
 
 # Release Notes
+  * 1.5.40: `test` is renamed to `runtest`, and `printenv` is now only installed on Windows (via `zcmds_win32`), so neither shadows the POSIX commands on Linux/macOS. `open` with no arguments opens the current directory.
   * 1.5.5: `docker-purge` to remove all docker artifacts and do a clean build.
   * 1.5.4: `codeup` no accepts `--verbose` and `--no-lint`
   * 1.5.3: `vidinfo` is now more robust and can now handle mkv files without crashing.
