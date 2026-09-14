@@ -14,6 +14,10 @@ from pathlib import Path
 from zcmds.util.process import launch_detached
 
 
+# Absolute path so zcmds' own `open` console script is never re-invoked via PATH
+MACOS_OPEN = "/usr/bin/open"
+
+
 class ErrorFileHandler(logging.Handler):
     """Handler that only creates a log file when an error is logged."""
 
@@ -229,7 +233,7 @@ def open_directory(dir_path: Path) -> None:
                 f"Failed to open directory: {abs_path} (ShellExecute error code: {result})"
             )
     elif sys.platform == "darwin":
-        subprocess.run(["open", abs_path], check=True)
+        subprocess.run([MACOS_OPEN, abs_path], check=True)
     else:  # Linux and other Unix-like systems
         subprocess.run(["xdg-open", abs_path], check=True)
 
@@ -374,7 +378,7 @@ def open_file_with_default_app(file_path: Path, use_sublime: bool = False) -> No
             error_msg = error_codes.get(result, f"Unknown error (code: {result})")
             raise OSError(f"Failed to open '{abs_path}': {error_msg}")
     elif sys.platform == "darwin":
-        subprocess.run(["open", abs_path], check=True)
+        subprocess.run([MACOS_OPEN, abs_path], check=True)
     else:  # Linux and other Unix-like systems
         subprocess.run(["xdg-open", abs_path], check=True)
 
