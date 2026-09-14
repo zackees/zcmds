@@ -97,6 +97,41 @@ class TestSublimeFlag(unittest.TestCase):
         self.assertIn("Sublime Text not found", written)
 
 
+class TestMacOSOpen(unittest.TestCase):
+    """macOS calls /usr/bin/open by absolute path so zcmds' `open` never re-runs itself."""
+
+    def _run_on_darwin(self, func, path: Path) -> MagicMock:
+        with (
+            patch.object(sys, "platform", "darwin"),
+            patch("shutil.which", return_value=None),
+            patch.object(open_cmd, "_sublime_candidates", return_value=[]),
+            patch.object(open_cmd.subprocess, "run") as mock_run,
+        ):
+            func(path)
+        return mock_run
+
+    def test_directory_uses_system_open(self) -> None:
+        path = Path(".")
+        mock_run = self._run_on_darwin(open_cmd.open_directory, path)
+        mock_run.assert_called_once_with(
+            ["/usr/bin/open", str(path.resolve())], check=True
+        )
+
+    def test_non_text_file_uses_system_open(self) -> None:
+        path = Path("doc.pdf")
+        mock_run = self._run_on_darwin(open_cmd.open_file_with_default_app, path)
+        mock_run.assert_called_once_with(
+            ["/usr/bin/open", str(path.resolve())], check=True
+        )
+
+    def test_text_file_without_sublime_uses_system_open(self) -> None:
+        path = Path("notes.txt")
+        mock_run = self._run_on_darwin(open_cmd.open_file_with_default_app, path)
+        mock_run.assert_called_once_with(
+            ["/usr/bin/open", str(path.resolve())], check=True
+        )
+
+
 class TestFindSublime(unittest.TestCase):
     """Sublime Text discovery checks PATH first, then platform install locations."""
 
