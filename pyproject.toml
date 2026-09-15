@@ -30,7 +30,7 @@ dependencies = [
     "gTTS",
     "py7zr",
     "static-ffmpeg>=2.5",
-    "zcmds_win32>=1.2.12; platform_system=='Windows'",
+    "zcmds_win32>=1.2.31; platform_system=='Windows'",
     "static-sox",
     "json5",
     "pipx",

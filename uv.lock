@@ -552,7 +552,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -2805,7 +2805,7 @@ requires-dist = [
     { name = "transcribe-anything", specifier = ">=3.0.11" },
     { name = "wormhole-tx" },
     { name = "ytclip" },
-    { name = "zcmds-win32", marker = "sys_platform == 'win32'", specifier = ">=1.2.12" },
+    { name = "zcmds-win32", marker = "sys_platform == 'win32'", specifier = ">=1.2.31" },
 ]
 
 [package.metadata.requires-dev]
@@ -2818,15 +2818,15 @@ test = [
 
 [[package]]
 name = "zcmds-win32"
-version = "1.2.27"
+version = "1.2.31"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "download" },
     { name = "sudo-win32", extra = ["sudo"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/1d/23523877a1e5688487bcc628ed7c0ff1ae16e220537aba4389de9c5c2cd8/zcmds_win32-1.2.27.tar.gz", hash = "sha256:298f819189702614b95d72640980cab0eabd671ec728dea86e6c7881f78d43cc", size = 17500, upload-time = "2024-12-14T23:38:20.094Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/29/26149054a67effdc5a0ed7d86bc7ab981054e61c4e0d1f8a638b6e55a51b/zcmds_win32-1.2.31.tar.gz", hash = "sha256:f86232b1adf4d3d6b46eefe75e4ddf122fb500c0b1d98c3f5135b2fddbfafc2b", size = 95301400, upload-time = "2026-09-15T00:43:07.789Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/f7/c12bc4872c2e3eb3d09a7a421e2eb603146f190edf91a4596719724ffa40/zcmds_win32-1.2.27-py3-none-any.whl", hash = "sha256:a93a9930e6aeed9b6f30a359e32a9a0b384afe757903a5c28679fd78e9fd1cf6", size = 21505, upload-time = "2024-12-14T23:38:18.839Z" },
+    { url = "https://files.pythonhosted.org/packages/53/a5/86adf623acaa6a7318570a9859b760303c3dee75b7ce6e1b5a4c7e390a9d/zcmds_win32-1.2.31-py3-none-any.whl", hash = "sha256:7bbb6966385869662e15f0251220c8e00e409ccd1af9f5eb27f93c751b4add63", size = 17788, upload-time = "2026-09-15T00:43:04.398Z" },
 ]
 
 [[package]]
