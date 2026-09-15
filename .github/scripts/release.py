@@ -178,12 +178,22 @@ def decide(
     return Decision(False, False, f"unsupported event {event!r}")
 
 
+DIST_SUFFIXES = (".whl", ".tar.gz")
+
+
 def dist_files(dist: Path) -> list[str]:
-    """Distribution filenames in dist, ignoring dotfiles such as uv's .gitignore."""
+    """Wheel and sdist filenames in dist.
+
+    Everything else is ignored: uv build writes a .gitignore, and
+    pypa/gh-action-pypi-publish writes *.publish.attestation files next to the
+    distributions, which PyPI never lists as downloadable files.
+    """
     return sorted(
         path.name
         for path in dist.iterdir()
-        if path.is_file() and not path.name.startswith(".")
+        if path.is_file()
+        and not path.name.startswith(".")
+        and path.name.endswith(DIST_SUFFIXES)
     )
 
 
