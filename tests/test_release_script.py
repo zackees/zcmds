@@ -137,6 +137,17 @@ class TestVerifyDist(unittest.TestCase):
             ["my_pkg-1.0.0-py3-none-any.whl", "my_pkg-1.0.0.tar.gz"],
         )
 
+    def test_publish_attestations_are_not_distributions(self) -> None:
+        """pypa/gh-action-pypi-publish writes attestations PyPI never lists as files."""
+        (self.dist / "my_pkg-1.0.0-py3-none-any.whl").write_bytes(b"")
+        (self.dist / "my_pkg-1.0.0.tar.gz").write_bytes(b"")
+        (self.dist / "my_pkg-1.0.0-py3-none-any.whl.publish.attestation").write_text("{}")
+        (self.dist / "my_pkg-1.0.0.tar.gz.publish.attestation").write_text("{}")
+        self.assertEqual(
+            release.dist_files(self.dist),
+            ["my_pkg-1.0.0-py3-none-any.whl", "my_pkg-1.0.0.tar.gz"],
+        )
+
     def test_version_mismatch_fails(self) -> None:
         _write_wheel(self.dist / "my_pkg-0.9.0-py3-none-any.whl", "my_pkg", "0.9.0")
         (self.dist / "my_pkg-0.9.0.tar.gz").write_bytes(b"")
