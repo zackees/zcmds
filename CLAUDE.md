@@ -23,8 +23,12 @@ zcmds is a cross-platform productivity command-line toolset written in Python. I
 
 # Package Management
 pip install -e .  # Install in development mode
-uv run python setup.py sdist bdist_wheel  # Build distribution
-./upload_package.sh  # Upload to PyPI
+uv build  # Build sdist and wheel
+
+# Releasing: bump __version__ in src/zcmds/__init__.py and merge to master.
+# .github/workflows/auto-release.yml ("Auto Release") then publishes to PyPI via
+# Trusted Publishing and creates the v<version> tag and GitHub Release.
+# Recovery: run the workflow manually with dry-run unchecked.
 
 # Python Execution
 # IMPORTANT: Always use uv to run Python commands
