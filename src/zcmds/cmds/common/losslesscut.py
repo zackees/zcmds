@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -26,11 +27,46 @@ def unc_path_to_windows_path(path: Path) -> str:
     return path_str
 
 
+def find_system_losslesscut(
+    path: str | None = None, self_path: str | None = None
+) -> str | None:
+    """Find a real `losslesscut` on PATH that is not this console script."""
+    if path is None:
+        path = os.environ.get("PATH", "")
+    if self_path is None:
+        self_path = sys.argv[0]
+    skip_files: set[str] = set()
+    skip_dirs: set[str] = set()
+    for p in (self_path, shutil.which(self_path) if self_path else None):
+        if p:
+            skip_files.add(os.path.realpath(p))
+    # The venv's own bin dir holds this shim; never pick anything from it.
+    skip_dirs.add(os.path.realpath(os.path.dirname(sys.executable)))
+    if self_path and os.sep in self_path:
+        skip_dirs.add(os.path.realpath(os.path.dirname(os.path.abspath(self_path))))
+    for d in path.split(os.pathsep):
+        if not d or os.path.realpath(d) in skip_dirs:
+            continue
+        candidate = os.path.join(d, "losslesscut")
+        if not (os.path.isfile(candidate) and os.access(candidate, os.X_OK)):
+            continue
+        if os.path.realpath(candidate) in skip_files:
+            continue
+        return candidate
+    return None
+
+
 def main() -> int:
     if sys.platform != "win32":
-        raise NotImplementedError(
-            f"Lossless cut download not implemented for {sys.platform}"
-        )
+        exe = find_system_losslesscut()
+        if exe is None:
+            print(
+                "losslesscut: no LosslessCut installation found on PATH. "
+                "Install LosslessCut via your system package manager.",
+                file=sys.stderr,
+            )
+            return 1
+        os.execv(exe, [exe, *sys.argv[1:]])
     os.makedirs(LOSSLESS_CUT_BINS, exist_ok=True)
     filename = Path(URL).name
     target_file = LOSSLESS_CUT_BINS / filename
